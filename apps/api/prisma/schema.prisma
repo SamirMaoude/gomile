@@ -7,330 +7,84 @@
 // modifier ici pour créer le schéma relationnel
 
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
 }
 
-// 4 role, admin, driver, customer and merchant
 enum Role {
-  ADMIN
-  DRIVER
-  CUSTOMER
   MERCHANT
+  DRIVER
+  ADMIN
 }
 
 enum KycStatus {
   PENDING
-  ACCEPTED
+  APPROVED
   REJECTED
-  NOT_SUBMITTED
-}
-
-enum WalletEntryType {
-  CREDIT
-  DEBIT
-}
-
-enum WalletEntryStatus {
-  PENDING
-  COMPLETED
-  CANCELLED
-}
-
-enum StoreProvider {
-  WOOCOMMERCE
-  SHOPIFY
-  OTHER
-}
-
-enum Gender {
-  MALE
-  FEMALE
-  UNDEFINED
-}
-
-enum OrderStatus {
-  SEARCHING_DRIVER
-  DRIVER_ASSIGNED
-  DRIVER_ACCEPTED
-  PICKED_UP
-  DELIVERED
-  CANCELLED
-}
-
-enum PackageSize {
-  SMALL
-  MEDIUM
-  LARGE
-  EXTRA_LARGE
-}
-
-enum OrderType {
-  FOOD
-  PHARMACY
-  GROCERY
-  CLOTHING
-  ELECTRONICS
-  FURNITURE
-  DOCUMENTS
-  OTHER
-}
-
-enum HandshakeType {
-  A
-  B
-}
-
-enum VehicleType {
-  CAR
-  BIKE
-  SCOOTER
-  TRUCK
-}
-
-enum DriverStatus {
-  AVAILABLE
-  BUSY
-  OFFLINE
-}
-
-enum DocumentType {
-  DRIVING_LICENSE
-  REGISTRATION_CARD
-  RIB
-  CNI
-  PASSPORT
-  OTHER
 }
 
 model User {
-  id           String   @id @default(uuid()) @db.Uuid
+  id           String   @id @default(uuid())
   email        String   @unique
-  phone        String?  @unique
   password     String
   role         Role
   refreshToken String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  passwordResetToken  String?
-  passwordResetExpiry DateTime?
-  
-  emailVerified Boolean @default(false)
-  emailVerificationToken  String?
-  emailVerificationExpiry DateTime?
-
   merchant Merchant?
   driver   Driver?
 }
 
 model Merchant {
-  userId    String   @id @db.Uuid
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id     String @id @default(uuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  user    User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  store   Store[]
-  orders  Order[]
-  apiKeys MerchantApiKey[]
+  companyName String
+  phone       String?
+
+  locals Local[]
 }
 
-model MerchantApiKey {
-  id          String    @id @default(uuid()) @db.Uuid
-  merchantId  String    @db.Uuid
-  storeId     String    @db.Uuid
-  name        String
-  keyHash     String    @unique
-  createdAt   DateTime  @default(now())
-  revokedAt   DateTime?
-  expiresAt   DateTime?
-
-  merchant Merchant @relation(fields: [merchantId], references: [userId], onDelete: Cascade)
-  store    Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
-
-  @@index([merchantId])
-  @@index([storeId])
-  @@index([revokedAt])
-}
-
-model Store {
-  id         String   @id @default(uuid()) @db.Uuid
-  merchantId String   @db.Uuid
-  name       String
-  description String?
-  isActive   Boolean  @default(true)
-  address    String
-  latitude   Float    @db.DoublePrecision
-  longitude  Float    @db.DoublePrecision
-  location   Unsupported("geometry(Point, 4326)")?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  domain     String?
-  provider   StoreProvider?
-  webhookUrl String?
-
-  merchant Merchant         @relation(fields: [merchantId], references: [userId])
-  orders   Order[]
-  apiKeys  MerchantApiKey[]
-
-  @@index([merchantId])
-}
-
-// An order is created by a merchant, assigned to a store, and can be accepted by a driver
-model Order {
-  id         String      @id @default(uuid()) @db.Uuid
-  merchantId String      @db.Uuid
-  storeId    String      @db.Uuid
-  driverId   String?     @db.Uuid
-  status     OrderStatus @default(SEARCHING_DRIVER)
-
-  // Order info
-  type           OrderType
-  packageSize    PackageSize  @default(MEDIUM)
-  weight         Float?
-  deliveryFee    Float?
-  reward         Float?
-  distanceKm     Float?
-  orderReference String?      @unique
-
-  customerName   String
-  customerPhone  String
-  dropOffAddress String
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-  acceptedAt     DateTime?
-  pickedUpAt     DateTime?
-  deliveredAt    DateTime?
-  cancelledAt    DateTime?
-
-  merchant   Merchant    @relation(fields: [merchantId], references: [userId], onDelete: Restrict)
-  store      Store       @relation(fields: [storeId], references: [id], onDelete: Restrict)
-  driver     Driver?     @relation(fields: [driverId], references: [userId], onDelete: SetNull)
-  handshakes Handshake[]
-
-  @@index([merchantId])
-  @@index([storeId])
-  @@index([driverId])
-  @@index([status])
-}
-
-// A driver can have many orders, KYC submissions and a wallet
 model Driver {
-  userId      String   @id @db.Uuid
-  firstName   String
-  lastName    String
-  avatarUrl   String?
-  gender      Gender
-  dateOfBirth DateTime
-  address     String
-  city        String?
-  zipCode     String?
-  street      String?
-  equipments  String[]
-  deliveryCity    String
-  deliveryRadius  Int
-  transportType   VehicleType
-  activeVehicle   VehicleType?
-  status          DriverStatus @default(OFFLINE)
-  lastKnownLatitude  Float?   @db.DoublePrecision
-  lastKnownLongitude Float?   @db.DoublePrecision
-  lastKnownLocation  Unsupported("geometry(Point, 4326)")?
-  rating     Float?
-  totalTrips Int     @default(0)
-  gomileCode String  @unique
-  siret      String?
+  id     String @id @default(uuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  firstName String
+  lastName  String
+  phone     String
 
-  kycStatus KycStatus @default(NOT_SUBMITTED)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  kycStatus  KycStatus @default(PENDING)
+  kycDocUrl  String?
+  isOnline   Boolean   @default(false)
 
-  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  orders         Order[]
-  kycSubmissions KycSubmission[]
-  wallet         Wallet?
-
-  driverDocuments DriverDocument[]
+  walletBalance Float @default(0)
 }
 
+model Local {
+  id         String  @id @default(uuid())
+  merchantId String
+  merchant   Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
 
-model Handshake {
-  id      String @id @default(uuid()) @db.Uuid
-  orderId String @db.Uuid
+  name      String
+  address   String
+  latitude  Float
+  longitude Float
 
-  type     HandshakeType
-  code String
-
-  createdAt  DateTime  @default(now())
-  verifiedAt DateTime?
-  expiresAt  DateTime
-  remainingAttemps    Int @default(3)
-
-  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
-
-  @@unique([orderId, type])
-  @@index([orderId])
+  apiKeys ApiKey[]
 }
 
-model KycSubmission {
-  id       String    @id @default(uuid()) @db.Uuid
-  driverId String    @db.Uuid
-  status   KycStatus @default(PENDING)
+model ApiKey {
+  id        String   @id @default(uuid())
+  localId   String
+  local     Local    @relation(fields: [localId], references: [id], onDelete: Cascade)
 
-  rejectionReason String?
-
+  key       String   @unique @default(uuid())
+  isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  driver Driver @relation(fields: [driverId], references: [userId], onDelete: Cascade)
-
-  @@index([driverId])
-}
-
-model DriverDocument {
-  id         String       @id @default(uuid()) @db.Uuid
-  driverId   String       @db.Uuid
-  type       DocumentType
-  verified   Boolean      @default(false)
-  rejectionReason String?
-  url        String
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
-
-  driver Driver @relation(fields: [driverId], references: [userId], onDelete: Cascade)
-
-  @@index([driverId]) 
-}
-
-model Wallet {
-  id        String   @id @default(uuid()) @db.Uuid
-  driverId  String   @unique @db.Uuid
-  balance   Int      @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  driver  Driver        @relation(fields: [driverId], references: [userId], onDelete: Cascade)
-  entries WalletEntry[]
-
-  @@index([driverId])
-}
-
-model WalletEntry {
-  id        String          @id @default(uuid()) @db.Uuid
-  walletId  String          @db.Uuid
-  amount    Int
-  type      WalletEntryType
-  status    WalletEntryStatus @default(PENDING)
-  createdAt DateTime          @default(now())
-  updatedAt DateTime          @updatedAt
-
-  wallet Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
-
-  @@index([walletId])
 }
