@@ -3,15 +3,9 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy, StrategyOptionsWithRequest } from 'passport-jwt';
 import { Request } from 'express';
 import { PrismaService } from '../../prisma/prisma.service';
-import type { JwtPayload } from '../auth.types';
-import { createApiError } from '../../common/api-error';
-import { AUTH_ERRORS } from '../auth-errors';
 
 @Injectable()
-export class JwtRefreshStrategy extends PassportStrategy(
-  Strategy,
-  'jwt-refresh',
-) {
+export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh') {
   constructor(private prisma: PrismaService) {
     const options: StrategyOptionsWithRequest = {
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -21,7 +15,7 @@ export class JwtRefreshStrategy extends PassportStrategy(
     super(options);
   }
 
-  async validate(req: Request, payload: JwtPayload) {
+  async validate(req: Request, payload: { sub: string }) {
     const refreshToken = req.headers.authorization?.split(' ')[1];
 
     const user = await this.prisma.user.findUnique({
@@ -29,7 +23,7 @@ export class JwtRefreshStrategy extends PassportStrategy(
     });
 
     if (!user || user.refreshToken !== refreshToken) {
-      throw new UnauthorizedException(createApiError('INVALID_REFRESH_TOKEN', AUTH_ERRORS));
+      throw new UnauthorizedException();
     }
 
     return user;
