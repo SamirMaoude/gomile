@@ -65,7 +65,8 @@ export class AuthService {
     if (!user) throw new UnauthorizedException('Identifiants invalides');
 
     const passwordMatch = await bcrypt.compare(dto.password, user.password);
-    if (!passwordMatch) throw new UnauthorizedException('Identifiants invalides');
+    if (!passwordMatch)
+      throw new UnauthorizedException('Identifiants invalides');
 
     return this.generateAndSaveTokens(user.id, user.email, user.role);
   }
@@ -87,7 +88,11 @@ export class AuthService {
     if (existing) throw new ConflictException('Email déjà utilisé');
   }
 
-  private async generateAndSaveTokens(userId: string, email: string, role: Role) {
+  private async generateAndSaveTokens(
+    userId: string,
+    email: string,
+    role: Role,
+  ) {
     const payload = { sub: userId, email, role };
 
     const [accessToken, refreshToken] = await Promise.all([

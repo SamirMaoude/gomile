@@ -6,9 +6,13 @@ import { AppModule } from './../src/app.module';
 
 const jwtPattern = /^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$/;
 
+interface AuthTokensResponse {
+  accessToken: string;
+  refreshToken: string;
+}
+
 describe('AuthController (e2e)', () => {
   let app: INestApplication<App>;
-
 
   // Initialize application
   beforeAll(async () => {
@@ -30,7 +34,6 @@ describe('AuthController (e2e)', () => {
     const email = `merchant_${Date.now()}@test.local`;
     const password = 'Password123!';
 
-
     // Register merchant
     const registerRes = await request(app.getHttpServer())
       .post('/auth/register/merchant')
@@ -40,13 +43,14 @@ describe('AuthController (e2e)', () => {
         name: 'Test Merchant',
       })
       .expect(HttpStatus.CREATED);
+    const registerBody = registerRes.body as AuthTokensResponse;
 
     // Check tokens
-    expect(registerRes.body.accessToken).toMatch(jwtPattern);
-    expect(registerRes.body.refreshToken).toMatch(jwtPattern);
+    expect(registerBody.accessToken).toMatch(jwtPattern);
+    expect(registerBody.refreshToken).toMatch(jwtPattern);
 
     // Refresh token
-    const refreshToken1 = registerRes.body.refreshToken as string;
+    const refreshToken1 = registerBody.refreshToken;
 
     // Refresh token
     const refreshRes = await request(app.getHttpServer())
@@ -54,13 +58,14 @@ describe('AuthController (e2e)', () => {
       .set('Authorization', `Bearer ${refreshToken1}`)
       .expect(HttpStatus.OK);
 
+    const refreshBody = refreshRes.body as AuthTokensResponse;
     // Check new tokens
-    expect(refreshRes.body.accessToken).toMatch(jwtPattern);
-    expect(refreshRes.body.refreshToken).toMatch(jwtPattern);
+    expect(refreshBody.accessToken).toMatch(jwtPattern);
+    expect(refreshBody.refreshToken).toMatch(jwtPattern);
 
     // Extract new tokens
-    const accessToken2 = refreshRes.body.accessToken as string;
-    const refreshToken2 = refreshRes.body.refreshToken as string;
+    const accessToken2 = refreshBody.accessToken;
+    const refreshToken2 = refreshBody.refreshToken;
 
     // New refresh token should be different from the first one
     expect(refreshToken2).not.toBe(refreshToken1);

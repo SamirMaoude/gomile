@@ -7,6 +7,8 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
 
+import type { AuthenticatedUser } from './auth.types';
+
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
@@ -30,14 +32,14 @@ export class AuthController {
   @UseGuards(JwtRefreshGuard)
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
-  refresh(@CurrentUser() user: any) {
+  refresh(@CurrentUser() user: AuthenticatedUser) {
     return this.authService.refresh(user.id, user.email, user.role);
   }
 
   @UseGuards(JwtAuthGuard)
   @Post('logout')
   @HttpCode(HttpStatus.OK)
-  logout(@CurrentUser() user: any) {
+  logout(@CurrentUser() user: AuthenticatedUser) {
     return this.authService.logout(user.id);
   }
 }
