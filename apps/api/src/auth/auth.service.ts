@@ -11,7 +11,7 @@ import { randomUUID } from 'crypto';
 import { RegisterMerchantDto } from './dto/register-merchant.dto';
 import { RegisterDriverDto } from './dto/register-driver.dto';
 import { LoginDto } from './dto/login.dto';
-
+import { AuthResponse } from './auth.types';
 @Injectable()
 export class AuthService {
   constructor(
@@ -72,7 +72,11 @@ export class AuthService {
     return this.generateAndSaveTokens(user.id, user.email, user.role);
   }
 
-  async refresh(userId: string, email: string, role: Role) {
+  async refresh(
+    userId: string,
+    email: string,
+    role: Role,
+  ): Promise<AuthResponse> {
     return this.generateAndSaveTokens(userId, email, role);
   }
 
@@ -93,7 +97,7 @@ export class AuthService {
     userId: string,
     email: string,
     role: Role,
-  ) {
+  ): Promise<AuthResponse> {
     const payload = { sub: userId, email, role };
 
     const [accessToken, refreshToken] = await Promise.all([
@@ -114,6 +118,10 @@ export class AuthService {
       data: { refreshToken },
     });
 
-    return { accessToken, refreshToken };
+    return {
+      accessToken,
+      refreshToken,
+      user: { id: userId, email, role },
+    };
   }
 }
