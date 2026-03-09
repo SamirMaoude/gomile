@@ -12,6 +12,7 @@ import { RegisterMerchantDto } from './dto/register-merchant.dto';
 import { RegisterDriverDto } from './dto/register-driver.dto';
 import { LoginDto } from './dto/login.dto';
 import { AuthResponse } from './auth.types';
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -19,7 +20,7 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async registerMerchant(dto: RegisterMerchantDto) {
+  async registerMerchant(dto: RegisterMerchantDto): Promise<AuthResponse> {
     await this.checkEmailAvailable(dto.email);
     const hashedPassword = await bcrypt.hash(dto.password, 10);
 
@@ -37,7 +38,7 @@ export class AuthService {
     return this.generateAndSaveTokens(user.id, user.email, user.role);
   }
 
-  async registerDriver(dto: RegisterDriverDto) {
+  async registerDriver(dto: RegisterDriverDto): Promise<AuthResponse> {
     await this.checkEmailAvailable(dto.email);
     const hashedPassword = await bcrypt.hash(dto.password, 10);
 
@@ -58,7 +59,7 @@ export class AuthService {
     return this.generateAndSaveTokens(user.id, user.email, user.role);
   }
 
-  async login(dto: LoginDto) {
+  async login(dto: LoginDto): Promise<AuthResponse> {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });

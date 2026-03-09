@@ -9,6 +9,11 @@ const jwtPattern = /^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$/;
 interface AuthTokensResponse {
   accessToken: string;
   refreshToken: string;
+  user: {
+    id: string;
+    email: string;
+    role: string;
+  };
 }
 
 describe('AuthController (e2e)', () => {
@@ -48,6 +53,9 @@ describe('AuthController (e2e)', () => {
     // Check tokens
     expect(registerBody.accessToken).toMatch(jwtPattern);
     expect(registerBody.refreshToken).toMatch(jwtPattern);
+    expect(typeof registerBody.user.id).toBe('string');
+    expect(registerBody.user.email).toBe(email);
+    expect(registerBody.user.role).toBe('MERCHANT');
 
     // Refresh token
     const refreshToken1 = registerBody.refreshToken;
@@ -62,6 +70,9 @@ describe('AuthController (e2e)', () => {
     // Check new tokens
     expect(refreshBody.accessToken).toMatch(jwtPattern);
     expect(refreshBody.refreshToken).toMatch(jwtPattern);
+    expect(typeof refreshBody.user.id).toBe('string');
+    expect(refreshBody.user.email).toBe(email);
+    expect(refreshBody.user.role).toBe('MERCHANT');
 
     // Extract new tokens
     const accessToken2 = refreshBody.accessToken;

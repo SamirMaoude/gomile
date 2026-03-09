@@ -3,6 +3,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy, StrategyOptionsWithRequest } from 'passport-jwt';
 import { Request } from 'express';
 import { PrismaService } from '../../prisma/prisma.service';
+import type { JwtPayload } from '../auth.types';
 
 @Injectable()
 export class JwtRefreshStrategy extends PassportStrategy(
@@ -18,7 +19,7 @@ export class JwtRefreshStrategy extends PassportStrategy(
     super(options);
   }
 
-  async validate(req: Request, payload: { sub: string }) {
+  async validate(req: Request, payload: JwtPayload) {
     const refreshToken = req.headers.authorization?.split(' ')[1];
 
     const user = await this.prisma.user.findUnique({
