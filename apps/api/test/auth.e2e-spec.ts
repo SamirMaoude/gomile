@@ -34,6 +34,7 @@ describe('AuthController (e2e)', () => {
     await app.close();
   });
 
+  // Test registration, refresh, logout, token should be rotated and old one should be rejected
   it('register -> refresh rotates token -> old refresh rejected -> logout invalidates refresh', async () => {
     // Create unique email
     const email = `merchant_${Date.now()}@test.local`;
@@ -98,5 +99,80 @@ describe('AuthController (e2e)', () => {
       .post('/auth/refresh')
       .set('Authorization', `Bearer ${refreshToken2}`)
       .expect(HttpStatus.UNAUTHORIZED);
+  });
+
+  // Test registration of a driver
+  it('registers a driver', async () => {
+    const email = `driver_${Date.now()}@test.local`;
+
+    const res = await request(app.getHttpServer())
+        .post('/auth/register/driver')
+        .send({
+          email,
+          password: 'TacosDeLyon',
+          name: 'Riku le DRIVER',
+          phone: '0612345678',
+        })
+        .expect(HttpStatus.CREATED);
+
+    expect(res.body.user.email).toBe(email);
+    expect(res.body.user.role).toBe('DRIVER');
+  });
+
+  // Test duplication email
+  it('rejects duplicate email', async () => {
+    const email = `dup_${Date.now()}@test.local`;
+    const payload = {
+      email,
+      password: 'TacosDeGrenoble',
+      name: 'Riku le DRIVER',
+    };
+
+    // Register once
+    await request(app.getHttpServer())
+        .post('/auth/register/merchant')
+        .send(payload)
+        .expect(HttpStatus.CREATED);
+
+    // Register twice should be rejected
+    await request(app.getHttpServer())
+        .post('/auth/register/merchant')
+        .send(payload)
+        .expect(HttpStatus.CONFLICT);
+  });
+
+  // Test login
+  it('logs in an existing user', async () => {
+    const email = `login_${Date.now()}@test.local`;
+    const password = 'TacosDeLyon';
+
+    await request(app.getHttpServer())
+        .post('/auth/register/merchant')
+        .send({ email, password, name: 'Login Merchant' })
+        .expect(HttpStatus.CREATED);
+
+    const res = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({ email, password })
+        .expect(HttpStatus.OK);
+
+    expect(res.body.user.email).toBe(email);
+    expect(res.body.user.role).toBe('MERCHANT');
+  });
+
+  // Test invalid password
+  it('rejects invalid password', async () => {
+    const email = `badpw_${Date.now()}@test.local`;
+    const password = 'UnTacosEstBon';
+
+    await request(app.getHttpServer())
+        .post('/auth/register/merchant')
+        .send({ email, password, name: 'MauvaisTacos Merchant' })
+        .expect(HttpStatus.CREATED);
+
+    await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({ email, password: 'UnTacosMauvais' })
+        .expect(HttpStatus.UNAUTHORIZED);
   });
 });
