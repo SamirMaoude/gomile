@@ -62,6 +62,13 @@ pnpm --filter api start:dev
 
 URL par défaut : `http://localhost:3000`
 
+## OpenAPI / Swagger
+
+Une fois l'API démarrée :
+
+- Swagger UI : `http://localhost:3000/docs`
+- Spécification OpenAPI JSON : `http://localhost:3000/openapi.json`
+
 ## Vérifications
 
 ```bash

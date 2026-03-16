@@ -8,6 +8,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { Role } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { randomUUID } from 'crypto';
+import { createApiError } from '../../../../shared/api-errors';
 import { RegisterMerchantDto } from './dto/register-merchant.dto';
 import { RegisterDriverDto } from './dto/register-driver.dto';
 import { LoginDto } from './dto/login.dto';
@@ -64,11 +65,12 @@ export class AuthService {
       where: { email: dto.email },
     });
 
-    if (!user) throw new UnauthorizedException('Identifiants invalides');
+    if (!user)
+      throw new UnauthorizedException(createApiError('INVALID_CREDENTIALS'));
 
     const passwordMatch = await bcrypt.compare(dto.password, user.password);
     if (!passwordMatch)
-      throw new UnauthorizedException('Identifiants invalides');
+      throw new UnauthorizedException(createApiError('INVALID_CREDENTIALS'));
 
     return this.generateAndSaveTokens(user.id, user.email, user.role);
   }
@@ -91,7 +93,7 @@ export class AuthService {
 
   private async checkEmailAvailable(email: string) {
     const existing = await this.prisma.user.findUnique({ where: { email } });
-    if (existing) throw new ConflictException('Email déjà utilisé');
+    if (existing) throw new ConflictException(createApiError('EMAIL_ALREADY_USED'));
   }
 
   private async generateAndSaveTokens(

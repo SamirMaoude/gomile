@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createApiError } from "../../../../shared/api-errors";
 
 const DEFAULT_API_BASE_URL = "http://localhost:3000";
 
@@ -63,9 +64,10 @@ export async function forwardRequest(request: NextRequest, backendPath: string) 
       headers: responseHeaders,
     });
   } catch {
+    const error = createApiError("BACKEND_UNREACHABLE");
     return NextResponse.json(
-      { error: "BACKEND_UNREACHABLE", message: "Cannot reach backend API" },
-      { status: 502 },
+      error,
+      { status: error.statusCode },
     );
   }
 }

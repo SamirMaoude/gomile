@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createApiError } from "../../../../shared/api-errors";
 
 const DEFAULT_API_BASE_URL = "http://localhost:3000";
 const ACCESS_TOKEN_COOKIE = "gomile_access_token";
@@ -127,12 +128,17 @@ async function buildAuthSuccessResponse(backendResponse: Response) {
 }
 
 function buildMissingTokenResponse(tokenKind: "access" | "refresh") {
+  const error =
+    tokenKind === "refresh"
+      ? createApiError("AUTH_TOKEN_MISSING")
+      : createApiError("AUTH_TOKEN_MISSING");
+
   return NextResponse.json(
     {
-      error: "AUTH_TOKEN_MISSING",
-      message: `Missing ${tokenKind} token cookie`,
+      ...error,
+      message: `${error.message}: ${tokenKind}`,
     },
-    { status: 401 },
+    { status: error.statusCode },
   );
 }
 
@@ -149,9 +155,10 @@ export async function proxySessionCreation(
 
     return buildAuthSuccessResponse(backendResponse);
   } catch {
+    const error = createApiError("BACKEND_UNREACHABLE");
     return NextResponse.json(
-      { error: "BACKEND_UNREACHABLE", message: "Cannot reach backend API" },
-      { status: 502 },
+      error,
+      { status: error.statusCode },
     );
   }
 }
@@ -178,9 +185,10 @@ export async function proxySessionRefresh(request: NextRequest) {
 
     return buildAuthSuccessResponse(backendResponse);
   } catch {
+    const error = createApiError("BACKEND_UNREACHABLE");
     return NextResponse.json(
-      { error: "BACKEND_UNREACHABLE", message: "Cannot reach backend API" },
-      { status: 502 },
+      error,
+      { status: error.statusCode },
     );
   }
 }
@@ -212,9 +220,10 @@ export async function proxySessionLogout(request: NextRequest) {
     clearAuthCookies(response);
     return response;
   } catch {
+    const error = createApiError("BACKEND_UNREACHABLE");
     const response = NextResponse.json(
-      { error: "BACKEND_UNREACHABLE", message: "Cannot reach backend API" },
-      { status: 502 },
+      error,
+      { status: error.statusCode },
     );
     clearAuthCookies(response);
     return response;

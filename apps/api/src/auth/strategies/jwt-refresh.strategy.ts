@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy, StrategyOptionsWithRequest } from 'passport-jwt';
 import { Request } from 'express';
+import { createApiError } from '../../../../../shared/api-errors';
 import { PrismaService } from '../../prisma/prisma.service';
 import type { JwtPayload } from '../auth.types';
 
@@ -27,7 +28,7 @@ export class JwtRefreshStrategy extends PassportStrategy(
     });
 
     if (!user || user.refreshToken !== refreshToken) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException(createApiError('INVALID_REFRESH_TOKEN'));
     }
 
     return user;

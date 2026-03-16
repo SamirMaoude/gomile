@@ -1,6 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
+import { createApiError } from '../../../../../shared/api-errors';
 import { PrismaService } from '../../prisma/prisma.service';
 import type { JwtPayload } from '../auth.types';
 
@@ -18,7 +19,8 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       where: { id: payload.sub },
     });
 
-    if (!user) throw new UnauthorizedException();
+    if (!user)
+      throw new UnauthorizedException(createApiError('INVALID_ACCESS_TOKEN'));
     return user;
   }
 }
