@@ -1,13 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
-import type { AuthTokensResponse } from "../../../../shared/auth-contracts";
-import { AUTH_MESSAGES } from "../../../../shared/auth-messages";
-import { createApiError } from "../../../../shared/api-errors";
 
 const DEFAULT_API_BASE_URL = "http://localhost:3000";
 const ACCESS_TOKEN_COOKIE = "gomile_access_token";
 const REFRESH_TOKEN_COOKIE = "gomile_refresh_token";
 const ACCESS_TOKEN_MAX_AGE_SECONDS = 15 * 60;
 const REFRESH_TOKEN_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
+
+interface AuthenticatedUser {
+  id: string;
+  email: string;
+  role: string;
+}
+
+interface AuthTokensResponse {
+  accessToken: string;
+  refreshToken: string;
+  user: AuthenticatedUser;
+}
 
 function resolveApiBaseUrl() {
   return process.env.API_BASE_URL ?? DEFAULT_API_BASE_URL;
@@ -118,17 +127,12 @@ async function buildAuthSuccessResponse(backendResponse: Response) {
 }
 
 function buildMissingTokenResponse(tokenKind: "access" | "refresh") {
-  const error =
-    tokenKind === "refresh"
-      ? createApiError("AUTH_TOKEN_MISSING")
-      : createApiError("AUTH_TOKEN_MISSING");
-
   return NextResponse.json(
     {
-      ...error,
-      message: `${error.message}: ${tokenKind}`,
+      error: "AUTH_TOKEN_MISSING",
+      message: `Missing ${tokenKind} token cookie`,
     },
-    { status: error.statusCode },
+    { status: 401 },
   );
 }
 
@@ -145,10 +149,9 @@ export async function proxySessionCreation(
 
     return buildAuthSuccessResponse(backendResponse);
   } catch {
-    const error = createApiError("BACKEND_UNREACHABLE");
     return NextResponse.json(
-      error,
-      { status: error.statusCode },
+      { error: "BACKEND_UNREACHABLE", message: "Cannot reach backend API" },
+      { status: 502 },
     );
   }
 }
@@ -175,10 +178,9 @@ export async function proxySessionRefresh(request: NextRequest) {
 
     return buildAuthSuccessResponse(backendResponse);
   } catch {
-    const error = createApiError("BACKEND_UNREACHABLE");
     return NextResponse.json(
-      error,
-      { status: error.statusCode },
+      { error: "BACKEND_UNREACHABLE", message: "Cannot reach backend API" },
+      { status: 502 },
     );
   }
 }
@@ -188,7 +190,7 @@ export async function proxySessionLogout(request: NextRequest) {
 
   if (!accessToken) {
     const response = NextResponse.json(
-      { message: AUTH_MESSAGES.ALREADY_LOGGED_OUT },
+      { message: "Already logged out" },
       { status: 200 },
     );
     clearAuthCookies(response);
@@ -210,10 +212,9 @@ export async function proxySessionLogout(request: NextRequest) {
     clearAuthCookies(response);
     return response;
   } catch {
-    const error = createApiError("BACKEND_UNREACHABLE");
     const response = NextResponse.json(
-      error,
-      { status: error.statusCode },
+      { error: "BACKEND_UNREACHABLE", message: "Cannot reach backend API" },
+      { status: 502 },
     );
     clearAuthCookies(response);
     return response;
