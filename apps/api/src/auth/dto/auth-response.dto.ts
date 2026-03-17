@@ -1,5 +1,6 @@
 import { Role } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
+import { AUTH_MESSAGES } from '../../../../../shared/auth-messages';
 
 export class AuthenticatedUserDto {
   @ApiProperty({
@@ -31,6 +32,6 @@ export class AuthResponseDto {
 }
 
 export class LogoutResponseDto {
-  @ApiProperty({ example: 'Déconnecté avec succès' })
+  @ApiProperty({ example: AUTH_MESSAGES.LOGOUT_SUCCESS })
   message: string;
 }
