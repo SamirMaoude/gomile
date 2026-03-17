@@ -5,7 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 export default function HomeScreen() {
   const [isOnline, setIsOnline] = useState(false);
 
-  // Couleurs basées sur ton logo
+  // Couleurs basés sur le logo 
   const colors = {
     primary: '#1A3C5A', // Bleu GoMile
     secondary: '#8BC34A', // Vert GoMile

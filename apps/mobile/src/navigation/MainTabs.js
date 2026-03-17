@@ -18,7 +18,7 @@ export default function MainTabs() {
         tabBarActiveTintColor: '#1A3C5A', // Bleu GoMile
         tabBarInactiveTintColor: '#94A3B8', // Gris bleuté plus moderne
         tabBarStyle: {
-          height: 70, // Un peu plus haut pour l'élégance
+          height: 85, // Un peu plus haut pour que ce soit plus beau
           paddingBottom: 12,
           paddingTop: 8,
           borderTopWidth: 0,

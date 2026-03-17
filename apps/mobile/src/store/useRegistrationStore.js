@@ -24,7 +24,7 @@ export const useRegistrationStore = create((set) => ({
   kbisFile: null,
   ribFile: null,
 
-  // Fonction pour tout réinitialiser (utile après l'inscription)
+  // Fonction pour tout réinitialiser 
   resetForm: () => set({
     firstName: '', lastName: '', email: '', phone: '', birthDate: '', gender: '',
     address: '', transportType: '',
@@ -33,7 +33,7 @@ export const useRegistrationStore = create((set) => ({
   }),
 
 
-  // Actions
+  // Actions qu'on peut effectuer sur les entrées : 
   updateField: (field, value) => set((state) => ({ ...state, [field]: value })),
   nextStep: () => set((state) => ({ step: state.step + 1 })),
   prevStep: () => set((state) => ({ step: state.step - 1 })),

@@ -3,7 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack'; // Changement ici
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-// Tes écrans (Assure-toi que les fichiers existent)
+// les diverses pages utilisé dans le cadre du projet
 import LoginScreen from './src/screens/LoginScreen';
 import RegisterStep1 from './src/screens/RegisterStep1';
 import RegisterStep2 from './src/screens/RegisterStep2';
