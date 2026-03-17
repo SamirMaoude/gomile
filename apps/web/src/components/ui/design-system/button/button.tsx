@@ -6,7 +6,6 @@ type ButtonVariant = 'filled' | 'outline' | 'ghost'
 type ButtonSize = 'sm' | 'md' | 'lg'
 type ButtonTheme = 'green' | 'blue'
 type ButtonShade = 'normal' | 'light'
-type IconPosition = 'left' | 'right'
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant
@@ -14,10 +13,6 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   shade?: ButtonShade
   size?: ButtonSize
   fullWidth?: boolean
-  href?: string
-  /** Icône affichée dans le bouton */
-  icon?: React.ReactNode
-  iconPosition?: IconPosition
   iconOnly?: boolean
   disabled?: boolean
   children?: React.ReactNode
@@ -101,60 +96,50 @@ const variantClasses: Record<ButtonTheme, Record<ButtonShade, Record<ButtonVaria
 
 /* ─── Tailles ─────────────────────────────────────────── */
 const sizeClasses: Record<ButtonSize, string> = {
-  sm: 'px-1 py-1.5 text-sm',
+  sm: 'px-3 py-2 text-sm',
   md: 'px-5 py-3 text-base',
   lg: 'px-10 py-5 text-lg',
+}
+
+const iconOnlySizeClasses: Record<ButtonSize, string> = {
+  sm: 'h-9 w-9 p-0',
+  md: 'h-11 w-11 p-0',
+  lg: 'h-14 w-14 p-0',
 }
 
 export default function Button({
   variant = 'filled',
   theme = 'green',
-  shade = 'normal',      
+  shade = 'normal',
   size = 'md',
   fullWidth = false,
-  href,
-  icon,
-  iconPosition = 'left',
   iconOnly = false,
   disabled = false,
   children,
   className = '',
   ...props
 }: ButtonProps) {
-
-  const iconEl = icon ? (
-    <span className="text-[1.1em] shrink-0">{icon}</span>
-  ) : null
-
   return (
     <button
       disabled={disabled}
       className={clsx(
-        'flex items-center justify-center gap-2',
+        'inline-flex items-center justify-center gap-2',
         'font-display font-bold uppercase tracking-wider',
-        'rounded-btn cursor-pointer',
+        'rounded-btn',
         'transition-all duration-200 ease-in-out',
         'focus:outline-none focus:ring-2 focus:ring-offset-2',
         disabled
-          ? 'opacity-40 cursor-not-allowed pointer-events-none saturate-0'
-          : 'active:scale-95',
-        sizeClasses[size],
-        variantClasses[theme][shade][variant],  
-        fullWidth && !iconOnly ? 'w-full' : '',
-        iconPosition === 'right' ? 'flex-row-reverse' : 'flex-row',
+          ? 'pointer-events-none cursor-not-allowed opacity-40 saturate-0'
+          : 'cursor-pointer active:scale-95',
+        iconOnly ? iconOnlySizeClasses[size] : sizeClasses[size],
+        variantClasses[theme][shade][variant],
+        fullWidth && !iconOnly && 'w-full',
         className,
       )}
-      aria-label={iconOnly && typeof children === 'string' ? children : undefined}
       aria-disabled={disabled}
       {...props}
     >
-      {iconOnly && iconEl}
-      {!iconOnly && (
-        <>
-          {iconEl}
-          {children && <span>{children}</span>}
-        </>
-      )}
+      {children}
     </button>
   )
 }

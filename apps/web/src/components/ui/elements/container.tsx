@@ -5,8 +5,8 @@ type ContainerSize = 'sm' | 'md' | 'lg' | 'xl' | 'full';
 type ContainerTag = 'div' | 'section' | 'main' | 'article' | 'aside' | 'nav' | 'header' | 'footer';
 const background_theme = {
     white: "bg-white",
-    yellow: "bg-yellow-100",
-    hero: "bg-linear-to-br from-blue-50 to-green-50"
+    blue: "bg-primary-blue-dark",
+    hero: "bg-linear-to-br from-blue-100 to-green-100"
 }
 
 interface ContainerProps {
@@ -15,7 +15,7 @@ interface ContainerProps {
   className?: string;
   Component?: ContainerTag;
   padding?: boolean;
-  bg_theme?: 'white' | 'yellow' | 'hero';
+  bg_theme?: 'white' | 'blue' | 'hero';
 }
 
 const sizeClasses: Record<string, string> = {

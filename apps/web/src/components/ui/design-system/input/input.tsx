@@ -43,7 +43,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           className={[
             "flex h-12 items-center rounded-2xl border bg-white px-4 transition",
             hasError
-              ? "border-[var(--color-danger)]"
+              ? "border-[var(--error)]"
               : "border-[var(--input-border)] focus-within:border-[var(--primary)]",
             inputWrapperClassName,
           ]
@@ -76,7 +76,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         </div>
 
         {error ? (
-          <p className="mt-2 text-sm font-medium leading-5 text-[var(--color-danger)]">
+          <p className="mt-2 text-sm font-medium leading-5 text-[var(--error)]">
             {error}
           </p>
         ) : helperText ? (

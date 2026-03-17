@@ -1,38 +1,70 @@
 import clsx from "clsx"
+import Typography from "../design-system/typography"
+import Container from "../elements/container"
+import { Logo } from "@/components/Logo/Logo"
+import Link from "next/link"
 
-interface Props{
-    text_theme?: "white" | "black" | "grey" | "primaryG" | "primaryB"
-    theme?: "landingpage" | "header"
-}
-import landingpage from "@/app/landingpage/page";
-import Typography from "../design-system/typography";
-import Container from "../elements/container";
-import {Logo} from "@/components/Logo/Logo";
-
-const text_theme = {
-    white: "text-white",
-    black: "text-black",
-    grey: "text-gray-500",
-    primaryG: "text-primary-green",
-    primaryB: "text-primary-blue",
+interface Props {
+  text_theme?: "white" | "black" | "grey" | "primaryG" | "primaryB"
+  theme?: "landingpage" | "header"
 }
 
-const header_theme = {
-    landingpage: "bg-linear-to-tl from-blue-500 to-green-500",
-    header: "bg-primary-green"
+const textThemeClasses = {
+  white: "text-white",
+  black: "text-black",
+  grey: "text-gray-500",
+  primaryG: "text-primary-green",
+  primaryB: "text-primary-blue",
 }
-export const Navigation = ({text_theme='black', theme='header'}: Props) => {
-    return (
-            <Container Component="header" className={clsx("fixed top-0 left-0 w-full flex items-center justify-between py-1.5 z-50 h-5 sm:h-10 lg:h-18", header_theme[theme])} size='full'> { /*à verifier*/}
-                <div className = "px-10">
-                    <Logo size="md"/>
-                </div>
-                <div>
-                    <Typography className="flex items-center gap-4" theme = "white" weight = "medium" variant = "span">
-                        <span>À PROPOS</span>
-                        <span>CONTACT</span>
-                    </Typography>
-                </div>    
-            </Container>
-        )
-    }
+
+const headerThemeClasses = {
+  landingpage: "bg-linear-to-tl from-blue-500 to-green-500",
+  header: "bg-primary-green",
+}
+
+export const Navigation = ({
+  text_theme = "white",
+  theme = "header",
+}: Props) => {
+    const style1 = "hover:text-primary-green-dark transition-colors duration-200"
+  return (
+    <Container
+      Component="div"
+      size="full"
+      className={clsx(
+        "w-full px-6 py-4",
+        headerThemeClasses[theme]
+      )}
+    >
+      <div className="flex items-center justify-evenly">
+        <div>
+          <Logo size="sm" />
+        </div>
+
+        <div className={clsx("flex items-center gap-10", textThemeClasses[text_theme])}>
+          <Typography theme={text_theme} weight="medium" variant="h6" className={style1}>
+            <Link href="/enSavoirPlus">À propos</Link>
+          </Typography>
+          <Typography theme={text_theme} weight="medium" variant="h6" className={style1}>
+            <a href="#contact">Contact</a>
+          </Typography>
+          <Typography theme={text_theme} weight="medium" variant="h6" className={style1}>
+            <a href="#faq">FAQ</a>
+          </Typography>
+          <Typography theme={text_theme} weight="medium" variant="h6" className={style1}>
+            <a href="/enSavoirPlus">En savoir plus</a>
+          </Typography>
+        </div>
+        
+        <div className={clsx("flex items-center gap-10", textThemeClasses[text_theme])}>
+          <Typography theme={text_theme} weight="medium" variant="h6" className={style1}>
+            <a href="/pageprincipale">S'inscrire</a>
+          </Typography>
+          <Typography theme={text_theme} weight="medium" variant="h6" className={style1}>
+            <a href="/pageprincipale">Se connecter</a>
+          </Typography>
+        </div>
+      </div>
+    </Container>
+  )
+}
