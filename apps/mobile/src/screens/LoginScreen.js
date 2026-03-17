@@ -18,16 +18,16 @@ export default function LoginScreen({ navigation }) {
   const [password, setPassword] = useState('');
 
   const handleLogin = () => {
-    if (!identifier || !password) {
-      Alert.alert("Erreur", "Veuillez remplir tous les champs.");
-      return;
-    }
+    // if (!identifier || !password) {
+    //   Alert.alert("Erreur", "Veuillez remplir tous les champs.");
+    //   return;
+    // }
     navigation.replace('MainApp');
   };
 
   const startRegistration = () => {
+    // s'inscrire et devenir livreur : 
     navigation.navigate('RegisterStep1');
-    // Sera géré par la navigation vers l'Étape 1
   };
 
   return (
