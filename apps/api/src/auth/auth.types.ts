@@ -1,4 +1,16 @@
-import type { AuthTokensResponse, AuthUser, Role } from '../../../../shared/auth-contracts';
+import { Role } from '@prisma/client';
+
+export interface AuthUser {
+  id: string;
+  email: string;
+  role: Role;
+}
+
+export interface AuthResponse {
+  accessToken: string;
+  refreshToken: string;
+  user: AuthUser;
+}
 
 export interface JwtPayload {
   sub: string;
@@ -8,5 +20,3 @@ export interface JwtPayload {
 }
 
 export type AuthenticatedUser = AuthUser;
-
-export type AuthResponse = AuthTokensResponse;

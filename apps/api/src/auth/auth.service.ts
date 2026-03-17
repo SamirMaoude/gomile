@@ -8,11 +8,12 @@ import { PrismaService } from '../prisma/prisma.service';
 import { Role } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { randomUUID } from 'crypto';
-import { createApiError } from '../../../../shared/api-errors';
 import { RegisterMerchantDto } from './dto/register-merchant.dto';
 import { RegisterDriverDto } from './dto/register-driver.dto';
 import { LoginDto } from './dto/login.dto';
 import { AuthResponse } from './auth.types';
+import { createApiError } from './auth-errors';
+import { AUTH_MESSAGES } from './auth-messages';
 
 @Injectable()
 export class AuthService {
@@ -88,7 +89,7 @@ export class AuthService {
       where: { id: userId },
       data: { refreshToken: null },
     });
-    return { message: 'Déconnecté avec succès' };
+    return { message: AUTH_MESSAGES.LOGOUT_SUCCESS };
   }
 
   private async checkEmailAvailable(email: string) {
