@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import type { AuthTokensResponse } from "../../../../shared/auth-contracts";
 import { createApiError } from "../../../../shared/api-errors";
 
 const DEFAULT_API_BASE_URL = "http://localhost:3000";
@@ -6,18 +7,6 @@ const ACCESS_TOKEN_COOKIE = "gomile_access_token";
 const REFRESH_TOKEN_COOKIE = "gomile_refresh_token";
 const ACCESS_TOKEN_MAX_AGE_SECONDS = 15 * 60;
 const REFRESH_TOKEN_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
-
-interface AuthenticatedUser {
-  id: string;
-  email: string;
-  role: string;
-}
-
-interface AuthTokensResponse {
-  accessToken: string;
-  refreshToken: string;
-  user: AuthenticatedUser;
-}
 
 function resolveApiBaseUrl() {
   return process.env.API_BASE_URL ?? DEFAULT_API_BASE_URL;
