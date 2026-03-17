@@ -10,7 +10,6 @@ import type {
   RegisterMerchantInput,
   Role,
 } from "../../../shared/auth-contracts";
-import { AUTH_MESSAGES } from "../../../shared/auth-messages";
 import type { ApiErrorPayload } from "../../../shared/api-errors";
 import { createApiError } from "../../../shared/api-errors";
 import { getAuthTokenStore } from "./auth-storage";
@@ -36,19 +35,17 @@ function buildTargetUrl(path: string) {
 }
 
 async function parseError(response: Response) {
-  const fallbackError = createApiError("REQUEST_FAILED");
   const contentType = response.headers.get("content-type");
 
   if (contentType?.includes("application/json")) {
     const payload = (await response.json()) as Partial<ApiErrorPayload>;
-    return payload.message ?? payload.code ?? fallbackError.message;
+    return payload.message ?? payload.code ?? "Request failed";
   }
 
   const text = await response.text();
-  return text || fallbackError.message;
+  return text || "Request failed";
 }
 
-// Mobile talks directly to the Nest API and optionally attaches a bearer token.
 async function requestApi<T>(
   path: string,
   init?: RequestInit,
@@ -71,7 +68,6 @@ async function requestApi<T>(
   return (await response.json()) as T;
 }
 
-// Store issued tokens after login, registration, or refresh.
 async function persistTokens(tokens: AuthTokensResponse) {
   await getAuthTokenStore().setTokens({
     accessToken: tokens.accessToken,
@@ -79,7 +75,6 @@ async function persistTokens(tokens: AuthTokensResponse) {
   });
 }
 
-// Mobile exposes only the authenticated user to the app layer.
 function toSession(response: AuthTokensResponse): AuthSession {
   return {
     user: response.user,
@@ -97,8 +92,6 @@ export type {
   Role,
 };
 
-// For my dear friend Ousmane, here is your async functions for front end
-// Registers a merchant account, stores issued tokens, and returns the authenticated user.
 export async function registerMerchant(input: RegisterMerchantInput) {
   const response = await requestApi<AuthTokensResponse>(
     "/auth/register/merchant",
@@ -112,7 +105,6 @@ export async function registerMerchant(input: RegisterMerchantInput) {
   return toSession(response);
 }
 
-// Registers a driver account, stores issued tokens, and returns the authenticated user.
 export async function registerDriver(input: RegisterDriverInput) {
   const response = await requestApi<AuthTokensResponse>("/auth/register/driver", {
     method: "POST",
@@ -123,7 +115,6 @@ export async function registerDriver(input: RegisterDriverInput) {
   return toSession(response);
 }
 
-// Logs in an existing user, stores issued tokens, and returns the authenticated user.
 export async function login(input: LoginInput) {
   const response = await requestApi<AuthTokensResponse>("/auth/login", {
     method: "POST",
@@ -134,7 +125,6 @@ export async function login(input: LoginInput) {
   return toSession(response);
 }
 
-// Uses the stored refresh token to rotate tokens and keep the mobile session alive.
 export async function refreshSession() {
   const tokens = await getAuthTokenStore().getTokens();
 
@@ -154,13 +144,12 @@ export async function refreshSession() {
   return toSession(response);
 }
 
-// Logs out with the stored access token and clears the local token store.
 export async function logout(): Promise<LogoutResponse> {
   const tokens = await getAuthTokenStore().getTokens();
 
   if (!tokens?.accessToken) {
     await getAuthTokenStore().clearTokens();
-    return { message: AUTH_MESSAGES.ALREADY_LOGGED_OUT };
+    return { message: "Already logged out" };
   }
 
   const response = await requestApi<LogoutResponse>(
@@ -175,7 +164,6 @@ export async function logout(): Promise<LogoutResponse> {
   return response;
 }
 
-// Exposes the current stored token pair for integration/debugging purposes.
 export async function getStoredTokens() {
   return getAuthTokenStore().getTokens();
 }

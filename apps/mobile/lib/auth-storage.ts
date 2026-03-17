@@ -9,7 +9,6 @@ export interface AuthTokenStore {
   clearTokens(): Promise<void>;
 }
 
-// Default fallback store for development; replace with secure device storage in production.
 class MemoryAuthTokenStore implements AuthTokenStore {
   private tokens: AuthTokenSet | null = null;
 
@@ -32,7 +31,6 @@ export function getAuthTokenStore() {
   return authTokenStore;
 }
 
-// Allows the mobile app to plug in SecureStore or any other persistent token backend.
 export function setAuthTokenStore(store: AuthTokenStore) {
   authTokenStore = store;
 }
