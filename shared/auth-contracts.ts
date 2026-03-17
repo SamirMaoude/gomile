@@ -1,4 +1,3 @@
-// Shared auth contracts reused by backend, web, and mobile clients.
 export const APP_ROLES = [
   'ADMIN',
   'DRIVER',
@@ -18,7 +17,6 @@ export interface AuthSession {
   user: AuthUser;
 }
 
-// Raw backend auth response before a platform-specific client stores tokens.
 export interface AuthTokensResponse {
   accessToken: string;
   refreshToken: string;

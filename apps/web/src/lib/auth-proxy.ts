@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { AuthTokensResponse } from "../../../../shared/auth-contracts";
-import { AUTH_MESSAGES } from "../../../../shared/auth-messages";
 import { createApiError } from "../../../../shared/api-errors";
 
 const DEFAULT_API_BASE_URL = "http://localhost:3000";
@@ -188,7 +187,7 @@ export async function proxySessionLogout(request: NextRequest) {
 
   if (!accessToken) {
     const response = NextResponse.json(
-      { message: AUTH_MESSAGES.ALREADY_LOGGED_OUT },
+      { message: "Already logged out" },
       { status: 200 },
     );
     clearAuthCookies(response);

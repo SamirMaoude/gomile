@@ -8,7 +8,6 @@ import { PrismaService } from '../prisma/prisma.service';
 import { Role } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { randomUUID } from 'crypto';
-import { AUTH_MESSAGES } from '../../../../shared/auth-messages';
 import { createApiError } from '../../../../shared/api-errors';
 import { RegisterMerchantDto } from './dto/register-merchant.dto';
 import { RegisterDriverDto } from './dto/register-driver.dto';
@@ -89,7 +88,7 @@ export class AuthService {
       where: { id: userId },
       data: { refreshToken: null },
     });
-    return { message: AUTH_MESSAGES.LOGOUT_SUCCESS };
+    return { message: 'Déconnecté avec succès' };
   }
 
   private async checkEmailAvailable(email: string) {

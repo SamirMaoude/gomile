@@ -23,10 +23,6 @@ export const API_ERRORS = {
     statusCode: 502,
     message: 'API backend inaccessible',
   },
-  REQUEST_FAILED: {
-    statusCode: 500,
-    message: 'La requete a echoue',
-  },
 } as const;
 
 export type ApiErrorCode = keyof typeof API_ERRORS;

@@ -8,7 +8,6 @@ import type {
   Role,
 } from "../../../../shared/auth-contracts";
 import type { ApiErrorPayload } from "../../../../shared/api-errors";
-import { createApiError } from "../../../../shared/api-errors";
 
 export type {
   AuthSession,
@@ -21,16 +20,15 @@ export type {
 };
 
 async function parseError(response: Response) {
-  const fallbackError = createApiError("REQUEST_FAILED");
   const contentType = response.headers.get("content-type");
 
   if (contentType?.includes("application/json")) {
     const payload = (await response.json()) as Partial<ApiErrorPayload>;
-    return payload.message ?? payload.code ?? fallbackError.message;
+    return payload.message ?? payload.code ?? "Request failed";
   }
 
   const text = await response.text();
-  return text || fallbackError.message;
+  return text || "Request failed";
 }
 
 // Frontend code should call the web BFF routes only; auth cookies are handled server-side.
