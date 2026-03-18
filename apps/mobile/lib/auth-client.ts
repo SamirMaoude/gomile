@@ -39,7 +39,7 @@ async function parseError(response: Response) {
 
   if (contentType?.includes("application/json")) {
     const payload = (await response.json()) as Partial<ApiErrorPayload>;
-    return payload.message ?? payload.code ?? "Request failed";
+    return payload.message ?? payload.code ?? fallbackError.message;
   }
 
   const text = await response.text();
@@ -149,7 +149,7 @@ export async function logout(): Promise<LogoutResponse> {
 
   if (!tokens?.accessToken) {
     await getAuthTokenStore().clearTokens();
-    return { message: "Already logged out" };
+    return { message: AUTH_MESSAGES.ALREADY_LOGGED_OUT };
   }
 
   const response = await requestApi<LogoutResponse>(
