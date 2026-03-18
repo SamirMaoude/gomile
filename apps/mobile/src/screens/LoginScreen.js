@@ -12,17 +12,51 @@ import {
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import Header from '../components/Header';
+import { login } from '../../lib/auth-client';
 
 export default function LoginScreen({ navigation }) {
   const [identifier, setIdentifier] = useState(''); // Email ou NumTel
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = () => {
-    // if (!identifier || !password) {
-    //   Alert.alert("Erreur", "Veuillez remplir tous les champs.");
-    //   return;
-    // }
-    navigation.replace('MainApp');
+  // const handleLogin = () => {
+  //   if (!identifier || !password) {
+  //     Alert.alert("Erreur", "Veuillez remplir tous les champs.");
+  //     return;
+  //   }
+    
+  //   navigation.replace('MainApp');
+  // };
+
+  const handleLogin = async () => {
+    // Validation simple
+    if (!identifier || !password) {
+      Alert.alert("Erreur", "Veuillez remplir tous les champs.");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      // 2. On appelle le backend avec les vraies données
+      const session = await login({ 
+        email: identifier, // On envoie l'identifiant comme email
+        password: password 
+      });
+
+      console.log("Session récupérée :", session);
+
+      // 3. Succès ! On redirige vers l'app principale
+      // Les jetons (tokens) sont déjà sauvegardés automatiquement par auth-client.ts
+      navigation.replace('MainApp');
+
+    } catch (error) {
+      // 4. Gestion d'erreur propre
+      // Le fichier api-errors.ts nous permet d'avoir des messages clairs
+      Alert.alert("Échec de connexion", error.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const startRegistration = () => {

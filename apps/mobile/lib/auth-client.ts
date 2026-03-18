@@ -9,11 +9,11 @@ import type {
   RegisterDriverInput,
   RegisterMerchantInput,
   Role,
-} from "../../../shared/auth-contracts";
-import { AUTH_MESSAGES } from "../../../shared/auth-messages";
-import type { ApiErrorPayload } from "../../../shared/api-errors";
-import { createApiError } from "../../../shared/api-errors";
-import { getAuthTokenStore } from "./auth-storage";
+} from "./auth-contracts"; // Corrigé : ./ au lieu de ../../../shared/
+import { AUTH_MESSAGES } from "./auth-messages"; // Corrigé
+import type { ApiErrorPayload } from "./api-errors"; // Corrigé
+import { createApiError } from "./api-errors"; // Corrigé
+import { getAuthTokenStore } from "./auth-storage"; // Déjà correct
 
 const DEFAULT_API_BASE_URL = "http://localhost:3000";
 
@@ -97,6 +97,7 @@ export type {
   Role,
 };
 
+// For my dear friend Ousmane, here is your async functions for front end
 // Registers a merchant account, stores issued tokens, and returns the authenticated user.
 export async function registerMerchant(input: RegisterMerchantInput) {
   const response = await requestApi<AuthTokensResponse>(
