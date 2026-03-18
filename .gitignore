@@ -42,3 +42,5 @@ pnpm-lock.yaml
 apps/api/prisma/migrations/migration_lock.toml
 pnpm-lock.yaml
 pnpm-lock.yaml
+package-lock.json
+apps/api/requests.http
