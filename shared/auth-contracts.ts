@@ -10,6 +10,7 @@ export type Role = (typeof APP_ROLES)[number];
 export const APP_GENDERS = [
   'MALE',
   'FEMALE',
+    'UNDEFINED'
 ] as const;
 
 export type Gender = (typeof APP_GENDERS)[number];
@@ -48,7 +49,7 @@ export interface RegisterDriverInput {
   avatarUrl: string;
   gender: Gender;
   phone: string;
-  documentUrl: string;
+  documentUrl?: string; // optional, perhaps, user can submit kyc later
   dateOfBirth: string;
   address: string;
 }

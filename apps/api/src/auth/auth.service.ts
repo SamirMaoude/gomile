@@ -14,7 +14,7 @@ import { LoginDto } from './dto/login.dto';
 import { AuthResponse } from './auth.types';
 import { createApiError } from './auth-errors';
 import { AUTH_MESSAGES } from './auth-messages';
-
+import { KycStatus } from '@prisma/client'
 @Injectable()
 export class AuthService {
   constructor(
@@ -44,29 +44,37 @@ export class AuthService {
     await this.checkEmailAvailable(dto.email);
     const hashedPassword = await bcrypt.hash(dto.password, 10);
 
+    const driverData = {
+      firstName: dto.firstName,
+      lastName: dto.lastName,
+      phone: dto.phone,
+      dateOfBirth: new Date(dto.dateOfBirth),
+      avatarUrl: dto.avatarUrl,
+      gender: dto.gender,
+      address: dto.address,
+    };
+
     const user = await this.prisma.user.create({
       data: {
         email: dto.email,
         password: hashedPassword,
         role: Role.DRIVER,
         driver: {
-          create: {
-            firstName: dto.firstName,
-            lastName: dto.lastName,
-            phone: dto.phone,
-            dateOfBirth: new Date(dto.dateOfBirth),
-            avatarUrl: dto.avatarUrl,
-            gender: dto.gender,
-            address: dto.address,
+          // if documentUrl is provided, create a kyc submission and status to Pending
+          // if not, user has default kyc status
+          create: dto.documentUrl ? {
+            ...driverData,
+            kycStatus: KycStatus.PENDING,
             kycSubmissions: {
               create: {
                 documentUrl: dto.documentUrl,
               },
             },
-          },
-        },
-      },
-    });
+          }
+          : driverData
+        }
+      }
+    })
 
     return this.generateAndSaveTokens(user.id, user.email, user.role);
   }

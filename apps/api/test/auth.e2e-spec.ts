@@ -3,6 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
+import {PrismaService} from "../src/prisma/prisma.service";
 
 const jwtPattern = /^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$/;
 
@@ -18,6 +19,7 @@ interface AuthTokensResponse {
 
 describe('AuthController (e2e)', () => {
   let app: INestApplication<App>;
+  let prisma: PrismaService;
 
   // Initialize application
   beforeAll(async () => {
@@ -27,6 +29,7 @@ describe('AuthController (e2e)', () => {
 
     app = moduleFixture.createNestApplication();
     await app.init();
+    prisma = app.get(PrismaService);
   });
 
   // Close application
@@ -101,8 +104,8 @@ describe('AuthController (e2e)', () => {
       .expect(HttpStatus.UNAUTHORIZED);
   });
 
-  // Test registration of a driver
-  it('registers a driver', async () => {
+  // Test registration of a driver with kyc
+  it('registers a driver with kyc', async () => {
     const email = `driver_${Date.now()}@test.local`;
 
     const res = await request(app.getHttpServer())
@@ -123,8 +126,54 @@ describe('AuthController (e2e)', () => {
 
     expect(res.body.user.email).toBe(email);
     expect(res.body.user.role).toBe('DRIVER');
+
+    const driver = await prisma.driver.findUnique(
+        {
+          where: {userId: res.body.user.id},
+          include: { kycSubmissions: true}
+        }
+    )
+
+    expect(driver).not.toBeNull();
+    expect(driver?.firstName).toBe('Riku');
+    expect(driver?.lastName).toBe('le DRIVER');
+    expect(driver?.phone).toBe('0612345678');
+    expect(driver?.avatarUrl).toBe('https://example.test/avatar/riku-driver.jpg');
+    expect(driver?.gender).toBe('MALE');
+    expect(driver?.address).toBe('22 boulevard Clemenceau, 38100 Grenoble');
+    expect(driver?.kycStatus).toBe('PENDING');
+
   });
 
+  it('registers a driver without kyc', async() => {
+    const email = `driver_${Date.now()}@test.local`;
+
+    const  res = await request(app.getHttpServer())
+        .post('/auth/register/driver')
+        .send({
+          email,
+          password: 'TacosDeLyon',
+          firstName: 'RikuSansPapier',
+          lastName: 'le DRIVER',
+          avatarUrl: 'https://example.test/avatar/riku-driver.jpg',
+          gender: 'MALE',
+          phone: '0612345678',
+          dateOfBirth: '2000-01-02',
+          address: '22 boulevard Clemenceau, 38100 Grenoble',
+        }).expect(HttpStatus.CREATED);
+      expect(res.body.user.email).toBe(email);
+      expect(res.body.user.role).toBe('DRIVER');
+      // no need to reverify if the fields are correct, just verify the state to be NOT SUBMITTED
+      const driver = await prisma.driver.findUnique(
+          {
+            where: {userId: res.body.user.id},
+            include: { kycSubmissions: true}
+          }
+      )
+      expect(driver).not.toBeNull();
+      expect(driver?.kycStatus).toBe('NOT_SUBMITTED');
+      expect(driver?.kycSubmissions).toHaveLength(0);
+    });
   // Test duplication email
   it('rejects duplicate email', async () => {
     const email = `dup_${Date.now()}@test.local`;

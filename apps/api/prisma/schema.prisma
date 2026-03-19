@@ -19,6 +19,7 @@ enum Role {
 }
 
 enum KycStatus {
+  NOT_SUBMITTED
   PENDING
   APPROVED
   REJECTED
@@ -84,7 +85,7 @@ model Driver {
   dateOfBirth DateTime
   address     String
 
-  kycStatus KycStatus @default(PENDING)
+  kycStatus KycStatus @default(NOT_SUBMITTED)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 

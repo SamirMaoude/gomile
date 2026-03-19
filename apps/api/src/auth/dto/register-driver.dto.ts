@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsString, MinLength, IsDateString, IsEnum } from 'class-validator';
+import {IsEmail, IsString, MinLength, IsDateString, IsEnum, IsOptional} from 'class-validator';
 import { Gender } from '@prisma/client';
 export class RegisterDriverDto {
   @ApiProperty({ example: 'driver@test.local' })
@@ -31,9 +31,10 @@ export class RegisterDriverDto {
   @IsString()
   phone: string;
 
-  @ApiProperty({example: 'ThisIsAnUrl'})
+  @ApiProperty({example: 'ThisIsAnUrl', required: false})
   @IsString()
-  documentUrl: string;
+  @IsOptional()
+  documentUrl?: string;
 
   @ApiProperty({ example: '2026-01-02' })
   @IsDateString()
@@ -42,4 +43,5 @@ export class RegisterDriverDto {
   @ApiProperty({ example: '22 boulevard Clemenceau, 38100, Grenoble'})
   @IsString()
   address: string;
+
 }
