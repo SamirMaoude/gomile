@@ -16,6 +16,7 @@ import GrenobleDeliveryMap, {
   type DeliveryMapMarkerData,
 } from "@/components/dashboard/grenoble-delivery-map";
 import Footer from "@/components/ui/design-system/header_footer/footer";
+import { Logo } from "../Logo/Logo";
 
 type ThemeMode = "light" | "dark";
 type DeliveryStatus = "En route" | "En retard";
@@ -60,7 +61,7 @@ const menuItems: MenuItem[] = [
 
 const activeDeliveries: DeliveryItem[] = [
   {
-    id: "#4101",
+    id: "4101",
     destination: "14 rue de l'Opera",
     status: "En route",
     eta: "11:30 h",
@@ -68,7 +69,7 @@ const activeDeliveries: DeliveryItem[] = [
     avatarClass: "bg-sky-100 text-sky-900",
   },
   {
-    id: "#4102",
+    id: "4102",
     destination: "8 Pl. de la Bastille",
     status: "En retard",
     eta: "11:46 h",
@@ -77,7 +78,7 @@ const activeDeliveries: DeliveryItem[] = [
     avatarClass: "bg-amber-100 text-amber-900",
   },
   {
-    id: "#4103",
+    id: "4103",
     destination: "21 avenue Victor Hugo",
     status: "En route",
     eta: "12:05 h",
@@ -88,13 +89,13 @@ const activeDeliveries: DeliveryItem[] = [
 
 const incidents: IncidentItem[] = [
   {
-    id: "#4102",
+    id: "4102",
     type: "Retard planifie",
     description: "Preparation plus longue que prevu cote commercant.",
     state: "EN COURS",
   },
   {
-    id: "#4099",
+    id: "4099",
     type: "Livraison annulee",
     description: "Produit indisponible avant recuperation de la commande.",
     state: "ANNULE",
@@ -551,14 +552,8 @@ export default function ClientDashboardShell() {
             ].join(" ")}
           >
             <Link href="/" className="inline-flex items-center">
-              <Image
-                src="/svg/Logo2.svg"
-                alt="Logo GoMile"
-                width={190}
-                height={72}
-                className="h-auto w-[10.8rem]"
-                priority
-              />
+                            <Logo size="lg"/>
+              
             </Link>
           </div>
 

@@ -1,92 +1,66 @@
-import { forwardRef, type InputHTMLAttributes, type ReactNode } from "react";
+import React, { forwardRef, useId } from "react";
+import clsx from "clsx";
 
-type InputProps = InputHTMLAttributes<HTMLInputElement> & {
-  label?: string;
-  error?: string;
-  helperText?: string;
-  leftIcon?: ReactNode;
-  rightElement?: ReactNode;
-  containerClassName?: string;
-  inputWrapperClassName?: string;
-};
+interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  label: string;
+  error?: string | null;
+  leftIcon?: React.ReactNode;
+  wrapperClassName?: string;
+  inputClassName?: string;
+}
+
+const styleP = "mt-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+const styleIconLeft = "pointer-events-none absolute inset-y-0 left-5 flex items-center text-slate-700"
+const styleInput ="h-[3.75rem] w-full rounded-[1.4rem] border-2 border-slate-700/85 bg-white pr-5 text-[1.05rem] text-slate-950 outline-none transition placeholder:text-slate-700 focus:border-primary-light focus:ring-4 focus:ring-emerald-100 lg:h-[4.35rem] lg:text-[1.2rem]"
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
   (
     {
       label,
       error,
-      helperText,
       leftIcon,
-      rightElement,
-      className = "",
-      containerClassName = "",
-      inputWrapperClassName = "",
       id,
+      className,
+      wrapperClassName,
+      inputClassName,
       ...props
     },
-    ref
+    ref,
   ) => {
-    const hasError = Boolean(error);
-
+    const generatedId = useId();
+    const inputId = id ?? `input-${generatedId}`;
     return (
-      <div className={containerClassName}>
-        {label ? (
-          <label
-            htmlFor={id}
-            className="mb-2 block text-sm font-medium leading-5 text-[var(--foreground)]"
-          >
-            {label}
-          </label>
+      <div className={clsx("relative", wrapperClassName)}>
+        <label htmlFor={inputId} className="sr-only">
+          {label}
+        </label>
+
+        {leftIcon ? (
+          <div className= {styleIconLeft}>
+            {leftIcon}
+          </div>
         ) : null}
 
-        <div
-          className={[
-            "flex h-12 items-center rounded-2xl border bg-white px-4 transition",
-            hasError
-              ? "border-[var(--error)]"
-              : "border-[var(--input-border)] focus-within:border-[var(--primary)]",
-            inputWrapperClassName,
-          ]
-            .filter(Boolean)
-            .join(" ")}
-        >
-          {leftIcon ? (
-            <span className="mr-3 flex shrink-0 items-center justify-center text-[var(--icon-muted)]">
-              {leftIcon}
-            </span>
-          ) : null}
-
-          <input
-            ref={ref}
-            id={id}
-            className={[
-              "h-full w-full bg-transparent text-sm text-[var(--foreground)] outline-none placeholder:text-[var(--placeholder)]",
-              className,
-            ]
-              .filter(Boolean)
-              .join(" ")}
-            {...props}
-          />
-
-          {rightElement ? (
-            <div className="ml-3 flex shrink-0 items-center justify-center">
-              {rightElement}
-            </div>
-          ) : null}
-        </div>
+        <input
+          ref={ref}
+          id={inputId}
+          className={clsx(
+            styleInput,
+            leftIcon ? "pl-16" : "pl-5",
+            inputClassName,
+            className,
+          )}
+          {...props}
+        />
 
         {error ? (
-          <p className="mt-2 text-sm font-medium leading-5 text-[var(--error)]">
+          <p className="">
             {error}
-          </p>
-        ) : helperText ? (
-          <p className="mt-2 text-sm font-normal leading-5 text-[var(--muted-foreground)]">
-            {helperText}
           </p>
         ) : null}
       </div>
     );
-  }
+  },
 );
 
 Input.displayName = "Input";

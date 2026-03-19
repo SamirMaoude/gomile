@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import { login, logout } from "@/lib/auth-client";
+import { Logo } from "../Logo/Logo";
 
 function MailIcon() {
   return (
@@ -215,133 +216,115 @@ export default function ClientLoginForm() {
           Retour a l'accueil
         </Link>
 
-        <div
-          className="w-full max-w-[24rem] rounded-[2rem] border border-white/80 bg-white/24 p-3 shadow-[0_30px_120px_rgba(15,23,42,0.18)] backdrop-blur-md sm:max-w-[35rem] sm:p-4 lg:max-w-[50rem] lg:p-5"
-          style={{
-            backgroundImage:
-              "linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0.08)), url('/images/bg.png')",
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-          }}
-        >
-          <div className="flex min-h-[calc(100vh-2rem)] max-h-[54rem] flex-col items-center justify-center rounded-[1.9rem] border border-white/70 bg-white/10 px-4 py-5 sm:min-h-[calc(100vh-2.5rem)] sm:px-6 sm:py-6 lg:px-8 lg:py-7">
-            <div className="w-full max-w-[21rem] rounded-[1.8rem] bg-white/96 px-5 py-6 shadow-[0_26px_90px_rgba(24,58,92,0.18)] sm:max-w-[29rem] sm:px-7 sm:py-7 lg:max-w-[39rem] lg:px-10 lg:py-8">
-              <div className="flex flex-col items-center">
-                <div className="rounded-[1.3rem] bg-white px-4 py-3 shadow-[0_12px_32px_rgba(15,23,42,0.07)]">
-                  <Image
-                    src="/svg/Logo2.svg"
-                    alt="Logo GoMile"
-                    width={220}
-                    height={160}
-                    className="h-auto w-[9.8rem] sm:w-[11.5rem] lg:w-[13rem]"
-                    priority
-                  />
-                </div>
+        <div className="w-full max-w-[21rem] rounded-[1.8rem] bg-white/96 px-5 py-6 shadow-[0_26px_90px_rgba(24,58,92,0.18)] sm:max-w-[29rem] sm:px-7 sm:py-7 lg:max-w-[39rem] lg:px-10 lg:py-8">
+          <div className="flex flex-col items-center">
+            <div className="rounded-[1.3rem] bg-white px-4 py-3 shadow-[0_12px_32px_rgba(15,23,42,0.07)]">
+              <Logo size="lg"/>
 
-                <h1 className="mt-5 text-center font-display text-[2rem] font-bold leading-[1.08] text-slate-950 sm:text-[2.55rem] lg:mt-6 lg:text-[3rem]">
-                  Connectez-vous
-                  <span className="block">a GoMile</span>
-                </h1>
-              </div>
-
-              <form
-                onSubmit={handleSubmit}
-                className="mt-6 space-y-4 lg:mt-7 lg:space-y-5"
-              >
-                <CustomerField
-                  id="client-email"
-                  name="email"
-                  type="email"
-                  placeholder="Adresse e-mail"
-                  icon={<MailIcon />}
-                />
-
-                <CustomerField
-                  id="client-password"
-                  name="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Mot de passe"
-                  icon={<LockIcon />}
-                  trailing={
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword((value) => !value)}
-                      className="rounded-full p-2 transition hover:bg-slate-100"
-                      aria-label={
-                        showPassword
-                          ? "Masquer le mot de passe"
-                          : "Afficher le mot de passe"
-                      }
-                    >
-                      <EyeIcon visible={showPassword} />
-                    </button>
-                  }
-                />
-
-                <div className="pt-1 text-right">
-                  <Link
-                    href="/client/forgot-password"
-                    className="text-[1rem] font-medium text-sky-800 transition hover:text-sky-950 lg:text-[1.1rem]"
-                  >
-                    Mot de passe oublie?
-                  </Link>
-                </div>
-
-                {error ? (
-                  <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                    {error}
-                  </p>
-                ) : null}
-
-                {success ? (
-                  <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-                    {success}
-                  </p>
-                ) : null}
-
-                <button
-                  type="submit"
-                  disabled={isPending}
-                  className="h-[3.75rem] w-full rounded-[1.25rem] bg-[linear-gradient(180deg,#a7d84e_0%,#7ebb2b_100%)] px-6 text-[1rem] font-bold uppercase tracking-[0.08em] text-white shadow-[0_18px_40px_rgba(126,187,43,0.34)] transition hover:translate-y-[-1px] hover:shadow-[0_22px_50px_rgba(126,187,43,0.42)] disabled:cursor-not-allowed disabled:opacity-70 lg:h-[4.4rem] lg:text-[1.28rem]"
-                >
-                  {isPending ? "Connexion..." : "Se connecter"}
-                </button>
-              </form>
-
-              <div className="mt-6 flex items-center gap-4 text-sm text-slate-500 sm:text-base lg:mt-7">
-                <span className="h-px flex-1 bg-slate-200" />
-                <span>Ou connectez-vous avec</span>
-                <span className="h-px flex-1 bg-slate-200" />
-              </div>
-
-              <div className="mx-auto mt-5 grid max-w-sm grid-cols-2 gap-4 lg:mt-6">
-                <button
-                  type="button"
-                  className="flex h-[3.75rem] items-center justify-center rounded-[1.2rem] border border-slate-200 bg-white shadow-[0_12px_24px_rgba(15,23,42,0.06)] transition hover:-translate-y-0.5 hover:border-slate-300"
-                  aria-label="Continuer avec Google"
-                >
-                  <GoogleIcon />
-                </button>
-                <button
-                  type="button"
-                  className="flex h-[3.75rem] items-center justify-center rounded-[1.2rem] border border-slate-200 bg-white shadow-[0_12px_24px_rgba(15,23,42,0.06)] transition hover:-translate-y-0.5 hover:border-slate-300"
-                  aria-label="Continuer avec Facebook"
-                >
-                  <FacebookIcon />
-                </button>
-              </div>
-
-              <p className="mt-6 text-center text-[1rem] text-slate-800 lg:mt-7 lg:text-[1.12rem]">
-                Pas encore de compte?{" "}
-                <a
-                  href="#"
-                  className="font-semibold text-sky-800 transition hover:text-sky-950"
-                >
-                  S'inscrire
-                </a>
-              </p>
             </div>
+
+            <h1 className="mt-5 text-center font-display text-[2rem] font-bold leading-[1.08] text-slate-950 sm:text-[2.55rem] lg:mt-6 lg:text-[3rem]">
+              Connectez-vous
+              <span className="block">a GoMile</span>
+            </h1>
           </div>
+
+          <form
+            onSubmit={handleSubmit}
+            className="mt-6 space-y-4 lg:mt-7 lg:space-y-5"
+          >
+            <CustomerField
+              id="client-email"
+              name="email"
+              type="email"
+              placeholder="Adresse e-mail"
+              icon={<MailIcon />}
+            />
+
+            <CustomerField
+              id="client-password"
+              name="password"
+              type={showPassword ? "text" : "password"}
+              placeholder="Mot de passe"
+              icon={<LockIcon />}
+              trailing={
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((value) => !value)}
+                  className="rounded-full p-2 transition hover:bg-slate-100"
+                  aria-label={
+                    showPassword
+                      ? "Masquer le mot de passe"
+                      : "Afficher le mot de passe"
+                  }
+                >
+                  <EyeIcon visible={showPassword} />
+                </button>
+              }
+            />
+
+            <div className="pt-1 text-right">
+              <Link
+                href="/client/forgot-password"
+                className="text-[1rem] font-medium text-sky-800 transition hover:text-sky-950 lg:text-[1.1rem]"
+              >
+                Mot de passe oublie?
+              </Link>
+            </div>
+
+            {error ? (
+              <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {error}
+              </p>
+            ) : null}
+
+            {success ? (
+              <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                {success}
+              </p>
+            ) : null}
+
+            <button
+              type="submit"
+              disabled={isPending}
+              className="h-[3.75rem] w-full rounded-[1.25rem] bg-[linear-gradient(180deg,#a7d84e_0%,#7ebb2b_100%)] px-6 text-[1rem] font-bold uppercase tracking-[0.08em] text-white shadow-[0_18px_40px_rgba(126,187,43,0.34)] transition hover:translate-y-[-1px] hover:shadow-[0_22px_50px_rgba(126,187,43,0.42)] disabled:cursor-not-allowed disabled:opacity-70 lg:h-[4.4rem] lg:text-[1.28rem]"
+            >
+              {isPending ? "Connexion..." : "Se connecter"}
+            </button>
+          </form>
+
+          <div className="mt-6 flex items-center gap-4 text-sm text-slate-500 sm:text-base lg:mt-7">
+            <span className="h-px flex-1 bg-slate-200" />
+            <span>Ou connectez-vous avec</span>
+            <span className="h-px flex-1 bg-slate-200" />
+          </div>
+
+          <div className="mx-auto mt-5 grid max-w-sm grid-cols-2 gap-4 lg:mt-6">
+            <button
+              type="button"
+              className="flex h-[3.75rem] items-center justify-center rounded-[1.2rem] border border-slate-200 bg-white shadow-[0_12px_24px_rgba(15,23,42,0.06)] transition hover:-translate-y-0.5 hover:border-slate-300"
+              aria-label="Continuer avec Google"
+            >
+              <GoogleIcon />
+            </button>
+            <button
+              type="button"
+              className="flex h-[3.75rem] items-center justify-center rounded-[1.2rem] border border-slate-200 bg-white shadow-[0_12px_24px_rgba(15,23,42,0.06)] transition hover:-translate-y-0.5 hover:border-slate-300"
+              aria-label="Continuer avec Facebook"
+            >
+              <FacebookIcon />
+            </button>
+          </div>
+
+          <p className="mt-6 text-center text-[1rem] text-slate-800 lg:mt-7 lg:text-[1.12rem]">
+            Pas encore de compte?{" "}
+            <a
+              href="#"
+              className="font-semibold text-sky-800 transition hover:text-sky-950"
+            >
+              S'inscrire
+            </a>
+          </p>
         </div>
       </div>
     </main>
