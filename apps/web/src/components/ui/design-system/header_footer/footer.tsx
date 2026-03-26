@@ -1,5 +1,6 @@
 import React from 'react'
 import Link from 'next/link'
+import Container from '../../elements/container'
 
 /* ─── Icônes réseaux sociaux (inline SVG) ───────────────── */
 const IconFacebook = () => (
@@ -43,7 +44,7 @@ export default function Footer() {
 
   return (
     <footer className="bg-footer-bg text-footer-text">
-      <div className="max-w-7xl mx-auto px-6 py-5">
+      <Container>
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
 
           {/* Copyright */}
@@ -85,7 +86,7 @@ export default function Footer() {
           </ul>
 
         </div>
-      </div>
+      </Container>
     </footer>
   )
 }

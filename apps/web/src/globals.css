@@ -20,9 +20,12 @@
 @theme {
 
   /* Couleurs principales */
-  --color-primary:        #0FB12A;   /* Vert foncé  — navbar, accents forts  */
-  --color-primary-light:  #3D8B3D;   /* Vert moyen  — boutons, hover          */
-  --color-primary-hover:  #2F6E2F;   /* Vert hover  — état hover des boutons  */
+  --color-primary-green:        #0FB12A;   /* Vert foncé  — navbar, accents forts  */
+  --color-primary-green-light:  #3D8B3D;   /* Vert moyen  — boutons, hover          */
+  --color-primary-green-hover:  #2F6E2F;   /* Vert hover  — état hover des boutons  */
+  --color-primary-blue:        #0E1AC2;   /* Vert foncé  — navbar, accents forts  */
+  --color-primary-blue-light:  #4AC5DE;   /* Vert moyen  — boutons, hover          */
+  --color-primary-blue-hover:  #040D8C;   /* Vert hover  — état hover des boutons  */
   --color-bg:             #EEF5EE;   /* Vert pâle   — fond de page            */
   --color-bg-card:        #FFFFCC;   /* Blanc       — fond des cartes         */
   --color-text:           #1A2E1A;   /* Vert très foncé — texte principal     */
@@ -60,8 +63,13 @@
   --radius-btn:  0.5rem;
 
   /* Ombres */
-  --shadow-card: 0 4px 24px 0 rgba(43, 94, 43, 0.10);
-  --shadow-btn:  0 2px 8px 0 rgba(43, 94, 43, 0.20);
+  --shadow-card:        0 4px 24px 0 rgba(43, 94, 43, 0.10);
+  --shadow-card-hover:  0 8px 32px 0 rgba(43, 94, 43, 0.15);
+
+  --shadow-btn:         0 2px 8px 0 rgba(43, 94, 43, 0.20);
+  --shadow-btn-hover:   0 4px 12px 0 rgba(43, 94, 43, 0.30);
+  
+
 }
 
 /* ─── Reset & base ─────────────────────────────────────── */
