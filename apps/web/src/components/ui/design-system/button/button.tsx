@@ -6,6 +6,7 @@ type ButtonVariant = 'filled' | 'outline' | 'ghost'
 type ButtonSize = 'sm' | 'md' | 'lg'
 type ButtonTheme = 'green' | 'blue'
 type ButtonShade = 'normal' | 'light'
+type IconPosition = 'left' | 'right'
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant

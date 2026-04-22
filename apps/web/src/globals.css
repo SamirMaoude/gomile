@@ -97,6 +97,54 @@ body {
   font-family: var(--font-body);
 }
 
+/* ─── CSS ───────────────────────── */
+
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.flex-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.full-container {
+  min-height: 100dvh;
+  gap: 20; 
+}
+
+.centered {
+  justify-content: center;
+  align-items: center;
+}
+
+.grid-3-cols {
+  @apply w-full grid gap-20 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 grid-rows-6 md:grid-rows-2 lg:grid-rows-3;
+}
+
+.section-container {
+  @apply flex justify-evenly flex-col items-center min-h-screen ;
+}
+
+.team-member {
+  @apply flex flex-col items-center gap-4;
+}
+
+.hero-container {
+  @apply flex justify-center items-center min-h-screen gap-10;
+}
+
+.link {
+  @apply transition-colors duration-150 hover:text-primary-green underline underline-offset-2;
+}
 /* ─── Images - Map ───────────────────────── */
 
 .gomile-leaflet-map {
@@ -105,6 +153,7 @@ body {
 }
 
 .gomile-leaflet-map.leaflet-container {
+  background: #dfe7d8;
   background: var(--color-bg);
   font: inherit;
 }

@@ -125,3 +125,117 @@ model KycSubmission {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
 }
+
+enum Role {
+  MERCHANT
+  DRIVER
+  ADMIN
+}
+
+enum KycStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  NOT_SUBMITTED
+}
+
+enum WalletEntryType {
+  CREDIT
+  DEBIT
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  UNDEFINED
+}
+
+enum OrderStatus {
+  SEARCHING_DRIVER
+  DRIVER_ASSIGNED
+  DRIVER_ACCEPTED
+  PICKED_UP
+  DELIVERED
+  CANCELLED
+}
+
+enum HandshakeType {
+  A
+  B
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  password     String
+  role         Role
+  refreshToken String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  merchant Merchant?
+  driver   Driver?
+}
+
+model Merchant {
+  id     String @id @default(uuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  companyName String
+  phone       String?
+
+  locals Local[]
+}
+
+model Driver {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @unique @db.Uuid
+  firstName   String
+  lastName    String
+  avatarUrl   String
+  phone       String
+  gender      Gender
+  dateOfBirth DateTime
+  address     String
+
+  kycStatus KycStatus @default(NOT_SUBMITTED)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders         Order[]
+  kycSubmissions KycSubmission[]
+  wallet         Wallet?
+}
+
+model Local {
+  id         String  @id @default(uuid())
+  merchantId String
+  merchant   Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  name      String
+  address   String
+  latitude  Float
+  longitude Float
+
+  apiKeys ApiKey[]
+}
+
+model KycSubmission {
+  id       String    @id @default(uuid()) @db.Uuid
+  driverId String    @db.Uuid
+  status   KycStatus @default(PENDING)
+
+  documentUrl     String
+  rejectionReason String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  driver Driver @relation(fields: [driverId], references: [id], onDelete: Cascade)
+
+  key       String   @unique @default(uuid())
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+}

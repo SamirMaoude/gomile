@@ -5,6 +5,9 @@
   "engines": {
     "node": ">=20 <24"
   },
+  "engines": {
+    "node": ">=20 <24"
+  },
   "scripts": {
     "dev": "corepack pnpm -r --parallel dev",
     "build": "corepack pnpm -r build",
