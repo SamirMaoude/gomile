@@ -24,6 +24,31 @@ enum KycStatus {
   REJECTED
 }
 
+enum WalletEntryType {
+  CREDIT
+  DEBIT
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  UNDEFINED
+}
+
+enum OrderStatus {
+  SEARCHING_DRIVER
+  DRIVER_ASSIGNED
+  DRIVER_ACCEPTED
+  PICKED_UP
+  DELIVERED
+  CANCELLED
+}
+
+enum HandshakeType {
+  A
+  B
+}
+
 model User {
   id           String   @id @default(uuid())
   email        String   @unique
@@ -49,19 +74,24 @@ model Merchant {
 }
 
 model Driver {
-  id     String @id @default(uuid())
-  userId String @unique
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @unique @db.Uuid
+  firstName   String
+  lastName    String
+  avatarUrl   String
+  phone       String
+  gender      Gender
+  dateOfBirth DateTime
+  address     String
 
-  firstName String
-  lastName  String
-  phone     String
+  kycStatus KycStatus @default(PENDING)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
-  kycStatus  KycStatus @default(PENDING)
-  kycDocUrl  String?
-  isOnline   Boolean   @default(false)
-
-  walletBalance Float @default(0)
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders         Order[]
+  kycSubmissions KycSubmission[]
+  wallet         Wallet?
 }
 
 model Local {
@@ -77,10 +107,18 @@ model Local {
   apiKeys ApiKey[]
 }
 
-model ApiKey {
-  id        String   @id @default(uuid())
-  localId   String
-  local     Local    @relation(fields: [localId], references: [id], onDelete: Cascade)
+model KycSubmission {
+  id       String    @id @default(uuid()) @db.Uuid
+  driverId String    @db.Uuid
+  status   KycStatus @default(PENDING)
+
+  documentUrl     String
+  rejectionReason String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  driver Driver @relation(fields: [driverId], references: [id], onDelete: Cascade)
 
   key       String   @unique @default(uuid())
   isActive  Boolean  @default(true)

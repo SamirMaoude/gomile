@@ -51,8 +51,18 @@ export class AuthService {
         role: Role.DRIVER,
         driver: {
           create: {
-            name: dto.name,
+            firstName: dto.firstName,
+            lastName: dto.lastName,
             phone: dto.phone,
+            dateOfBirth: new Date(dto.dateOfBirth),
+            avatarUrl: dto.avatarUrl,
+            gender: dto.gender,
+            address: dto.address,
+            kycSubmissions: {
+              create: {
+                documentUrl: dto.documentUrl,
+              },
+            },
           },
         },
       },

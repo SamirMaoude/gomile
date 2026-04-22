@@ -110,8 +110,14 @@ describe('AuthController (e2e)', () => {
         .send({
           email,
           password: 'TacosDeLyon',
-          name: 'Riku le DRIVER',
+          firstName: 'Riku',
+          lastName: 'le DRIVER',
+          avatarUrl: 'https://example.test/avatar/riku-driver.jpg',
+          gender: 'MALE',
           phone: '0612345678',
+          documentUrl: 'https://example.test/kyc/riku-driver-id.jpg',
+          dateOfBirth: '2000-01-02',
+          address: '22 boulevard Clemenceau, 38100 Grenoble',
         })
         .expect(HttpStatus.CREATED);
 

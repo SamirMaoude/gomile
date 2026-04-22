@@ -7,6 +7,13 @@ export const APP_ROLES = [
 
 export type Role = (typeof APP_ROLES)[number];
 
+export const APP_GENDERS = [
+  'MALE',
+  'FEMALE',
+] as const;
+
+export type Gender = (typeof APP_GENDERS)[number];
+
 export interface AuthUser {
   id: string;
   email: string;
@@ -36,8 +43,14 @@ export interface RegisterMerchantInput {
 export interface RegisterDriverInput {
   email: string;
   password: string;
-  name: string;
+  firstName: string;
+  lastName: string;
+  avatarUrl: string;
+  gender: Gender;
   phone: string;
+  documentUrl: string;
+  dateOfBirth: string;
+  address: string;
 }
 
 export interface LoginInput {
