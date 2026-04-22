@@ -101,9 +101,11 @@ export class OrderMerchantsController {
   @HttpCode(HttpStatus.OK)
   async verifyPickup(
     @Param('storeId') storeId: string,
+    @Param('merchantId') merchantId: string,
+    @CurrentUser() user: AuthenticatedUser,
     @Body() dto: HandshakeDto,
   ) {
-    return this.orderService.verifyPickup(storeId, dto.code);
+    return this.orderService.verifyPickup(user, merchantId, storeId, dto.code);
   }
 
   @ApiOperation({ summary: 'Cancel an order', description: 'Accepts JWT bearer token or x-api-key header. Cannot cancel an order that is already picked up, delivered, or cancelled.' })

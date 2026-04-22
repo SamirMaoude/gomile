@@ -82,6 +82,23 @@ export class OrderLivreursController {
     return this.orderLivreursService.pickupOrder(user, driverId, orderId, dto.code);
   }
 
+  @ApiOperation({ summary: "Retrieve OTP pickup code for an order", description: "Allows the driver to retrieve the handshake type A pickup code in case the app was closed. Only available while the order is in DRIVER_ACCEPTED status." })
+  @ApiOkResponse({ schema: { properties: { code: { type: 'string', example: '048291' } } } })
+  @ApiUnauthorizedResponse({ description: 'Invalid or missing JWT' })
+  @ApiForbiddenResponse({ description: 'Authenticated user does not own this driver account' })
+  @ApiNotFoundResponse({ description: 'Order not found' })
+  @ApiInternalServerErrorResponse({ description: 'Handshake not found or order was in bad status, contact backend developer' })
+  @Roles(Role.DRIVER)
+  @Get('/orders/:orderId/otp')
+  @HttpCode(HttpStatus.OK)
+  async getOTP(
+    @Param('driverId') driverId: string,
+    @Param('orderId') orderId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.orderLivreursService.getPickupCode(user, driverId, orderId);
+  }
+
   @ApiOperation({ summary: "Driver delivers an order to a customer", description:"Handshake type B, customer receives a code, driver must enter the code to validate the delivery"})
   @ApiOkResponse({ description: 'Order delivered successfully', schema: { properties: { orderId: { type: 'string' }, message: { type: 'string' } } } })
   @ApiUnauthorizedResponse({ description: 'Invalid or missing JWT'})

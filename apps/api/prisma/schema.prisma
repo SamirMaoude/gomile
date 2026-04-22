@@ -116,8 +116,13 @@ model User {
   refreshToken String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
   passwordResetToken  String?
   passwordResetExpiry DateTime?
+  
+  emailVerified Boolean @default(false)
+  emailVerificationToken  String?
+  emailVerificationExpiry DateTime?
 
   merchant Merchant?
   driver   Driver?

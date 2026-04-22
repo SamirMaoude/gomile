@@ -62,6 +62,10 @@ export const AUTH_ERRORS = {
   NAME_IS_NULL: {
     statusCode: 500,
     message: 'Names not exist for this user, suggesting backend error. Contact Khoa !'
+  },
+  EMAIL_NOT_VERIFIED: {
+    statusCode: 403,
+    message: 'Please verify your email before login',
   }
 } as const;
 
