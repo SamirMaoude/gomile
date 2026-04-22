@@ -52,6 +52,20 @@ export interface RegisterDriverInput {
   documentUrl?: string; // optional, perhaps, user can submit kyc later
   dateOfBirth: string;
   address: string;
+  city?: string;
+  zipCode?: string;
+  street?: string;
+  deliveryCity: string;
+  deliveryRadius: number;
+  transportType: VehicleType;
+  avatarUrl?: string;
+  cniFile?: string;
+  justificatifFile?: string;
+  permisFile?: string;
+  carteGriseFile?: string;
+  siret?: string;
+  kbisFile?: string;
+  ribFile?: string;
 }
 
 export interface LoginInput {

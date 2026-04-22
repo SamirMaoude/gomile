@@ -178,9 +178,29 @@ model User {
 }
 
 model Merchant {
-  id     String @id @default(uuid())
-  userId String @unique
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String   @id @db.Uuid
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  store   Store[]
+  orders  Order[]
+  apiKeys MerchantApiKey[]
+}
+
+model MerchantApiKey {
+  id          String    @id @default(uuid()) @db.Uuid
+  merchantId  String    @db.Uuid
+  storeId     String    @db.Uuid @unique
+  name        String
+  keyHash     String    @unique
+  createdAt   DateTime  @default(now())
+  revokedAt   DateTime?
+  expiresAt   DateTime?
+
+  merchant Merchant @relation(fields: [merchantId], references: [userId], onDelete: Cascade)
+  store    Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
 
   companyName String
   phone       String?
@@ -198,6 +218,22 @@ model Driver {
   gender      Gender
   dateOfBirth DateTime
   address     String
+  city        String?
+  zipCode     String?
+  street      String?
+  deliveryCity    String
+  deliveryRadius  Int
+  transportType   VehicleType
+  activeVehicle   VehicleType?
+  status          DriverStatus @default(OFFLINE)
+  lastKnownLatitude  Float?   @db.DoublePrecision
+  lastKnownLongitude Float?   @db.DoublePrecision
+  lastKnownLocation  Unsupported("geometry(Point, 4326)")?
+  rating     Float?
+  totalTrips Int     @default(0)
+  gomileCode String  @unique
+  siret      String?
+
 
   kycStatus KycStatus @default(NOT_SUBMITTED)
   createdAt DateTime  @default(now())

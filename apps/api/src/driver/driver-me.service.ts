@@ -235,7 +235,6 @@ export class DriverMeService {
         ...(dto.deliveryCity !== undefined && { deliveryCity: dto.deliveryCity }),
         ...(dto.deliveryRadius !== undefined && { deliveryRadius: dto.deliveryRadius }),
         ...(dto.transportType !== undefined && { transportType: dto.transportType }),
-        ...(dto.equipments !== undefined && { equipments: dto.equipments }),
         ...(dto.avatarUrl !== undefined && { avatarUrl: dto.avatarUrl }),
         ...(addressChanged && { kycStatus: KycStatus.NOT_SUBMITTED }),
       },

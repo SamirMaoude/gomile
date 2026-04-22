@@ -44,4 +44,69 @@ export class RegisterDriverDto {
   @IsString()
   address: string;
 
+  @ApiProperty({ example: 'Grenoble', required: false })
+  @IsString()
+  @IsOptional()
+  city?: string;
+
+  @ApiProperty({ example: '38000', required: false })
+  @IsString()
+  @IsOptional()
+  zipCode?: string;
+
+  @ApiProperty({ example: 'boulevard Clemenceau', required: false })
+  @IsString()
+  @IsOptional()
+  street?: string;
+
+  // Delivery
+  @ApiProperty({ example: 'Grenoble' })
+  @IsString()
+  deliveryCity: string;
+
+  @ApiProperty({ example: 15 })
+  @IsInt()
+  @Min(1)
+  deliveryRadius: number;
+
+  @ApiProperty({ enum: VehicleType, example: VehicleType.BIKE })
+  @IsEnum(VehicleType)
+  transportType: VehicleType;
+
+  // Documents (URLs — files must be uploaded first)
+  @ApiProperty({ example: 'https://storage.example.com/cni.jpg', required: false })
+  @IsUrl()
+  @IsOptional()
+  cniFile?: string;
+
+  @ApiProperty({ example: 'https://storage.example.com/justif.jpg', required: false })
+  @IsUrl()
+  @IsOptional()
+  justificatifFile?: string;
+
+  @ApiProperty({ example: 'https://storage.example.com/permis.jpg', required: false, description: 'Required if transportType is not BIKE' })
+  @IsUrl()
+  @IsOptional()
+  permisFile?: string;
+
+  @ApiProperty({ example: 'https://storage.example.com/cartegrise.jpg', required: false, description: 'Required if transportType is not BIKE' })
+  @IsUrl()
+  @IsOptional()
+  carteGriseFile?: string;
+
+  // Pro info
+  @ApiProperty({ example: '12345678900012', required: false })
+  @IsString()
+  @IsOptional()
+  siret?: string;
+
+  @ApiProperty({ example: 'https://storage.example.com/kbis.pdf', required: false })
+  @IsUrl()
+  @IsOptional()
+  kbisFile?: string;
+
+  @ApiProperty({ example: 'https://storage.example.com/rib.pdf', required: false })
+  @IsUrl()
+  @IsOptional()
+  ribFile?: string;
 }

@@ -60,21 +60,45 @@ export class AuthService {
         password: hashedPassword,
         role: Role.DRIVER,
         driver: {
-          // if documentUrl is provided, create a kyc submission and status to Pending
-          // if not, user has default kyc status
-          create: dto.documentUrl ? {
-            ...driverData,
-            kycStatus: KycStatus.PENDING,
-            kycSubmissions: {
-              create: {
-                documentUrl: dto.documentUrl,
-              },
-            },
-          }
-          : driverData
-        }
-      }
-    })
+          create: {
+            firstName: dto.firstName,
+            lastName: dto.lastName,
+            dateOfBirth: new Date(dto.dateOfBirth),
+            gender: dto.gender,
+            avatarUrl: dto.avatarUrl,
+            address: dto.address,
+            city: dto.city,
+            zipCode: dto.zipCode,
+            street: dto.street,
+            deliveryCity: dto.deliveryCity,
+            deliveryRadius: dto.deliveryRadius,
+            transportType: dto.transportType,
+            siret: dto.siret,
+            gomileCode,
+            wallet: { create: { balance: 0 } },
+          },
+        },
+      },
+    });
+
+    // Create DriverDocument records for any provided file URLs
+    const documents: { type: DocumentType; url: string }[] = [];
+    if (dto.cniFile) documents.push({ type: DocumentType.CNI, url: dto.cniFile });
+    if (dto.justificatifFile) documents.push({ type: DocumentType.OTHER, url: dto.justificatifFile });
+    if (dto.permisFile) documents.push({ type: DocumentType.DRIVING_LICENSE, url: dto.permisFile });
+    if (dto.carteGriseFile) documents.push({ type: DocumentType.REGISTRATION_CARD, url: dto.carteGriseFile });
+    if (dto.kbisFile) documents.push({ type: DocumentType.OTHER, url: dto.kbisFile });
+    if (dto.ribFile) documents.push({ type: DocumentType.RIB, url: dto.ribFile });
+
+    if (documents.length > 0) {
+      await this.prisma.driverDocument.createMany({
+        data: documents.map(doc => ({ ...doc, driverId: user.id })),
+      });
+    }
+
+    // Just like merchants, drivers should have their accounts email verified
+    const verifyUrl = `${process.env.APP_URL ?? DEFAULT_APP_URL}/verify-email?token=${token}`;
+    await this.emailService.sendVerificationEmail(user.email, dto.firstName, verifyUrl);
 
     return this.generateAndSaveTokens(user.id, user.email, user.role);
   }
@@ -89,7 +113,11 @@ export class AuthService {
 
     const passwordMatch = await bcrypt.compare(dto.password, user.password);
     if (!passwordMatch)
-      throw new UnauthorizedException(createApiError('INVALID_CREDENTIALS'));
+      throw new UnauthorizedException(createApiError('INVALID_CREDENTIALS', AUTH_ERRORS));
+
+    // Disable temporary to fix domain issues
+    if (!user.emailVerified)
+      throw new UnauthorizedException(createApiError('EMAIL_NOT_VERIFIED', AUTH_ERRORS));
 
     return this.generateAndSaveTokens(user.id, user.email, user.role);
   }
