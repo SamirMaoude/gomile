@@ -48,7 +48,18 @@ export default function MerchantHandshakeCard({
           theme={isDarkMode ? "white" : "heading"}
           className={styles.sectionTitle}
         >
-          Handshake commande
+          Validation prise en charge
+        </Typography>
+        <Typography
+          variant="p"
+          Component="p"
+          className={cn(
+            styles.handshakeDescription,
+            isDarkMode ? "!text-slate-300" : "!text-slate-600",
+          )}
+        >
+          Saisissez le code montre par le livreur. Cette route Swagger valide
+          la prise en charge cote marchand, pas la livraison client.
         </Typography>
       </div>
 
@@ -93,13 +104,13 @@ export default function MerchantHandshakeCard({
               isDarkMode ? "!text-slate-200" : "!text-slate-700",
             )}
           >
-            Code handshake
+            Code du livreur
           </span>
           <input
             type="text"
             inputMode="numeric"
             maxLength={6}
-            placeholder="Ex: 023106"
+            placeholder="Code montre par le livreur"
             value={code}
             onChange={(event) => setCode(event.target.value)}
             disabled={isSubmitting}
@@ -134,7 +145,7 @@ export default function MerchantHandshakeCard({
           disabled={isSubmitting || isLoadingStores || stores.length === 0}
           className={styles.handshakeButton}
         >
-          {isSubmitting ? "Verification..." : "Valider le code"}
+          {isSubmitting ? "Verification..." : "Valider la prise en charge"}
         </Button>
       </Form>
     </section>

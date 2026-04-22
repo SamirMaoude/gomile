@@ -29,6 +29,37 @@ export type {
 };
 export { APP_GENDERS, APP_VEHICLE_TYPES };
 
+export type VerifyEmailResponse = {
+  message: string;
+};
+
+export type ForgotPasswordInput = {
+  email: string;
+};
+
+export type ForgotPasswordResponse = {
+  message: string;
+};
+
+export type VerifyOtpInput = {
+  email: string;
+  otp: string;
+};
+
+export type VerifyOtpResponse = {
+  resetToken: string;
+};
+
+export type ResetPasswordInput = {
+  email: string;
+  resetToken: string;
+  newPassword: string;
+};
+
+export type ResetPasswordResponse = {
+  message: string;
+};
+
 async function parseError(response: Response) {
   const fallbackError = createApiError("REQUEST_FAILED");
   const contentType = response.headers.get("content-type");
@@ -103,5 +134,33 @@ export function refreshSession() {
 export function logout() {
   return requestAuth<LogoutResponse>("/api/auth/logout", {
     method: "POST",
+  });
+}
+
+export function verifyEmailToken(token: string) {
+  const search = new URLSearchParams({ token }).toString();
+  return requestAuth<VerifyEmailResponse>(`/api/auth/verify-email?${search}`, {
+    method: "GET",
+  });
+}
+
+export function forgotPassword(input: ForgotPasswordInput) {
+  return requestAuth<ForgotPasswordResponse>("/api/auth/forgot-password", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
+export function verifyOtp(input: VerifyOtpInput) {
+  return requestAuth<VerifyOtpResponse>("/api/auth/verify-otp", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
+export function resetPassword(input: ResetPasswordInput) {
+  return requestAuth<ResetPasswordResponse>("/api/auth/reset-password", {
+    method: "POST",
+    body: JSON.stringify(input),
   });
 }
