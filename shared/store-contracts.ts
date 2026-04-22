@@ -37,3 +37,26 @@ export interface StoreResponse {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface StoreOrderCount {
+  orders: number;
+}
+
+export interface ListStoresItem extends StoreResponse {
+  _count: StoreOrderCount;
+}
+
+export interface CreateStoreResponse {
+  id: string;
+  name: string;
+}
+
+export interface UpdateStoreResponse {
+  id: string;
+  name: string;
+  message: string;
+}
+
+export interface DeleteStoreResponse {
+  message: string;
+}

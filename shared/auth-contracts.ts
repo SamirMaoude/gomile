@@ -50,6 +50,7 @@ export interface RegisterMerchantInput {
   email: string;
   password: string;
   name: string;
+  phone?: string;
 }
 
 export interface RegisterDriverInput {
@@ -61,11 +62,21 @@ export interface RegisterDriverInput {
   gender: Gender;
   dateOfBirth: string;
   address: string;
+  city?: string;
+  zipCode?: string;
+  street?: string;
   deliveryCity: string;
   deliveryRadius: number;
   transportType: VehicleType;
   avatarUrl?: string;
+  equipments?: string[];
+  cniFile?: string;
+  justificatifFile?: string;
+  permisFile?: string;
+  carteGriseFile?: string;
   siret?: string;
+  kbisFile?: string;
+  ribFile?: string;
 }
 
 export interface LoginInput {
