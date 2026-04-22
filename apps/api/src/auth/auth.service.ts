@@ -104,7 +104,6 @@ export class AuthService {
             city: dto.city,
             zipCode: dto.zipCode,
             street: dto.street,
-            equipments: dto.equipments ?? [],
             deliveryCity: dto.deliveryCity,
             deliveryRadius: dto.deliveryRadius,
             transportType: dto.transportType,
@@ -155,8 +154,8 @@ export class AuthService {
       throw new UnauthorizedException(createApiError('INVALID_CREDENTIALS', AUTH_ERRORS));
 
     // Disable temporary to fix domain issues
-    //if (!user.emailVerified)
-    //  throw new UnauthorizedException(createApiError('EMAIL_NOT_VERIFIED', AUTH_ERRORS));
+    if (!user.emailVerified)
+      throw new UnauthorizedException(createApiError('EMAIL_NOT_VERIFIED', AUTH_ERRORS));
 
     return this.generateAndSaveTokens(user.id, user.email, user.role);
   }

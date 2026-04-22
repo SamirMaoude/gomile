@@ -55,6 +55,10 @@ export const AUTH_ERRORS = {
     statusCode: 404,
     message: 'Driver not found',
   },
+  API_KEY_ALREADY_EXISTS: {
+    statusCode: 409,
+    message: 'This store already has an active API key. Revoke it before creating a new one.',
+  },
   INVALID_RESET_TOKEN: {
     statusCode: 400,
     message: 'Invalid or expired reset code',

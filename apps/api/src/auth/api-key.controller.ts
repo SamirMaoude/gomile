@@ -48,6 +48,7 @@ export class ApiKeyController {
     @ApiUnauthorizedResponse({ description: 'Invalid or missing JWT' })
     @ApiForbiddenResponse({ description: 'Authenticated user does not own this merchant account' })
     @ApiNotFoundResponse({ description: 'Merchant or store not found' })
+    @ApiConflictResponse({ description: 'Store already has an active API key' })
     @Roles(Role.MERCHANT)
     @Post()
     @HttpCode(HttpStatus.CREATED)

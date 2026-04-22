@@ -143,7 +143,7 @@ model Merchant {
 model MerchantApiKey {
   id          String    @id @default(uuid()) @db.Uuid
   merchantId  String    @db.Uuid
-  storeId     String    @db.Uuid
+  storeId     String    @db.Uuid @unique
   name        String
   keyHash     String    @unique
   createdAt   DateTime  @default(now())
@@ -232,7 +232,6 @@ model Driver {
   city        String?
   zipCode     String?
   street      String?
-  equipments  String[]
   deliveryCity    String
   deliveryRadius  Int
   transportType   VehicleType

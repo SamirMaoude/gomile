@@ -11,7 +11,7 @@ export class EmailService {
   async sendPasswordReset(to: string, name: string, otp: string) {
     const html = await render(<ResetPasswordEmail email={to} name={name} resetOtp={otp} />);
     await this.resend.emails.send({
-      from: 'noreply@gomile.fr',
+      from: 'noreply@gomile.delivery',
       to,
       subject: 'Reset your password',
       html,
@@ -21,7 +21,7 @@ export class EmailService {
   async sendVerificationEmail(to: string, name: string, verifyUrl: string) {
     const html = await render(<VerifyEmail email={to} name={name} verifyUrl={verifyUrl} />);
     await this.resend.emails.send({
-      from: 'noreply@gomile.fr',
+      from: 'noreply@gomile.delivery',
       to,
       subject: 'Verify your Gomile account',
       html,

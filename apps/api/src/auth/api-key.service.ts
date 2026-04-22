@@ -1,7 +1,7 @@
 // Api key services for WooCommerce API authentication
 // This service provides methods to create, revoke and validate API keys for merchants to access the WooCommerce API.
 
-import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
+import { Injectable, ForbiddenException, NotFoundException, ConflictException } from '@nestjs/common';
 import { UnauthorizedException } from '@nestjs/common';
 import { createHash, randomBytes } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
@@ -50,8 +50,13 @@ export class ApiKeyService {
             throw new ForbiddenException(createApiError('NOT_OWNER', AUTH_ERRORS));
         }
         await this.verifyOwnership(merchantId, storeId);
-        // Maybe we define here number of API keys allowed per merchant 
-        // ....
+        // Each store, one api key only
+        const existing = await this.prisma.merchantApiKey.findUnique({
+            where: { storeId },
+        });
+        if (existing && !existing.revokedAt) {
+            throw new ConflictException(createApiError('API_KEY_ALREADY_EXISTS', AUTH_ERRORS));
+        }
 
         // Generate a random API key
         // Only store the hash of the API key in the database for security
