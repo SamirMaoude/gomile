@@ -3,6 +3,7 @@ import {
   createOrder as createOrderRequest,
   getMerchantOrder as getMerchantOrderRequest,
   listMerchantOrders as listMerchantOrdersRequest,
+  verifyMerchantHandshake as verifyMerchantHandshakeRequest,
 } from "@/lib/api-client";
 import {
   listCurrentMerchantStores,
@@ -15,6 +16,11 @@ import type {
   Order,
   OrderListItem,
 } from "./order.model";
+
+export type VerifyMerchantHandshakeResult = {
+  orderId: string;
+  message: string;
+};
 
 export function listMerchantOrders(merchantId: string): Promise<OrderListItem[]> {
   return listMerchantOrdersRequest(merchantId);
@@ -65,6 +71,14 @@ export async function cancelCurrentMerchantOrder(
 ): Promise<CancelOrderResult> {
   const merchantId = await resolveCurrentMerchantId();
   return cancelMerchantOrder(merchantId, orderId);
+}
+
+export async function verifyCurrentMerchantPickupHandshake(
+  storeId: string,
+  code: string,
+): Promise<VerifyMerchantHandshakeResult> {
+  const merchantId = await resolveCurrentMerchantId();
+  return verifyMerchantHandshakeRequest(merchantId, storeId, { code });
 }
 
 export { listCurrentMerchantStores };

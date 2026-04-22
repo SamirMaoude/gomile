@@ -18,6 +18,15 @@ function isEmailValid(email: string) {
   return /\S+@\S+\.\S+/.test(email);
 }
 
+function isUrlValid(value: string) {
+  try {
+    new URL(value);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function buildStepErrors(
   stepId: number,
   formData: DriverRegisterFormData,
@@ -39,6 +48,19 @@ function buildStepErrors(
     }
     if (!normalizedFormData.phone) {
       errors.phone = "Renseignez votre numero de telephone.";
+    } else if (normalizedFormData.phone.replace(/\D/g, "").length < 6) {
+      errors.phone = "Renseignez un numero de telephone valide.";
+    }
+    if (
+      normalizedFormData.avatarUrl &&
+      !isUrlValid(normalizedFormData.avatarUrl)
+    ) {
+      errors.avatarUrl = "Renseignez une URL valide pour l'avatar.";
+    }
+    if (!formData.password) {
+      errors.password = "Choisissez un mot de passe.";
+    } else if (formData.password.length < 8) {
+      errors.password = "Le mot de passe doit contenir au moins 8 caracteres.";
     }
   }
 
@@ -52,16 +74,50 @@ function buildStepErrors(
     if (!normalizedFormData.address) {
       errors.address = "Renseignez votre adresse.";
     }
-    if (!normalizedFormData.avatarUrl) {
-      errors.avatarUrl = "Ajoutez l'URL de votre avatar.";
+  } else if (stepId === 3) {
+    if (!normalizedFormData.deliveryCity) {
+      errors.deliveryCity = "Renseignez votre ville de livraison.";
     }
-  }
+    if (!normalizedFormData.deliveryRadius) {
+      errors.deliveryRadius = "Renseignez votre rayon de livraison.";
+    } else {
+      const radius = Number.parseInt(normalizedFormData.deliveryRadius, 10);
+      if (!Number.isInteger(radius) || radius < 1) {
+        errors.deliveryRadius = "Le rayon de livraison doit etre un entier positif.";
+      }
+    }
+    if (!normalizedFormData.transportType) {
+      errors.transportType = "Selectionnez votre moyen de transport.";
+    }
+  } else if (stepId === 4) {
+    const urlFields: Array<keyof DriverRegisterFormData> = [
+      "cniFile",
+      "justificatifFile",
+      "permisFile",
+      "carteGriseFile",
+      "kbisFile",
+      "ribFile",
+    ];
 
-  if (stepId === 3) {
-    if (!formData.password) {
-      errors.password = "Choisissez un mot de passe.";
-    } else if (formData.password.length < 8) {
-      errors.password = "Le mot de passe doit contenir au moins 8 caracteres.";
+    urlFields.forEach((field) => {
+      const value = normalizedFormData[field];
+      if (value && !isUrlValid(value)) {
+        errors[field] = "Renseignez une URL valide.";
+      }
+    });
+
+    if (
+      normalizedFormData.transportType &&
+      normalizedFormData.transportType !== "BIKE"
+    ) {
+      if (!normalizedFormData.permisFile) {
+        errors.permisFile =
+          "Ajoutez l'URL du permis pour ce type de transport.";
+      }
+      if (!normalizedFormData.carteGriseFile) {
+        errors.carteGriseFile =
+          "Ajoutez l'URL de la carte grise pour ce type de transport.";
+      }
     }
   }
 

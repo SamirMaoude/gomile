@@ -1,5 +1,4 @@
 import type { DashboardMenuItem } from "@/components/dashboard/navbar-items";
-import AlertIcon from "@/components/ui/icons/AlertIcon";
 import CommandeIcon from "@/components/ui/icons/CommandeIcon";
 import HomeIcon from "@/components/ui/icons/HomeIcon";
 import KeyIcon from "@/components/ui/icons/KeyIcon";
@@ -17,7 +16,6 @@ export const dashboardMenuItems: DashboardMenuItem[] = [
     href: "/merchant/dashboard",
     icon: TruckIcon,
   },
-  { label: "Alertes client", href: "/merchant/dashboard", icon: AlertIcon },
   { label: "Parametres", href: "/merchant/dashboard/settings", icon: SettingIcon },
 ];
 

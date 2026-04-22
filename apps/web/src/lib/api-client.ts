@@ -36,6 +36,15 @@ export interface UpdateMerchantProfileInput {
   phone?: string;
 }
 
+export interface VerifyMerchantHandshakeInput {
+  code: string;
+}
+
+export interface VerifyMerchantHandshakeResponse {
+  orderId: string;
+  message: string;
+}
+
 export type {
   CreateStoreInput,
   CreateStoreResponse,
@@ -128,6 +137,20 @@ export function cancelOrder(merchantId: string, orderId: string) {
   return request<CancelOrderResponse>(
     `/api/merchants/${merchantId}/orders/${orderId}/cancel`,
     { method: "POST" },
+  );
+}
+
+export function verifyMerchantHandshake(
+  merchantId: string,
+  storeId: string,
+  input: VerifyMerchantHandshakeInput,
+) {
+  return request<VerifyMerchantHandshakeResponse>(
+    `/api/merchants/${merchantId}/stores/${storeId}/orders/handshake/verify`,
+    {
+      method: "POST",
+      body: JSON.stringify(input),
+    },
   );
 }
 

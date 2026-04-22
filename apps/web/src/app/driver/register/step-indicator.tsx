@@ -49,7 +49,6 @@ export default function StepIndicator({
 
               <div className={styles.stepCopy}>
                 <p className={styles.stepTitle}>{step.title}</p>
-                <p className={styles.stepDescription}>{step.description}</p>
               </div>
             </div>
           );

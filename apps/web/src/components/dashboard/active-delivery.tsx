@@ -224,7 +224,7 @@ export default function ActiveDeliveries({
             <DynamicTable
               columns={columns}
               rows={deliveries}
-              gridTemplateColumns="8rem 1.4fr 1.25fr 1fr"
+              gridTemplateColumns="9.5rem 1.4fr 1.25fr 1fr"
               headerRowClassName={cn(
                 styles.deliveriesTableHead,
                 isDarkMode

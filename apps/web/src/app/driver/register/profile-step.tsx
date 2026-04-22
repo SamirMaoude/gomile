@@ -28,13 +28,14 @@ export default function ProfileStep({
   formData,
   onFieldChange,
 }: ProfileStepProps) {
+  function cn(...classes: Array<string | false | null | undefined>) {
+    return classes.filter(Boolean).join(" ");
+  }
+
   return (
     <section className={styles.stepSection}>
       <Typography variant="h4" Component="h4" className={styles.stepHeading}>
         Profil livreur
-      </Typography>
-      <Typography variant="p" Component="p" className={styles.stepText}>
-        Ajoutez vos informations personnelles et l&apos;avatar de votre profil.
       </Typography>
 
       <div className={styles.stepGrid}>
@@ -53,8 +54,12 @@ export default function ProfileStep({
         />
 
         <div className={styles.selectContainer}>
-          
-          <div className={styles.selectWrapper}>
+          <div
+            className={cn(
+              styles.selectWrapper,
+              errors.gender && styles.selectWrapperError,
+            )}
+          >
             <span className={styles.selectIcon}>
               <PersonIcon className={styles.fieldIcon} />
             </span>
@@ -96,15 +101,42 @@ export default function ProfileStep({
         />
 
         <Input
-          id="driver-avatar-url"
-          name="avatarUrl"
-          type="url"
-          placeholder="URL de l'avatar"
-          autoComplete="url"
-          leftIcon={<PersonIcon className={styles.fieldIcon} />}
-          error={errors.avatarUrl}
-          value={formData.avatarUrl}
-          onChange={(event) => onFieldChange("avatarUrl", event.target.value)}
+          id="driver-city"
+          name="city"
+          type="text"
+          placeholder="Ville"
+          autoComplete="address-level2"
+          leftIcon={<AddressIcon className={styles.fieldIcon} />}
+          value={formData.city}
+          onChange={(event) => onFieldChange("city", event.target.value)}
+          containerClassName={styles.fieldContainer}
+          inputWrapperClassName={styles.fieldWrapper}
+          className={styles.fieldInput}
+        />
+
+        <Input
+          id="driver-zip-code"
+          name="zipCode"
+          type="text"
+          placeholder="Code postal"
+          autoComplete="postal-code"
+          leftIcon={<AddressIcon className={styles.fieldIcon} />}
+          value={formData.zipCode}
+          onChange={(event) => onFieldChange("zipCode", event.target.value)}
+          containerClassName={styles.fieldContainer}
+          inputWrapperClassName={styles.fieldWrapper}
+          className={styles.fieldInput}
+        />
+
+        <Input
+          id="driver-street"
+          name="street"
+          type="text"
+          placeholder="Rue"
+          autoComplete="address-line1"
+          leftIcon={<AddressIcon className={styles.fieldIcon} />}
+          value={formData.street}
+          onChange={(event) => onFieldChange("street", event.target.value)}
           containerClassName={styles.fieldContainer}
           inputWrapperClassName={styles.fieldWrapper}
           className={styles.fieldInput}

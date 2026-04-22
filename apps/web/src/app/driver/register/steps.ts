@@ -1,10 +1,33 @@
-import { type RegisterDriverInput } from "@/lib/auth-client";
+import {
+  type Gender,
+  type RegisterDriverInput,
+  type VehicleType,
+} from "@/lib/auth-client";
 
-export type DriverRegisterFormData = Omit<
-  RegisterDriverInput,
-  "documentUrl"
-> & {
-  documentUrl: string;
+export type DriverRegisterFormData = {
+  address: string;
+  avatarUrl: string;
+  carteGriseFile: string;
+  city: string;
+  cniFile: string;
+  dateOfBirth: string;
+  deliveryCity: string;
+  deliveryRadius: string;
+  email: string;
+  equipments: string;
+  firstName: string;
+  gender: Gender;
+  justificatifFile: string;
+  kbisFile: string;
+  lastName: string;
+  password: string;
+  permisFile: string;
+  phone: string;
+  ribFile: string;
+  siret: string;
+  street: string;
+  transportType: VehicleType | "";
+  zipCode: string;
 };
 
 export type DriverRegisterField = keyof DriverRegisterFormData;
@@ -23,31 +46,49 @@ export const driverRegisterSteps: DriverRegisterStep[] = [
   {
     id: 1,
     title: "Identite",
-    description: "Renseignez vos informations de contact.",
+    description: "Renseignez vos informations de contact et d'acces.",
   },
   {
     id: 2,
     title: "Profil",
-    description: "Ajoutez vos informations personnelles.",
+    description: "Ajoutez vos informations personnelles et d'adresse.",
   },
   {
     id: 3,
-    title: "Securite",
-    description: "Finalisez votre dossier.",
+    title: "Livraison",
+    description: "Precisez votre zone et votre moyen de transport.",
+  },
+  {
+    id: 4,
+    title: "Documents",
+    description: "Ajoutez les URLs de vos pieces si elles sont deja en ligne.",
   },
 ];
 
 export const initialDriverRegisterFormData: DriverRegisterFormData = {
   address: "",
   avatarUrl: "",
+  carteGriseFile: "",
+  city: "",
+  cniFile: "",
   dateOfBirth: "",
-  documentUrl: "",
+  deliveryCity: "",
+  deliveryRadius: "",
   email: "",
+  equipments: "",
   firstName: "",
   gender: "UNDEFINED",
+  justificatifFile: "",
+  kbisFile: "",
   lastName: "",
   password: "",
+  permisFile: "",
   phone: "",
+  ribFile: "",
+  siret: "",
+  street: "",
+  transportType: "",
+  zipCode: "",
 };
 
 export function normalizeDriverRegisterFormData(
@@ -57,22 +98,69 @@ export function normalizeDriverRegisterFormData(
     ...formData,
     address: formData.address.trim(),
     avatarUrl: formData.avatarUrl.trim(),
+    carteGriseFile: formData.carteGriseFile.trim(),
+    city: formData.city.trim(),
+    cniFile: formData.cniFile.trim(),
     dateOfBirth: formData.dateOfBirth.trim(),
-    documentUrl: formData.documentUrl.trim(),
+    deliveryCity: formData.deliveryCity.trim(),
+    deliveryRadius: formData.deliveryRadius.trim(),
     email: formData.email.trim(),
+    equipments: formData.equipments.trim(),
     firstName: formData.firstName.trim(),
+    justificatifFile: formData.justificatifFile.trim(),
+    kbisFile: formData.kbisFile.trim(),
     lastName: formData.lastName.trim(),
+    permisFile: formData.permisFile.trim(),
     phone: formData.phone.trim(),
+    ribFile: formData.ribFile.trim(),
+    siret: formData.siret.trim(),
+    street: formData.street.trim(),
+    zipCode: formData.zipCode.trim(),
   };
+}
+
+function parseEquipments(value: string): string[] | undefined {
+  const equipments = value
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  return equipments.length > 0 ? equipments : undefined;
 }
 
 export function buildRegisterDriverInput(
   formData: DriverRegisterFormData,
 ): RegisterDriverInput {
   const normalizedFormData = normalizeDriverRegisterFormData(formData);
+  const equipments = parseEquipments(normalizedFormData.equipments);
 
   return {
-    ...normalizedFormData,
-    documentUrl: normalizedFormData.documentUrl || undefined,
+    address: normalizedFormData.address,
+    dateOfBirth: normalizedFormData.dateOfBirth,
+    deliveryCity: normalizedFormData.deliveryCity,
+    deliveryRadius: Number.parseInt(normalizedFormData.deliveryRadius, 10),
+    email: normalizedFormData.email,
+    firstName: normalizedFormData.firstName,
+    gender: normalizedFormData.gender,
+    lastName: normalizedFormData.lastName,
+    password: normalizedFormData.password,
+    phone: normalizedFormData.phone,
+    transportType: normalizedFormData.transportType as RegisterDriverInput["transportType"],
+    ...(normalizedFormData.avatarUrl ? { avatarUrl: normalizedFormData.avatarUrl } : {}),
+    ...(normalizedFormData.city ? { city: normalizedFormData.city } : {}),
+    ...(normalizedFormData.zipCode ? { zipCode: normalizedFormData.zipCode } : {}),
+    ...(normalizedFormData.street ? { street: normalizedFormData.street } : {}),
+    ...(equipments ? { equipments } : {}),
+    ...(normalizedFormData.cniFile ? { cniFile: normalizedFormData.cniFile } : {}),
+    ...(normalizedFormData.justificatifFile
+      ? { justificatifFile: normalizedFormData.justificatifFile }
+      : {}),
+    ...(normalizedFormData.permisFile ? { permisFile: normalizedFormData.permisFile } : {}),
+    ...(normalizedFormData.carteGriseFile
+      ? { carteGriseFile: normalizedFormData.carteGriseFile }
+      : {}),
+    ...(normalizedFormData.siret ? { siret: normalizedFormData.siret } : {}),
+    ...(normalizedFormData.kbisFile ? { kbisFile: normalizedFormData.kbisFile } : {}),
+    ...(normalizedFormData.ribFile ? { ribFile: normalizedFormData.ribFile } : {}),
   };
 }

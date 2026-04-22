@@ -5,12 +5,11 @@ import { type ReactNode } from "react";
 
 import Navbar from "@/components/dashboard/navbar";
 import ActiveDeliveries from "@/components/dashboard/active-delivery";
+import MerchantHandshakeCard from "@/components/dashboard/merchant-handshake-card";
 import Footer from "@/components/ui/design-system/header_footer/footer";
 import Navigation from "@/components/ui/header/navigation";
 import GrenobleDeliveryMap from "@/components/dashboard/grenoble-delivery-map";
-import IncidentsAlerts from "@/components/dashboard/incidents-alerts";
 import { Logo } from "@/components/Logo/Logo";
-import { incidents } from "@/dummiesData/incidentAlert";
 import Typography from "@/components/ui/design-system/typography";
 import { getDashboardMenuItems } from "./dashboard-menu";
 import ProfileSlot from "./profile-slot";
@@ -137,22 +136,19 @@ export default function MerchantDashboardPage() {
                   )}
                 </section>
 
-                <ActiveDeliveries
-                  deliveries={activeDeliveries}
-                  error={overviewError}
-                  isDarkMode={isDarkMode}
-                  isLoading={isLoadingOverview}
-                />
+                <MerchantHandshakeCard isDarkMode={isDarkMode} />
               </div>
             </SurfaceCard>
 
             <SurfaceCard
-              className={styles.incidentsCard}
+              className={styles.deliveriesCard}
               isDarkMode={isDarkMode}
             >
-              <IncidentsAlerts
-                incidents={incidents}
+              <ActiveDeliveries
+                deliveries={activeDeliveries}
+                error={overviewError}
                 isDarkMode={isDarkMode}
+                isLoading={isLoadingOverview}
               />
             </SurfaceCard>
           </main>

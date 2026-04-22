@@ -57,7 +57,7 @@ export const styles = {
   profileNameWrapper: "hidden pr-2 sm:block",
   profileName: "text-sm font-semibold",
   profileNameLight: "text-slate-900",
-  profileNameDark: "text-slate-100",
+  profileNameDark: "!text-white",
 
   dropdown:
     "absolute right-0 top-[calc(100%+0.75rem)] z-30 w-[18rem] rounded-[1.4rem] border p-3 shadow-[0_24px_60px_rgba(15,23,42,0.18)]",
@@ -96,6 +96,33 @@ export const styles = {
   deliveriesSectionLight: "border-[#d6dfcf] bg-white",
   deliveriesSectionDark: "border-slate-800 bg-slate-900",
 
+  handshakeSection:
+    "rounded-[1.75rem] border shadow-[0_16px_40px_rgba(15,23,42,0.06)]",
+  handshakeSectionLight: "border-[#d6dfcf] bg-white",
+  handshakeSectionDark: "border-slate-800 bg-slate-900",
+  handshakeHeader: "border-b px-5 py-5",
+  handshakeHeaderLight: "border-slate-200",
+  handshakeHeaderDark: "border-slate-800",
+  handshakeDescription: "mt-2 text-sm leading-6",
+  handshakeForm: "grid gap-4 px-5 py-5",
+  handshakeFieldGroup: "grid gap-2",
+  handshakeLabel: "text-sm font-semibold",
+  handshakeSelect:
+    "min-h-[3.5rem] rounded-[1rem] border px-4 text-[1rem] outline-none transition",
+  handshakeInput:
+    "min-h-[3.5rem] rounded-[1rem] border px-4 text-[1rem] outline-none transition",
+  handshakeControlLight:
+    "border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-[#86ba2f] focus:ring-4 focus:ring-[#86ba2f]/10",
+  handshakeControlDark:
+    "border-slate-700 bg-slate-950 text-slate-100 placeholder:text-slate-500 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10",
+  handshakeFeedback: "rounded-[1rem] border px-4 py-3 text-sm font-medium",
+  handshakeSuccessLight: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  handshakeSuccessDark:
+    "border-emerald-900 bg-emerald-950/60 text-emerald-300",
+  handshakeErrorLight: "border-rose-200 bg-rose-50 text-rose-700",
+  handshakeErrorDark: "border-rose-900 bg-rose-950/60 text-rose-300",
+  handshakeButton: "!w-full !justify-center",
+
   deliveriesHeader: "border-b px-5 py-5",
   deliveriesHeaderLight: "border-slate-200",
   deliveriesHeaderDark: "border-slate-800",
@@ -106,7 +133,7 @@ export const styles = {
   deliveriesTableMin: "min-w-[44rem]",
 
   deliveriesTableHead:
-    "grid grid-cols-[8rem_1.4fr_1.1fr_1fr] gap-3 border-b px-5 py-4 text-[1.05rem] font-semibold",
+    "grid grid-cols-[9.5rem_1.4fr_1.1fr_1fr] gap-3 border-b px-5 py-4 text-[1.05rem] font-semibold",
   deliveriesTableHeadLight: "border-slate-200 text-slate-700",
   deliveriesTableHeadDark: "border-slate-800 text-slate-300",
 
@@ -114,11 +141,11 @@ export const styles = {
   deliveriesDividerDark: "divide-y divide-slate-800",
 
   deliveryRow:
-    "grid grid-cols-[8rem_1.4fr_1.1fr_1fr] gap-3 px-5 py-4 text-[1.02rem]",
+    "grid grid-cols-[9.5rem_1.4fr_1.1fr_1fr] gap-3 px-5 py-4 text-[1.02rem]",
   deliveryIdentity: "flex items-center gap-3",
   deliveryAvatar:
-    "flex h-11 w-11 items-center justify-center rounded-full text-sm font-bold",
-  deliveryId: "font-display text-[1.9rem] font-bold leading-none",
+    "flex h-12 w-12 items-center justify-center rounded-full text-base font-bold",
+  deliveryId: "font-display text-[1.2rem] font-bold leading-none",
   deliveryDestination: "flex items-center font-medium",
   deliveryStatusWrap: "flex items-center",
   deliveryEtaWrap: "flex items-center text-[1.08rem] font-semibold",
@@ -134,39 +161,7 @@ export const styles = {
   statusLateIcon: "text-amber-500",
   statusOnTimeIcon: "text-emerald-500",
 
-  incidentsCard: "mt-6",
-  incidentsHeaderLight: "border-b border-slate-200 pb-4",
-  incidentsHeaderDark: "border-b border-slate-800 pb-4",
-
-  incidentsTableWrapperLight:
-    "mt-5 overflow-x-auto rounded-[1.5rem] border border-slate-200",
-  incidentsTableWrapperDark:
-    "mt-5 overflow-x-auto rounded-[1.5rem] border border-slate-800",
-
-  incidentsTableMin: "min-w-[48rem]",
-  incidentsTableHead:
-    "grid grid-cols-[8rem_10rem_minmax(0,1fr)_10rem] gap-4 px-5 py-4 text-[1.05rem] font-semibold",
-  incidentsTableHeadLight: "bg-slate-50 text-slate-700",
-  incidentsTableHeadDark: "bg-slate-950 text-slate-300",
-
-  incidentsTableBodyLight: "divide-y divide-slate-200 bg-white",
-  incidentsTableBodyDark: "divide-y divide-slate-800 bg-slate-900",
-
-  incidentRow:
-    "grid grid-cols-[8rem_10rem_minmax(0,1fr)_10rem] gap-4 px-5 py-5 text-[1.05rem]",
-  incidentId: "font-display text-[1.9rem] font-bold leading-none",
-  incidentTypeLight: "font-semibold text-slate-700",
-  incidentTypeDark: "font-semibold text-slate-300",
-  incidentDescriptionLight: "font-medium text-slate-700",
-  incidentDescriptionDark: "font-medium text-slate-300",
-  incidentBadgeWrap: "flex justify-end",
-
-  incidentBadge:
-    "inline-flex min-w-[7rem] items-center justify-center rounded-full px-4 py-2 text-sm font-bold tracking-[0.05em] text-white",
-  incidentBadgeCancelled:
-    "bg-[linear-gradient(180deg,#d95757_0%,#b92d2d_100%)]",
-  incidentBadgeInProgress:
-    "bg-[linear-gradient(180deg,#f5b34b_0%,#d8901f_100%)]",
+  deliveriesCard: "mt-6",
 
   navbarItemBase:
     "flex items-center gap-3 rounded-[1.05rem] border font-semibold transition",

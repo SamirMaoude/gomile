@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import "react-international-phone/style.css";
 
 import Background from "@/components/ui/auth/background";
 import Button from "@/components/ui/design-system/button/button";
@@ -8,9 +9,10 @@ import Form from "@/components/ui/design-system/forms/form";
 import ErrorMessage from "@/components/ui/design-system/messages/errorMessage";
 import Typography from "@/components/ui/design-system/typography";
 import { Logo } from "@/components/Logo/Logo";
+import DeliveryStep from "./delivery-step";
+import DocumentsStep from "./documents-step";
 import IdentityStep from "./identity-step";
 import ProfileStep from "./profile-step";
-import SecurityStep from "./security-step";
 import StepIndicator from "./step-indicator";
 import { styles } from "./styles";
 import { useRegister } from "./use-register";
@@ -89,7 +91,7 @@ export default function DriverRegisterPage() {
                 theme="body"
                 className={styles.loginDescription}
               >
-                Trois etapes courtes pour creer votre compte.
+                Toutes les informations du formulaire API sont disponibles ici.
               </Typography>
             </div>
 
@@ -101,6 +103,8 @@ export default function DriverRegisterPage() {
                   errors={errors}
                   formData={formData}
                   onFieldChange={updateField}
+                  onToggleShowPassword={toggleShowPassword}
+                  showPassword={showPassword}
                 />
               ) : null}
 
@@ -113,14 +117,21 @@ export default function DriverRegisterPage() {
               ) : null}
 
               {currentStep.id === 3 ? (
-                <SecurityStep
+                <DeliveryStep
                   errors={errors}
                   formData={formData}
                   onFieldChange={updateField}
-                  onToggleShowPassword={toggleShowPassword}
-                  showPassword={showPassword}
                 />
               ) : null}
+
+              {currentStep.id === 4 ? (
+                <DocumentsStep
+                  errors={errors}
+                  formData={formData}
+                  onFieldChange={updateField}
+                />
+              ) : null}
+
 
               {formError ? (
                 <ErrorMessage className={styles.message}>{formError}</ErrorMessage>

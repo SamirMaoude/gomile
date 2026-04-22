@@ -1,8 +1,11 @@
 import Input from "@/components/ui/design-system/input/input";
 import Typography from "@/components/ui/design-system/typography";
+import ButtonIcon from "@/components/ui/icons/ButtonIcon";
+import DeadEyeIcon from "@/components/ui/icons/DeadEyeIcon";
 import MailIcon from "@/components/ui/icons/MailIcon";
-import PhoneIcon from "@/components/ui/icons/PhoneIcon";
+import PasswordKeyIcon from "@/components/ui/icons/passwordKeyIcon";
 import UserIcon from "@/components/ui/icons/UserIcon";
+import { PhoneInput } from "react-international-phone";
 import { styles } from "./styles";
 import type {
   DriverRegisterErrors,
@@ -14,20 +17,21 @@ type IdentityStepProps = {
   errors: DriverRegisterErrors;
   formData: DriverRegisterFormData;
   onFieldChange: (field: DriverRegisterField, value: string) => void;
+  onToggleShowPassword: () => void;
+  showPassword: boolean;
 };
 
 export default function IdentityStep({
   errors,
   formData,
   onFieldChange,
+  onToggleShowPassword,
+  showPassword,
 }: IdentityStepProps) {
   return (
     <section className={styles.stepSection}>
       <Typography variant="h4" Component="h4" className={styles.stepHeading}>
         Identite et contact
-      </Typography>
-      <Typography variant="p" Component="p" className={styles.stepText}>
-        Commencez par vos informations personnelles et votre numero de contact.
       </Typography>
 
       <div className={styles.stepGrid}>
@@ -76,16 +80,74 @@ export default function IdentityStep({
           className={styles.fieldInput}
         />
 
+        <div className={styles.fieldContainer}>
+          <PhoneInput
+            defaultCountry="fr"
+            value={formData.phone}
+            onChange={(value) => onFieldChange("phone", value)}
+            name="phone"
+            placeholder="Numero de telephone"
+            inputProps={{
+              id: "driver-phone",
+              autoComplete: "tel",
+              "aria-label": "Numero de telephone",
+            }}
+            className={[
+              styles.phoneInputRoot,
+              errors.phone ? styles.phoneInputErrorRoot : "",
+            ]
+              .filter(Boolean)
+              .join(" ")}
+            inputClassName={styles.phoneInputField}
+            countrySelectorStyleProps={{
+              buttonClassName: styles.phoneCountryButton,
+              dropdownArrowClassName: styles.phoneCountryArrow,
+            }}
+          />
+          {errors.phone ? (
+            <p className={styles.fieldError}>{errors.phone}</p>
+          ) : null}
+        </div>
+
         <Input
-          id="driver-phone"
-          name="phone"
-          type="tel"
-          placeholder="Numero de telephone"
-          autoComplete="tel"
-          leftIcon={<PhoneIcon className={styles.fieldIcon} />}
-          error={errors.phone}
-          value={formData.phone}
-          onChange={(event) => onFieldChange("phone", event.target.value)}
+          id="driver-avatar-url"
+          name="avatarUrl"
+          type="url"
+          placeholder="URL de l'avatar (optionnel)"
+          autoComplete="url"
+          leftIcon={<UserIcon className={styles.fieldIcon} />}
+          error={errors.avatarUrl}
+          value={formData.avatarUrl}
+          onChange={(event) => onFieldChange("avatarUrl", event.target.value)}
+          helperText="Optionnel, mais doit etre une URL valide si renseignee."
+          containerClassName={styles.fieldContainer}
+          inputWrapperClassName={styles.fieldWrapper}
+          className={styles.fieldInput}
+        />
+
+        <Input
+          id="driver-password"
+          name="password"
+          type={showPassword ? "text" : "password"}
+          placeholder="Mot de passe"
+          autoComplete="new-password"
+          leftIcon={<PasswordKeyIcon className={styles.fieldIcon} />}
+          error={errors.password}
+          value={formData.password}
+          onChange={(event) => onFieldChange("password", event.target.value)}
+          rightElement={
+            <ButtonIcon
+              type="button"
+              onClick={onToggleShowPassword}
+              className={styles.toggleButton}
+              aria-label={
+                showPassword
+                  ? "Masquer le mot de passe"
+                  : "Afficher le mot de passe"
+              }
+              icon={<DeadEyeIcon className={styles.fieldIcon} />}
+            />
+          }
           containerClassName={styles.fieldContainer}
           inputWrapperClassName={styles.fieldWrapper}
           className={styles.fieldInput}

@@ -33,6 +33,16 @@ export default function MerchantSettingsCard({
     success,
   } = useMerchantSettings();
 
+  const darkControlWrapperClass =
+    "!border-slate-700 !bg-[#020617] focus-within:!border-emerald-500 focus-within:!ring-4 focus-within:!ring-emerald-500/10";
+  const darkControlTextClass =
+    "!text-slate-100 placeholder:!text-slate-500";
+  const darkMutedTextClass = "!text-slate-300 placeholder:!text-slate-500";
+  const controlIconClass = cn(
+    "h-5 w-5",
+    isDarkMode ? "text-slate-300" : "text-slate-700",
+  );
+
   return (
     <section
       className={cn(
@@ -75,18 +85,18 @@ export default function MerchantSettingsCard({
               onChange={(event) => handleNameChange(event.target.value)}
               placeholder="Nom du commerce"
               aria-label="Nom du commerce"
-              leftIcon={<UserIcon className="h-5 w-5" />}
+              leftIcon={<UserIcon className={controlIconClass} />}
               containerClassName="w-full"
               inputWrapperClassName={cn(
                 "h-[3.75rem] rounded-[1.4rem] border-2 px-4 lg:h-[4.1rem]",
                 isDarkMode
-                  ? "border-slate-700 bg-slate-950 focus-within:!border-emerald-500"
+                  ? darkControlWrapperClass
                   : "border-slate-300 bg-white focus-within:!border-primary-light",
               )}
               className={cn(
                 "text-[1rem] lg:text-[1.1rem]",
                 isDarkMode
-                  ? "!text-slate-100 placeholder:!text-slate-500"
+                  ? darkControlTextClass
                   : "!text-slate-950 placeholder:!text-slate-500",
               )}
             />
@@ -99,18 +109,18 @@ export default function MerchantSettingsCard({
               disabled
               placeholder="Adresse e-mail"
               aria-label="Adresse e-mail"
-              leftIcon={<MailIcon className="h-5 w-5" />}
+              leftIcon={<MailIcon className={controlIconClass} />}
               containerClassName="w-full"
               inputWrapperClassName={cn(
                 "h-[3.75rem] rounded-[1.4rem] border-2 px-4 opacity-80 lg:h-[4.1rem]",
                 isDarkMode
-                  ? "border-slate-800 bg-slate-950"
+                  ? "!border-slate-700 !bg-[#020617]"
                   : "border-slate-200 bg-slate-50",
               )}
               className={cn(
                 "text-[1rem] lg:text-[1.1rem]",
                 isDarkMode
-                  ? "!text-slate-300 placeholder:!text-slate-500"
+                  ? darkMutedTextClass
                   : "!text-slate-700 placeholder:!text-slate-500",
               )}
             />
