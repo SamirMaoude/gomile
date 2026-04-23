@@ -1,5 +1,2 @@
-import { ApiOperation } from "@nestjs/swagger";
-
-export class NearbyOrdersResponse {
-
-}
+// We come back to this later
+export class NearbyOrdersResponse {}

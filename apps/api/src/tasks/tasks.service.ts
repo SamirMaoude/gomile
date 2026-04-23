@@ -11,18 +11,18 @@ export class TasksService {
   // A cron that deletes unverified account at 2am for all non verified accounts more than 48h
   // Why 2am ? Because I sleep at 2am...
   @Cron(CronExpression.EVERY_DAY_AT_2AM)
-  async deleteUnverifiedAccount () {
+  async deleteUnverifiedAccount() {
     // 2 days ago
-    const limitDate = new Date(Date.now() - 48*60*60*1000)
+    const limitDate = new Date(Date.now() - 48 * 60 * 60 * 1000);
 
-    const {count} = await this.prisma.user.deleteMany({
+    const { count } = await this.prisma.user.deleteMany({
       where: {
-        emailVerified : false,
+        emailVerified: false,
         createdAt: {
-          lt: limitDate
-        }
-      }
-    })
-    this.logger.log(`Deleted ${count} unverified accounts`)
+          lt: limitDate,
+        },
+      },
+    });
+    this.logger.log(`Deleted ${count} unverified accounts`);
   }
 }

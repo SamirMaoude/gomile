@@ -1,7 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { VehicleType } from '@prisma/client';
 import {
-  IsArray,
   IsEnum,
   IsInt,
   IsOptional,
@@ -12,7 +11,10 @@ import {
 } from 'class-validator';
 
 export class UpdateDriverProfileDto {
-  @ApiProperty({ example: 'https://storage.example.com/avatar.jpg', required: false })
+  @ApiProperty({
+    example: 'https://storage.example.com/avatar.jpg',
+    required: false,
+  })
   @IsUrl()
   @IsOptional()
   avatarUrl?: string;
@@ -22,7 +24,10 @@ export class UpdateDriverProfileDto {
   @IsOptional()
   phone?: string;
 
-  @ApiProperty({ example: '22 boulevard Clemenceau, 38000 Grenoble', required: false })
+  @ApiProperty({
+    example: '22 boulevard Clemenceau, 38000 Grenoble',
+    required: false,
+  })
   @IsString()
   @IsOptional()
   address?: string;

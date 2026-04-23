@@ -38,7 +38,10 @@ import type { AuthenticatedUser, AuthResponse } from './auth.types';
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @ApiOperation({ summary: 'Register a merchant account. An email will be send to verify this account' })
+  @ApiOperation({
+    summary:
+      'Register a merchant account. An email will be send to verify this account',
+  })
   @ApiBody({ type: RegisterMerchantDto })
   @ApiCreatedResponse({ type: AuthResponseDto })
   @ApiConflictResponse({ description: 'Email déjà utilisé' })
@@ -47,7 +50,10 @@ export class AuthController {
     return this.authService.registerMerchant(dto);
   }
 
-  @ApiOperation({ summary: 'Register a driver account. An email will be send to verify this account' })
+  @ApiOperation({
+    summary:
+      'Register a driver account. An email will be send to verify this account',
+  })
   @ApiBody({ type: RegisterDriverDto })
   @ApiCreatedResponse({ type: AuthResponseDto })
   @ApiConflictResponse({ description: 'Email déjà utilisé' })
@@ -56,7 +62,11 @@ export class AuthController {
     return this.authService.registerDriver(dto);
   }
 
-  @ApiOperation({ summary: 'Log in with email and password', description: 'Returns access and refresh tokens. On the web platform, tokens are stored as httpOnly cookies by the BFF, the response body only contains the user object. Mobile clients receive tokens directly in the response body.' })
+  @ApiOperation({
+    summary: 'Log in with email and password',
+    description:
+      'Returns access and refresh tokens. On the web platform, tokens are stored as httpOnly cookies by the BFF, the response body only contains the user object. Mobile clients receive tokens directly in the response body.',
+  })
   @ApiBody({ type: LoginDto })
   @ApiOkResponse({ type: AuthResponseDto })
   @ApiUnauthorizedResponse({ description: 'Identifiants invalides' })
@@ -66,7 +76,11 @@ export class AuthController {
     return this.authService.login(dto);
   }
 
-  @ApiOperation({ summary: 'Refresh access and refresh tokens', description: 'On the web platform, the refresh token is read from an httpOnly cookie by the BFF — no Authorization header needed from the browser. Mobile clients must send the refresh token as a Bearer token.' })
+  @ApiOperation({
+    summary: 'Refresh access and refresh tokens',
+    description:
+      'On the web platform, the refresh token is read from an httpOnly cookie by the BFF — no Authorization header needed from the browser. Mobile clients must send the refresh token as a Bearer token.',
+  })
   @ApiBearerAuth('refresh-token')
   @ApiOkResponse({ type: AuthResponseDto })
   @ApiUnauthorizedResponse({ description: 'Refresh token invalide' })
@@ -77,7 +91,11 @@ export class AuthController {
     return this.authService.refresh(user.id, user.email, user.role);
   }
 
-  @ApiOperation({ summary: 'Verify email address via token from email link', description: 'After registrating a user, an email containing an url with a token will be send to this user. Frontend must implement a page at /verify-email that reads the token query param, calls this endpoint and shows a confirmation message to the user' })
+  @ApiOperation({
+    summary: 'Verify email address via token from email link',
+    description:
+      'After registrating a user, an email containing an url with a token will be send to this user. Frontend must implement a page at /verify-email that reads the token query param, calls this endpoint and shows a confirmation message to the user',
+  })
   @ApiOkResponse({ description: 'Email verified successfully' })
   @ApiBadRequestResponse({ description: 'Invalid or expired token' })
   @Get('verify-email')
@@ -115,7 +133,11 @@ export class AuthController {
     return this.authService.resetPassword(dto);
   }
 
-  @ApiOperation({ summary: 'Log out the current user', description: 'On the web platform, the access token is read from an httpOnly cookie by the BFF and both cookies are cleared on response. Mobile clients must send the access token as a Bearer token.' })
+  @ApiOperation({
+    summary: 'Log out the current user',
+    description:
+      'On the web platform, the access token is read from an httpOnly cookie by the BFF and both cookies are cleared on response. Mobile clients must send the access token as a Bearer token.',
+  })
   @ApiBearerAuth('access-token')
   @ApiOkResponse({ type: LogoutResponseDto })
   @ApiUnauthorizedResponse({ description: 'Access token invalide' })

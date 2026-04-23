@@ -8,12 +8,12 @@ import { KycModule } from './kyc/kyc.module';
 import { DeliveryPricingModule } from './delivery/delivery-pricing.module';
 import { RedisModule } from './redis/redis.module';
 import { StoreModule } from './store/store.module';
-import { OrderMerchantsModule } from './order/merchants/order-merchants.module'
-import { OrderLivreursModule } from './order/livreurs/order-livreurs.module'
-import { DriverMeModule } from './driver/driver-me.module'
-import { UploadModule } from './upload/upload.module'
-import { AdminModule } from './admin/admin.module'
-import { MerchantModule } from './merchant/merchant.module'
+import { OrderMerchantsModule } from './order/merchants/order-merchants.module';
+import { OrderLivreursModule } from './order/livreurs/order-livreurs.module';
+import { DriverMeModule } from './driver/driver-me.module';
+import { UploadModule } from './upload/upload.module';
+import { AdminModule } from './admin/admin.module';
+import { MerchantModule } from './merchant/merchant.module';
 import { TasksModule } from './tasks/tasks.module';
 
 @Module({
@@ -31,7 +31,7 @@ import { TasksModule } from './tasks/tasks.module';
     UploadModule,
     AdminModule,
     MerchantModule,
-    TasksModule
+    TasksModule,
   ],
   controllers: [AppController],
   providers: [AppService],

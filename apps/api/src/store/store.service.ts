@@ -1,4 +1,10 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+  ConflictException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateStoreDto } from './dto/create-store.dto';
 import { UpdateStoreDto } from './dto/update-store.dto';
@@ -14,23 +20,26 @@ import { OrderStatus, Role } from '@prisma/client';
 
 @Injectable()
 export class StoreService {
-    constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) {}
 
   // Defining statuses that define a store is active
   private activeStatuses = [
-    OrderStatus.SEARCHING_DRIVER, 
-    OrderStatus.DRIVER_ACCEPTED, 
-    OrderStatus.DRIVER_ASSIGNED, 
-    OrderStatus.PICKED_UP];
+    OrderStatus.SEARCHING_DRIVER,
+    OrderStatus.DRIVER_ACCEPTED,
+    OrderStatus.DRIVER_ASSIGNED,
+    OrderStatus.PICKED_UP,
+  ];
   // Verify existant of the merchant
   private async existsMerchant(merchantId: string) {
     const merchant = await this.prisma.merchant.findUnique({
       where: {
-        userId : merchantId
-      }
-    })
+        userId: merchantId,
+      },
+    });
     if (!merchant) {
-      throw new NotFoundException(createApiError('MERCHANT_NOT_FOUND', AUTH_ERRORS))
+      throw new NotFoundException(
+        createApiError('MERCHANT_NOT_FOUND', AUTH_ERRORS),
+      );
     }
     return merchant;
   }
@@ -43,8 +52,10 @@ export class StoreService {
       },
     });
     if (!store) {
-      throw new NotFoundException(createApiError('STORE_NOT_FOUND', STORE_ERRORS));
-    };
+      throw new NotFoundException(
+        createApiError('STORE_NOT_FOUND', STORE_ERRORS),
+      );
+    }
     return store;
   }
 
@@ -63,27 +74,33 @@ export class StoreService {
   // Returns the first active order found, not the most recent or anything order
   // Only to verify if certains actions on a store is allowed or not !!!!!!!!
   private async verifyActiveOrder(storeId: string) {
-    const ongoingOrder = await this.prisma.order.findFirst ({
+    const ongoingOrder = await this.prisma.order.findFirst({
       where: {
         storeId: storeId,
         status: {
-          in : this.activeStatuses
-        }
-      }
-    })
+          in: this.activeStatuses,
+        },
+      },
+    });
     if (ongoingOrder) {
-      throw new ConflictException(createApiError('STORE_HAS_ACTIVE_ORDERS',STORE_ERRORS))
+      throw new ConflictException(
+        createApiError('STORE_HAS_ACTIVE_ORDERS', STORE_ERRORS),
+      );
     }
-    return ongoingOrder
+    return ongoingOrder;
   }
-  // Create stores 
-  async createStore(user: AuthenticatedUser, merchantId: string, dto: CreateStoreDto): Promise<CreateStoreResponseDto> {
-    await this.existsMerchant(merchantId)
+  // Create stores
+  async createStore(
+    user: AuthenticatedUser,
+    merchantId: string,
+    dto: CreateStoreDto,
+  ): Promise<CreateStoreResponseDto> {
+    await this.existsMerchant(merchantId);
     if (user.id !== merchantId) {
-      throw new ForbiddenException(createApiError('NOT_OWNER', AUTH_ERRORS))
+      throw new ForbiddenException(createApiError('NOT_OWNER', AUTH_ERRORS));
     }
     const store = await this.prisma.store.create({
-      data : {
+      data: {
         name: dto.name,
         description: dto.description,
         merchantId: merchantId,
@@ -97,31 +114,37 @@ export class StoreService {
     });
 
     if (dto.latitude !== undefined && dto.longitude !== undefined) {
-      await this.prisma.$executeRaw 
-      `
+      await this.prisma.$executeRaw`
       UPDATE "Store"
       SET location = ST_SetSRID(ST_MakePoint(${dto.longitude}, ${dto.latitude}), 4326)
       WHERE id = ${store.id}
-      `
+      `;
     }
-    return {name: dto.name, id: store.id};
+    return { name: dto.name, id: store.id };
   }
 
   // Update store
-  async updateStore(user: AuthenticatedUser, merchantId: string, storeId: string, dto: UpdateStoreDto): Promise<UpdateStoreResponseDto> {
+  async updateStore(
+    user: AuthenticatedUser,
+    merchantId: string,
+    storeId: string,
+    dto: UpdateStoreDto,
+  ): Promise<UpdateStoreResponseDto> {
     if (user.id !== merchantId) {
-      throw new ForbiddenException(createApiError('NOT_OWNER', AUTH_ERRORS))
+      throw new ForbiddenException(createApiError('NOT_OWNER', AUTH_ERRORS));
     }
     await this.existsStore(storeId);
     const existing = await this.verifyOwnership(merchantId, storeId);
 
     // If provider is being set, ensure domain is present (in the request or already in DB)
     if (dto.provider !== undefined && !dto.domain && !existing.domain) {
-      throw new BadRequestException(createApiError('DOMAIN_REQUIRED_WITH_PROVIDER', STORE_ERRORS));
+      throw new BadRequestException(
+        createApiError('DOMAIN_REQUIRED_WITH_PROVIDER', STORE_ERRORS),
+      );
     }
 
-    const response = await this.prisma.store.update ({
-      where: {id : storeId},
+    const response = await this.prisma.store.update({
+      where: { id: storeId },
       data: {
         name: dto.name,
         description: dto.description,
@@ -139,71 +162,99 @@ export class StoreService {
       UPDATE "Store"
       SET location = ST_SetSRID(ST_MakePoint(${dto.longitude}, ${dto.latitude}), 4326)
       WHERE id = ${storeId}
-      `
+      `;
     }
-    return {name: response.name, id: response.id, message: STORE_MESSAGES.STORE_UPDATED}
+    return {
+      name: response.name,
+      id: response.id,
+      message: STORE_MESSAGES.STORE_UPDATED,
+    };
   }
 
   // Disable store
-  async disableStore(user: AuthenticatedUser, merchantId : string, storeId :string): Promise<UpdateStoreResponseDto> {
+  async disableStore(
+    user: AuthenticatedUser,
+    merchantId: string,
+    storeId: string,
+  ): Promise<UpdateStoreResponseDto> {
     await this.existsMerchant(merchantId);
     if (user.id !== merchantId) {
-      throw new ForbiddenException(createApiError('NOT_OWNER', AUTH_ERRORS))
+      throw new ForbiddenException(createApiError('NOT_OWNER', AUTH_ERRORS));
     }
     await this.existsStore(storeId);
     await this.verifyOwnership(merchantId, storeId);
     await this.verifyActiveOrder(storeId);
-    const response = await this.prisma.store.update ({
+    const response = await this.prisma.store.update({
       where: {
-        id: storeId
+        id: storeId,
       },
       data: {
-        isActive: false
-      }
-    })
-    return {name: response.name, id: storeId, message: STORE_MESSAGES.STORE_DISABLED}
+        isActive: false,
+      },
+    });
+    return {
+      name: response.name,
+      id: storeId,
+      message: STORE_MESSAGES.STORE_DISABLED,
+    };
   }
 
   // Enable store
-  async enableStore(user: AuthenticatedUser, merchantId: string, storeId: string): Promise<UpdateStoreResponseDto> {
+  async enableStore(
+    user: AuthenticatedUser,
+    merchantId: string,
+    storeId: string,
+  ): Promise<UpdateStoreResponseDto> {
     await this.existsMerchant(merchantId);
     if (user.id !== merchantId) {
-      throw new ForbiddenException(createApiError('NOT_OWNER', AUTH_ERRORS))
+      throw new ForbiddenException(createApiError('NOT_OWNER', AUTH_ERRORS));
     }
     await this.existsStore(storeId);
     await this.verifyOwnership(merchantId, storeId);
     const response = await this.prisma.store.update({
       where: {
-        id: storeId
+        id: storeId,
       },
       data: {
-        isActive: true
-      }
-    })
-    return {name: response.name, id: storeId, message: STORE_MESSAGES.STORE_ENABLED}
+        isActive: true,
+      },
+    });
+    return {
+      name: response.name,
+      id: storeId,
+      message: STORE_MESSAGES.STORE_ENABLED,
+    };
   }
 
   // Delete store
-  async deleteStore(user: AuthenticatedUser, merchantId: string, storeId: string): Promise<DeleteStoreResponseDto> {
+  async deleteStore(
+    user: AuthenticatedUser,
+    merchantId: string,
+    storeId: string,
+  ): Promise<DeleteStoreResponseDto> {
     await this.existsMerchant(merchantId);
     if (user.id !== merchantId) {
-      throw new ForbiddenException(createApiError('NOT_OWNER', AUTH_ERRORS))
+      throw new ForbiddenException(createApiError('NOT_OWNER', AUTH_ERRORS));
     }
     await this.existsStore(storeId);
     await this.verifyOwnership(merchantId, storeId);
     await this.verifyActiveOrder(storeId);
     await this.prisma.store.delete({
       where: {
-        id: storeId
-      }
-    })
-    return {message: STORE_MESSAGES.STORE_DELETED}
+        id: storeId,
+      },
+    });
+    return { message: STORE_MESSAGES.STORE_DELETED };
   }
 
   // List stores
-  async listStore(user: AuthenticatedUser, merchantId: string, isActive?: boolean) {
+  async listStore(
+    user: AuthenticatedUser,
+    merchantId: string,
+    isActive?: boolean,
+  ) {
     if (user.id !== merchantId && user.role !== Role.ADMIN) {
-      throw new ForbiddenException(createApiError('NOT_OWNER', AUTH_ERRORS))
+      throw new ForbiddenException(createApiError('NOT_OWNER', AUTH_ERRORS));
     }
     return this.prisma.store.findMany({
       where: {

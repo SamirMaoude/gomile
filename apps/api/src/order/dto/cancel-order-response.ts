@@ -1,6 +1,6 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty } from '@nestjs/swagger';
 
 export class CancelOrderResponseDto {
-  @ApiProperty({description: 'Cancel message', type: 'string'})
+  @ApiProperty({ description: 'Cancel message', type: 'string' })
   message: string;
 }

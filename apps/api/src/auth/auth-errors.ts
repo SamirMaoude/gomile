@@ -57,7 +57,8 @@ export const AUTH_ERRORS = {
   },
   API_KEY_ALREADY_EXISTS: {
     statusCode: 409,
-    message: 'This store already has an active API key. Revoke it before creating a new one.',
+    message:
+      'This store already has an active API key. Revoke it before creating a new one.',
   },
   INVALID_RESET_TOKEN: {
     statusCode: 400,
@@ -65,12 +66,13 @@ export const AUTH_ERRORS = {
   },
   NAME_IS_NULL: {
     statusCode: 500,
-    message: 'Names not exist for this user, suggesting backend error. Contact Khoa !'
+    message:
+      'Names not exist for this user, suggesting backend error. Contact Khoa !',
   },
   EMAIL_NOT_VERIFIED: {
     statusCode: 403,
     message: 'Please verify your email before login',
-  }
+  },
 } as const;
 
 export type AuthApiErrorCode = keyof typeof AUTH_ERRORS;

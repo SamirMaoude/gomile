@@ -9,5 +9,5 @@ export const ORDER_PRICING = {
     LARGE: 1.5,
     EXTRA_LARGE: 2.0,
   },
-  DRIVER_SHARE: 0.70,
+  DRIVER_SHARE: 0.7,
 } as const;

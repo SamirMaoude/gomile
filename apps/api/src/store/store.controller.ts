@@ -9,8 +9,8 @@ import {
   Patch,
   Query,
   HttpCode,
-  HttpStatus
-} from '@nestjs/common'
+  HttpStatus,
+} from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -47,11 +47,16 @@ import { ListStoresResponseDto } from './dto/list-stores-response.dto';
 export class StoreController {
   constructor(private readonly storeService: StoreService) {}
 
-  @ApiOperation({ summary: 'Create a store', description: 'If provider is set, domain is required.' })
+  @ApiOperation({
+    summary: 'Create a store',
+    description: 'If provider is set, domain is required.',
+  })
   @ApiBody({ type: CreateStoreDto })
   @ApiCreatedResponse({ type: CreateStoreResponseDto })
   @ApiUnauthorizedResponse({ description: 'Invalid or missing JWT' })
-  @ApiForbiddenResponse({ description: 'Authenticated user does not own this merchant account' })
+  @ApiForbiddenResponse({
+    description: 'Authenticated user does not own this merchant account',
+  })
   @ApiNotFoundResponse({ description: 'Merchant not found' })
   @ApiConflictResponse({ description: 'Provider set without a domain' })
   @Roles(Role.MERCHANT)
@@ -60,7 +65,7 @@ export class StoreController {
   async createStore(
     @Param('merchantId') merchantId: string,
     @CurrentUser() user: AuthenticatedUser,
-    @Body() dto: CreateStoreDto
+    @Body() dto: CreateStoreDto,
   ): Promise<CreateStoreResponseDto> {
     return await this.storeService.createStore(user, merchantId, dto);
   }
@@ -69,9 +74,13 @@ export class StoreController {
   @ApiBody({ type: UpdateStoreDto })
   @ApiOkResponse({ type: UpdateStoreResponseDto })
   @ApiUnauthorizedResponse({ description: 'Invalid or missing JWT' })
-  @ApiForbiddenResponse({ description: 'Authenticated user does not own this store' })
+  @ApiForbiddenResponse({
+    description: 'Authenticated user does not own this store',
+  })
   @ApiNotFoundResponse({ description: 'Merchant or store not found' })
-  @ApiConflictResponse({ description: 'Provider set without a domain on the store' })
+  @ApiConflictResponse({
+    description: 'Provider set without a domain on the store',
+  })
   @Roles(Role.MERCHANT)
   @Patch(':storeId')
   @HttpCode(HttpStatus.OK)
@@ -79,15 +88,20 @@ export class StoreController {
     @Param('merchantId') merchantId: string,
     @Param('storeId') storeId: string,
     @CurrentUser() user: AuthenticatedUser,
-    @Body() dto: UpdateStoreDto
+    @Body() dto: UpdateStoreDto,
   ): Promise<UpdateStoreResponseDto> {
     return this.storeService.updateStore(user, merchantId, storeId, dto);
   }
 
-  @ApiOperation({ summary: 'Disable a store', description: 'Store will no longer accept new orders.' })
+  @ApiOperation({
+    summary: 'Disable a store',
+    description: 'Store will no longer accept new orders.',
+  })
   @ApiOkResponse({ type: UpdateStoreResponseDto })
   @ApiUnauthorizedResponse({ description: 'Invalid or missing JWT' })
-  @ApiForbiddenResponse({ description: 'Authenticated user does not own this store' })
+  @ApiForbiddenResponse({
+    description: 'Authenticated user does not own this store',
+  })
   @ApiNotFoundResponse({ description: 'Merchant or store not found' })
   @Roles(Role.MERCHANT)
   @Post(':storeId/disable')
@@ -100,10 +114,15 @@ export class StoreController {
     return this.storeService.disableStore(user, merchantId, storeId);
   }
 
-  @ApiOperation({ summary: 'Re-enable a store', description: 'Store will start accepting orders again.' })
+  @ApiOperation({
+    summary: 'Re-enable a store',
+    description: 'Store will start accepting orders again.',
+  })
   @ApiOkResponse({ type: UpdateStoreResponseDto })
   @ApiUnauthorizedResponse({ description: 'Invalid or missing JWT' })
-  @ApiForbiddenResponse({ description: 'Authenticated user does not own this store' })
+  @ApiForbiddenResponse({
+    description: 'Authenticated user does not own this store',
+  })
   @ApiNotFoundResponse({ description: 'Merchant or store not found' })
   @Roles(Role.MERCHANT)
   @Post(':storeId/enable')
@@ -116,10 +135,16 @@ export class StoreController {
     return this.storeService.enableStore(user, merchantId, storeId);
   }
 
-  @ApiOperation({ summary: 'Delete a store', description: 'Permanent deletion. Cannot delete a store with active orders.' })
+  @ApiOperation({
+    summary: 'Delete a store',
+    description:
+      'Permanent deletion. Cannot delete a store with active orders.',
+  })
   @ApiOkResponse({ type: DeleteStoreResponseDto })
   @ApiUnauthorizedResponse({ description: 'Invalid or missing JWT' })
-  @ApiForbiddenResponse({ description: 'Authenticated user does not own this store' })
+  @ApiForbiddenResponse({
+    description: 'Authenticated user does not own this store',
+  })
   @ApiNotFoundResponse({ description: 'Merchant or store not found' })
   @Roles(Role.MERCHANT)
   @Delete(':storeId')
@@ -132,11 +157,22 @@ export class StoreController {
     return this.storeService.deleteStore(user, merchantId, storeId);
   }
 
-  @ApiOperation({ summary: 'List all stores for a merchant', description: 'Merchants can only list their own stores. Admins can list stores for any merchant because its the admin' })
-  @ApiQuery({ name: 'isActive', required: false, type: Boolean, description: 'Filter by active/inactive status' })
+  @ApiOperation({
+    summary: 'List all stores for a merchant',
+    description:
+      'Merchants can only list their own stores. Admins can list stores for any merchant because its the admin',
+  })
+  @ApiQuery({
+    name: 'isActive',
+    required: false,
+    type: Boolean,
+    description: 'Filter by active/inactive status',
+  })
   @ApiOkResponse({ type: ListStoresResponseDto, isArray: true })
   @ApiUnauthorizedResponse({ description: 'Invalid or missing JWT' })
-  @ApiForbiddenResponse({ description: 'Authenticated user does not own this merchant account' })
+  @ApiForbiddenResponse({
+    description: 'Authenticated user does not own this merchant account',
+  })
   @ApiNotFoundResponse({ description: 'Merchant not found' })
   @Roles(Role.MERCHANT, Role.ADMIN)
   @Get()
@@ -153,7 +189,9 @@ export class StoreController {
   @ApiOperation({ summary: 'Get a specific store' })
   @ApiOkResponse({ type: GetStoreResponseDto })
   @ApiUnauthorizedResponse({ description: 'Invalid or missing JWT' })
-  @ApiForbiddenResponse({ description: 'Authenticated user does not own this store' })
+  @ApiForbiddenResponse({
+    description: 'Authenticated user does not own this store',
+  })
   @ApiNotFoundResponse({ description: 'Merchant or store not found' })
   @Roles(Role.MERCHANT)
   @Get(':storeId')

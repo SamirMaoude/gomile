@@ -11,7 +11,10 @@ export class DriverProfileResponseDto {
   @ApiProperty({ example: 'Dupont' })
   lastName: string;
 
-  @ApiProperty({ example: 'https://storage.example.com/avatar.jpg', nullable: true })
+  @ApiProperty({
+    example: 'https://storage.example.com/avatar.jpg',
+    nullable: true,
+  })
   avatarUrl: string | null;
 
   @ApiProperty({ example: 'jean@mail.com' })

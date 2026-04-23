@@ -1,229 +1,204 @@
 import { HttpStatus, INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
+import { App } from 'supertest/types';
 import { AppModule } from '../src/app.module';
-import { PrismaService } from '../src/prisma/prisma.service';
-import { createHash } from 'crypto';
 import { OpenRouteService } from '../src/delivery/openrouteservice.service';
 
-function hashApiKey(rawKey: string): string {
-    return createHash('sha256').update(rawKey).digest('hex');
+interface AuthResponse {
+  accessToken: string;
+  refreshToken: string;
+  user: { id: string; email: string; role: string };
+}
+
+interface StoreResponse {
+  id: string;
+  name: string;
+}
+
+interface ApiKeyResponse {
+  id: string;
+  apiKey: string;
 }
 
 describe('DeliveryPricingController', () => {
-    let app: INestApplication;
-    let prisma: PrismaService;
+  let app: INestApplication<App>;
 
-    // create a mock for the OpenRouteService
-    const openRouteServiceMock = {
-        resolveAddress: jest.fn(),
-        getDrivingRoute: jest.fn(),
+  const openRouteServiceMock = {
+    resolveAddress: jest.fn(),
+    getDrivingRoute: jest.fn(),
+  };
+
+  beforeAll(async () => {
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      imports: [AppModule],
+    })
+      .overrideProvider(OpenRouteService)
+      .useValue(openRouteServiceMock)
+      .compile();
+
+    app = moduleFixture.createNestApplication();
+    await app.init();
+  });
+
+  afterAll(async () => {
+    await app.close();
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    openRouteServiceMock.resolveAddress.mockResolvedValueOnce({
+      latitude: 40,
+      longitude: 74,
+    });
+    openRouteServiceMock.getDrivingRoute.mockResolvedValueOnce({
+      distanceMeters: 2000,
+      durationSeconds: 900,
+    });
+  });
+
+  async function createMerchantApiKey() {
+    const email = `Riku_Merchant_${Date.now()}@example.com`;
+    const registerResponse = await request(app.getHttpServer())
+      .post('/auth/register/merchant')
+      .send({ email, password: 'password', name: 'Riku Merchant' })
+      .expect(HttpStatus.CREATED);
+
+    const auth = registerResponse.body as AuthResponse;
+    const { accessToken } = auth;
+
+    const storeRes = await request(app.getHttpServer())
+      .post(`/merchants/${auth.user.id}/stores`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        name: 'Test Store',
+        address: 'Allee Condillac, 38400 Grenoble',
+        latitude: 45.18,
+        longitude: 5.72,
+      })
+      .expect(HttpStatus.CREATED);
+
+    const storeId = (storeRes.body as StoreResponse).id;
+
+    const apiKey1Res = await request(app.getHttpServer())
+      .post(`/merchants/${auth.user.id}/api-keys`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({ name: 'Test API Key', storeId })
+      .expect(HttpStatus.CREATED);
+
+    const apiKey2Res = await request(app.getHttpServer())
+      .post(`/merchants/${auth.user.id}/api-keys`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({ name: 'Revoked API Key', storeId })
+      .expect(HttpStatus.CREATED);
+
+    const apiKey1 = apiKey1Res.body as ApiKeyResponse;
+    const apiKey2 = apiKey2Res.body as ApiKeyResponse;
+
+    await request(app.getHttpServer())
+      .post(`/merchants/${auth.user.id}/api-keys/${apiKey2.id}/revoke`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .expect(HttpStatus.OK);
+
+    return {
+      validKey: apiKey1.apiKey,
+      validKeyId: apiKey1.id,
+      revokedKey: apiKey2.apiKey,
+      merchant: auth.user,
+      email,
+      accessToken,
     };
+  }
 
-    beforeAll(async () => {
-        // Mock the OpenRouteService methods
-        const moduleFixture: TestingModule = await Test.createTestingModule({
-            imports: [AppModule],
-        })
-            // Replace real ORS by the mock
-            .overrideProvider(OpenRouteService)
-            .useValue(openRouteServiceMock)
-            .compile();
+  it('returns a delivery estimate for a valid API key', async () => {
+    const rawKey = (await createMerchantApiKey()).validKey;
 
-        app = moduleFixture.createNestApplication();
-        prisma = moduleFixture.get(PrismaService);
-        await app.init();
-    });
+    const response = await request(app.getHttpServer())
+      .post('/delivery-estimates')
+      .set('x-api-key', rawKey)
+      .send({
+        pickupAddress: {
+          fullAddress: '25 boulevard Clemenceau, 38100 Grenoble',
+        },
+        dropoffAddress: { fullAddress: 'Allee Condillac, 38000 Grenoble' },
+        weightGrams: 2500,
+      })
+      .expect(HttpStatus.CREATED);
 
-    afterAll(async () => {
-        await app.close();
-    });
+    expect(response.body).toMatchObject({ serviceable: true });
+    expect(openRouteServiceMock.resolveAddress).toHaveBeenCalledTimes(2);
+    expect(openRouteServiceMock.getDrivingRoute).toHaveBeenCalledTimes(1);
+  });
 
-    beforeEach(async () => {
-        // Clear the database before each test
-        jest.clearAllMocks();
+  it('rejects an invalid API key', async () => {
+    await request(app.getHttpServer())
+      .post('/delivery-estimates')
+      .set('x-api-key', 'bla bla bla bla')
+      .send({
+        pickupAddress: {
+          fullAddress: '25 boulevard Clemenceau, 38100 Grenoble',
+        },
+        dropoffAddress: { fullAddress: 'Allee Condillac, 38000 Grenoble' },
+        weightGrams: 2500,
+      })
+      .expect(HttpStatus.UNAUTHORIZED);
+  });
 
-        openRouteServiceMock.resolveAddress.mockResolvedValueOnce({
-            latitude: 40,
-            longitude: 74,
-        });
-        openRouteServiceMock.getDrivingRoute.mockResolvedValueOnce({
-            distanceMeters: 2000, // 2 km
-            durationSeconds: 900, // 15 minutes
-        });
-    });
+  it('rejects missing API key', async () => {
+    await request(app.getHttpServer())
+      .post('/delivery-estimates')
+      .send({
+        pickupAddress: {
+          fullAddress: '25 boulevard Clemenceau, 38100 Grenoble',
+        },
+        dropoffAddress: { fullAddress: 'Allee Condillac, 38000 Grenoble' },
+        weightGrams: 2500,
+      })
+      .expect(HttpStatus.UNAUTHORIZED);
+  });
 
-    async function createMerchantApiKey() {
-        const email = `Riku_Merchant_${Date.now()}@example.com`;
-        console.log('Creating merchant with email:', email);
-        const registerResponse = await request(app.getHttpServer())
-            .post('/auth/register/merchant')
-            .send({
-                email,
-                password: 'password',
-                name: 'Riku Merchant',
-            })
-            .expect(HttpStatus.CREATED);
-        
-        const auth = registerResponse.body;
-        const accessToken = registerResponse.body.accessToken;
+  it('rejects revoked API key', async () => {
+    const revokedRawKey = (await createMerchantApiKey()).revokedKey;
+    await request(app.getHttpServer())
+      .post('/delivery-estimates')
+      .set('x-api-key', revokedRawKey)
+      .send({
+        pickupAddress: {
+          fullAddress: '25 boulevard Clemenceau, 38100 Grenoble',
+        },
+        dropoffAddress: { fullAddress: 'Allee Condillac, 38000 Grenoble' },
+        weightGrams: 2500,
+      })
+      .expect(HttpStatus.FORBIDDEN);
+  });
 
-        // create a store
-        const storeRes = await request(app.getHttpServer())
-            .post(`/merchants/${auth.user.id}/stores`)
-            .set('Authorization', `Bearer ${accessToken}`)
-            .send({
-                name: 'Test Store',
-                address: 'Allee Condillac, 38400 Grenoble',
-                latitude: 45.18,
-                longitude: 5.72,
-            })
-            .expect(HttpStatus.CREATED);
+  it('revokes an API key', async () => {
+    const session = await createMerchantApiKey();
+    const { email, merchant, validKey: validRawKey, validKeyId } = session;
 
-        const storeId = storeRes.body.id;
+    const loginRes = await request(app.getHttpServer())
+      .post('/auth/login')
+      .send({ identifier: email, password: 'password' })
+      .expect(HttpStatus.OK);
 
-        // create the API key in the database with the hashed value
-        const apiKey1 = await request(app.getHttpServer())
-            .post(`/merchants/${auth.user.id}/api-keys`)
-            .set('Authorization', `Bearer ${accessToken}`)
-            .send({ name: 'Test API Key', storeId })
-            .expect(HttpStatus.CREATED);
+    const { accessToken } = loginRes.body as AuthResponse;
 
-        const apiKey2 = await request(app.getHttpServer())
-            .post(`/merchants/${auth.user.id}/api-keys`)
-            .set('Authorization', `Bearer ${accessToken}`)
-            .send({ name: 'Revoked API Key', storeId })
-            .expect(HttpStatus.CREATED);
+    await request(app.getHttpServer())
+      .post(`/merchants/${merchant.id}/api-keys/${validKeyId}/revoke`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .expect(HttpStatus.OK);
 
-        await request(app.getHttpServer())
-            .post(`/merchants/${auth.user.id}/api-keys/${apiKey2.body.id}/revoke`)
-            .set('Authorization', `Bearer ${accessToken}`)
-            .expect(HttpStatus.OK);
-
-        return {
-            validKey: apiKey1.body.apiKey, // raw API key to use in tests
-            validKeyId: apiKey1.body.id,   // ID needed for revocation
-            revokedKey: apiKey2.body.apiKey, // revoked key
-            merchant: auth.user,
-            email,
-            accessToken
-        };
-    };
-
-    it('returns a delivery eestimate for a valid API key', async () => {
-        const rawKey = (await createMerchantApiKey()).validKey;
-
-        const response = await request(app.getHttpServer())
-            .post('/delivery-estimates')
-            .set('x-api-key', rawKey)
-            .send({
-                pickupAddress: {
-                    fullAddress: '25 boulevard Clemenceau, 38100 Grenoble',
-                },
-                dropoffAddress: {
-                    fullAddress: 'Allee Condillac, 38000 Grenoble',
-                },
-                weightGrams: 2500,
-            }).expect(HttpStatus.CREATED);
-
-        expect(response.body).toMatchObject({
-            serviceable: true,
-        }),
-
-            // resolve pickup and dropoff addresses = 2, and 1 call of get driving route
-            expect(openRouteServiceMock.resolveAddress).toHaveBeenCalledTimes(2);
-        expect(openRouteServiceMock.getDrivingRoute).toHaveBeenCalledTimes(1);
-    });
-
-    // test that an invalid API key is rejected
-    it(' rejects an invalid API key', async () => {
-        await request(app.getHttpServer())
-            .post('/delivery-estimates')
-            .set('x-api-key', 'bla bla bla bla') // should refuse this
-            .send({
-                pickupAddress: {
-                    fullAddress: '25 boulevard Clemenceau, 38100 Grenoble',
-                },
-                dropoffAddress: {
-                    fullAddress: 'Allee Condillac, 38000 Grenoble',
-                },
-                weightGrams: 2500,
-            })
-            .expect(HttpStatus.UNAUTHORIZED);
-    });
-
-    // test that missing API key is rejected
-    it('rejects missing API key', async () => {
-        await request(app.getHttpServer())
-            .post('/delivery-estimates')
-            .send({
-                pickupAddress: {
-                    fullAddress: '25 boulevard Clemenceau, 38100 Grenoble',
-                },
-                dropoffAddress: {
-                    fullAddress: 'Allee Condillac, 38000 Grenoble',
-                },
-                weightGrams: 2500,
-            })
-            .expect(HttpStatus.UNAUTHORIZED);
-    });
-
-    // test that revoked API key is rejected
-    it('rejects revoked API key', async () => {
-        const revokedRawKey = (await createMerchantApiKey()).revokedKey;
-        await request(app.getHttpServer())
-            .post('/delivery-estimates')
-            .set('x-api-key', revokedRawKey) // should refuse this
-            .send({
-                pickupAddress: {
-                    fullAddress: '25 boulevard Clemenceau, 38100 Grenoble',
-                },
-                dropoffAddress: {
-                    fullAddress: 'Allee Condillac, 38000 Grenoble',
-                },
-                weightGrams: 2500,
-            })
-            .expect(HttpStatus.FORBIDDEN);
-    });
-
-    // test revoking an API key prevents it from being used
-    it('revokes an API key', async () => {
-        const session = await createMerchantApiKey();
-        const email = session.email;
-        const merchant = session.merchant;
-        const validRawKey = session.validKey;
-        const validKeyId = session.validKeyId;
-        // login as the merchant
-        console.log('Merchant email:', email);
-        console.log('Merchant password: password');
-        const auth = await request(app.getHttpServer())
-            .post('/auth/login')
-            .send({
-                identifier: email,
-                password: 'password',
-            })
-            .expect(HttpStatus.OK);
-
-        // revoke the API key (the valid one)
-        const accessToken = auth.body.accessToken;
-        await request(app.getHttpServer())
-            .post(`/merchants/${merchant.id}/api-keys/${validKeyId}/revoke`)
-            .set('Authorization', `Bearer ${accessToken}`)
-            .expect(HttpStatus.OK);
-
-        // should be rejected after revocation
-        await request(app.getHttpServer())
-            .post('/delivery-estimates')
-            .set('x-api-key', validRawKey) // should refuse this
-            .send({
-                pickupAddress: {
-                    fullAddress: '25 boulevard Clemenceau, 38100 Grenoble',
-                },
-                dropoffAddress: {
-                    fullAddress: 'Allee Condillac, 38000 Grenoble',
-                },
-                weightGrams: 2500,
-            })
-            .expect(HttpStatus.FORBIDDEN);
-    });
+    await request(app.getHttpServer())
+      .post('/delivery-estimates')
+      .set('x-api-key', validRawKey)
+      .send({
+        pickupAddress: {
+          fullAddress: '25 boulevard Clemenceau, 38100 Grenoble',
+        },
+        dropoffAddress: { fullAddress: 'Allee Condillac, 38000 Grenoble' },
+        weightGrams: 2500,
+      })
+      .expect(HttpStatus.FORBIDDEN);
+  });
 });

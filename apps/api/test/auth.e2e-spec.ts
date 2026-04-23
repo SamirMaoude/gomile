@@ -3,7 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
-import {PrismaService} from "../src/prisma/prisma.service";
+import { PrismaService } from '../src/prisma/prisma.service';
 
 const jwtPattern = /^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$/;
 
@@ -123,18 +123,21 @@ describe('AuthController (e2e)', () => {
     const email = `driver_${Date.now()}@test.local`;
 
     const res = await request(app.getHttpServer())
-        .post('/auth/register/driver')
-        .send(driverPayload(email))
-        .expect(HttpStatus.CREATED);
+      .post('/auth/register/driver')
+      .send(driverPayload(email))
+      .expect(HttpStatus.CREATED);
 
-    expect(res.body.user.email).toBe(email);
-    expect(res.body.user.role).toBe('DRIVER');
+    const body = res.body as AuthTokensResponse;
+    expect(body.user.email).toBe(email);
+    expect(body.user.role).toBe('DRIVER');
 
     const driver = await prisma.driver.findUnique({
-      where: { userId: res.body.user.id },
+      where: { userId: body.user.id },
     });
 
-    const user = await prisma.user.findUnique({ where: { id: res.body.user.id } });
+    const user = await prisma.user.findUnique({
+      where: { id: body.user.id },
+    });
 
     expect(driver).not.toBeNull();
     expect(driver?.firstName).toBe('Riku');
@@ -158,15 +161,15 @@ describe('AuthController (e2e)', () => {
 
     // Register once
     await request(app.getHttpServer())
-        .post('/auth/register/merchant')
-        .send(payload)
-        .expect(HttpStatus.CREATED);
+      .post('/auth/register/merchant')
+      .send(payload)
+      .expect(HttpStatus.CREATED);
 
     // Register twice should be rejected
     await request(app.getHttpServer())
-        .post('/auth/register/merchant')
-        .send(payload)
-        .expect(HttpStatus.CONFLICT);
+      .post('/auth/register/merchant')
+      .send(payload)
+      .expect(HttpStatus.CONFLICT);
   });
 
   // Test login by email
@@ -175,17 +178,18 @@ describe('AuthController (e2e)', () => {
     const password = 'TacosDeLyon';
 
     await request(app.getHttpServer())
-        .post('/auth/register/merchant')
-        .send({ email, password, name: 'Login Merchant' })
-        .expect(HttpStatus.CREATED);
+      .post('/auth/register/merchant')
+      .send({ email, password, name: 'Login Merchant' })
+      .expect(HttpStatus.CREATED);
 
     const res = await request(app.getHttpServer())
-        .post('/auth/login')
-        .send({ identifier: email, password })
-        .expect(HttpStatus.OK);
+      .post('/auth/login')
+      .send({ identifier: email, password })
+      .expect(HttpStatus.OK);
 
-    expect(res.body.user.email).toBe(email);
-    expect(res.body.user.role).toBe('MERCHANT');
+    const loginBody = res.body as AuthTokensResponse;
+    expect(loginBody.user.email).toBe(email);
+    expect(loginBody.user.role).toBe('MERCHANT');
   });
 
   // Test login by phone
@@ -194,17 +198,18 @@ describe('AuthController (e2e)', () => {
     const phone = `+336${Date.now().toString().slice(-8)}`;
 
     await request(app.getHttpServer())
-        .post('/auth/register/driver')
-        .send({ ...driverPayload(email), phone })
-        .expect(HttpStatus.CREATED);
+      .post('/auth/register/driver')
+      .send({ ...driverPayload(email), phone })
+      .expect(HttpStatus.CREATED);
 
     const res = await request(app.getHttpServer())
-        .post('/auth/login')
-        .send({ identifier: phone, password: 'Password123!' })
-        .expect(HttpStatus.OK);
+      .post('/auth/login')
+      .send({ identifier: phone, password: 'Password123!' })
+      .expect(HttpStatus.OK);
 
-    expect(res.body.user.email).toBe(email);
-    expect(res.body.user.role).toBe('DRIVER');
+    const phoneLoginBody = res.body as AuthTokensResponse;
+    expect(phoneLoginBody.user.email).toBe(email);
+    expect(phoneLoginBody.user.role).toBe('DRIVER');
   });
 
   // Test invalid password
@@ -213,13 +218,13 @@ describe('AuthController (e2e)', () => {
     const password = 'UnTacosEstBon';
 
     await request(app.getHttpServer())
-        .post('/auth/register/merchant')
-        .send({ email, password, name: 'MauvaisTacos Merchant' })
-        .expect(HttpStatus.CREATED);
+      .post('/auth/register/merchant')
+      .send({ email, password, name: 'MauvaisTacos Merchant' })
+      .expect(HttpStatus.CREATED);
 
     await request(app.getHttpServer())
-        .post('/auth/login')
-        .send({ identifier: email, password: 'UnTacosMauvais' })
-        .expect(HttpStatus.UNAUTHORIZED);
+      .post('/auth/login')
+      .send({ identifier: email, password: 'UnTacosMauvais' })
+      .expect(HttpStatus.UNAUTHORIZED);
   });
 });

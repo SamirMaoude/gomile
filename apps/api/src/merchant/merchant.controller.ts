@@ -1,5 +1,24 @@
-import { Controller, Get, Patch, Param, Body, UseGuards, HttpCode, HttpStatus, ForbiddenException } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiOkResponse, ApiNotFoundResponse, ApiConflictResponse, ApiOperation, ApiTags, ApiForbiddenResponse } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Patch,
+  Param,
+  Body,
+  UseGuards,
+  HttpCode,
+  HttpStatus,
+  ForbiddenException,
+} from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOkResponse,
+  ApiNotFoundResponse,
+  ApiConflictResponse,
+  ApiOperation,
+  ApiTags,
+  ApiForbiddenResponse,
+} from '@nestjs/swagger';
 import { MerchantService } from './merchant.service';
 import { UpdateMerchantDto } from './dto/update-merchant.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -42,7 +61,9 @@ export class MerchantController {
     @CurrentUser() user: AuthenticatedUser,
   ) {
     if (user.id !== merchantId) {
-      throw new ForbiddenException(createApiError('MERCHANT_NOT_FOUND', MERCHANT_ERRORS));
+      throw new ForbiddenException(
+        createApiError('MERCHANT_NOT_FOUND', MERCHANT_ERRORS),
+      );
     }
     return this.merchantService.updateMerchant(merchantId, dto);
   }

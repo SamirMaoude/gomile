@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { OrderService } from './order-merchants.service'
+import { OrderService } from './order-merchants.service';
 import { OrderMerchantsController } from './order-merchants.controller';
 import { OrderPluginController } from '../plugin/order-plugin.controller';
 import { ApiKeyService } from '../../auth/api-key.service';
@@ -12,6 +12,13 @@ import { DeliveryPricingModule } from '../../delivery/delivery-pricing.module';
 @Module({
   imports: [DeliveryPricingModule],
   controllers: [OrderMerchantsController, OrderPluginController],
-  providers: [OrderService, RolesGuard, ApiKeyService, JwtOrApiKeyGuard, ApiKeyGuard, JwtAuthGuard],
+  providers: [
+    OrderService,
+    RolesGuard,
+    ApiKeyService,
+    JwtOrApiKeyGuard,
+    ApiKeyGuard,
+    JwtAuthGuard,
+  ],
 })
 export class OrderMerchantsModule {}
