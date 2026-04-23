@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, Alert, Share } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-// Tes composants factorisés
+//  composants factorisés
 import FormLayout from '../components/FormLayout';
 import SectionTitle from '../components/SectionTitle';
 import GoMileButton from '../components/GoMileButton';
@@ -10,14 +10,22 @@ import GoMileButton from '../components/GoMileButton';
 // Thème et constantes
 import { COLORS, SIZES } from '../constants/theme';
 import { COMMON_STYLE_VALUES } from '../styles/commonStyles';
+import {
+  getDriverProfile,
+  getMyKycStatus,
+  getMyReferral,
+  updateSessionVehicle,
+} from '../../lib/driver-client';
+import { logout } from '../../lib/auth-client';
 
 const DEFAULT_AVATAR = require('../../assets/livreur.jpg');
 
 export default function ProfileScreen({ navigation }) {
-  // État pour le véhicule actif (Simule le changement pour l'API)
+  const [profile, setProfile] = useState(null);
+  const [referral, setReferral] = useState(null);
   const [activeVehicle, setActiveVehicle] = useState('velo');
   const [showVehicleDropdown, setShowVehicleDropdown] = useState(false);
-  const [kycStatus] = useState('in_progress');
+  const [kycStatus, setKycStatus] = useState('not_submitted');
 
   const vehicleOptions = [
     { label: 'Vélo', value: 'velo' },
@@ -38,9 +46,54 @@ export default function ProfileScreen({ navigation }) {
       : 'car';
 
   const handleVehicleSelect = (value) => {
-    setActiveVehicle(value);
-    setShowVehicleDropdown(false);
+    (async () => {
+      try {
+        const vehicleMap = {
+          velo: 'BIKE',
+          moto: 'SCOOTER',
+          voiture: 'CAR',
+          utilitaire: 'TRUCK',
+        };
+        await updateSessionVehicle(vehicleMap[value] || 'BIKE');
+        setActiveVehicle(value);
+        setShowVehicleDropdown(false);
+      } catch (error) {
+        Alert.alert('Erreur', error.message || 'Mise a jour du vehicule impossible.');
+      }
+    })();
   };
+
+  const loadProfileData = useCallback(async () => {
+    try {
+      const [profileData, kycData, referralData] = await Promise.all([
+        getDriverProfile(),
+        getMyKycStatus(),
+        getMyReferral(),
+      ]);
+      setProfile(profileData);
+      setReferral(referralData);
+      const status = String(kycData?.status || 'NOT_SUBMITTED').toLowerCase();
+      if (status === 'accepted') setKycStatus('approved');
+      else if (status === 'pending') setKycStatus('in_progress');
+      else if (status === 'rejected') setKycStatus('rejected');
+      else setKycStatus('not_submitted');
+
+      const active = profileData?.activeVehicle;
+      const reverseVehicleMap = {
+        BIKE: 'velo',
+        SCOOTER: 'moto',
+        CAR: 'voiture',
+        TRUCK: 'utilitaire',
+      };
+      setActiveVehicle(reverseVehicleMap[active] || 'velo');
+    } catch (error) {
+      Alert.alert('Erreur', error.message || 'Chargement profil impossible.');
+    }
+  }, []);
+
+  useEffect(() => {
+    loadProfileData();
+  }, [loadProfileData]);
 
   const kycStatusConfig = {
     not_submitted: {
@@ -79,7 +132,7 @@ export default function ProfileScreen({ navigation }) {
     try {
       await Share.share({
         title: 'Deviens livreur GoMile',
-        message: `Rejoins-moi sur GoMile ! Utilise mon code "JEAN2026" pour un bonus. 🚀`,
+        message: `Rejoins-moi sur GoMile ! Utilise mon code "${referral?.code || 'GOMILE'}" pour un bonus.`,
       });
     } catch (error) {
       Alert.alert("Erreur", "Impossible de partager.");
@@ -92,18 +145,23 @@ export default function ProfileScreen({ navigation }) {
       {/* --- CARTE D'IDENTITÉ & SCORING --- */}
       <View style={styles.idCard}>
         <View style={styles.cardTop}>
-          <Image source={DEFAULT_AVATAR} style={styles.avatar} />
+          <Image
+            source={profile?.avatarUrl ? { uri: profile.avatarUrl } : DEFAULT_AVATAR}
+            style={styles.avatar}
+          />
           <View style={styles.scoringContainer}>
             <View style={styles.scoreBadge}>
               <MaterialCommunityIcons name="star" size={14} color={COLORS.primary} />
-              <Text style={styles.scoreText}>4.9</Text>
+              <Text style={styles.scoreText}>{profile?.rating ?? 0}</Text>
             </View>
-            <Text style={styles.tripsText}>128 courses</Text>
+            <Text style={styles.tripsText}>{profile?.totalTrips ?? 0} courses</Text>
           </View>
         </View>
 
         <View style={styles.cardBody}>
-          <Text style={styles.nameText}>Jean Paul</Text>
+          <Text style={styles.nameText}>
+            {profile ? `${profile.firstName} ${profile.lastName}` : 'Profil GoMile'}
+          </Text>
           <View style={styles.infoRow}>
             <MaterialCommunityIcons 
                 name={vehicleIcon}
@@ -117,10 +175,10 @@ export default function ProfileScreen({ navigation }) {
         </View>
 
         <View style={styles.cardFooter}>
-          <Text style={styles.idText}>ID: GM-8829-2026</Text>
+          <Text style={styles.idText}>ID: {profile?.gomileCode || 'N/A'}</Text>
           <View style={styles.statusBadge}>
             <View style={styles.dot} />
-            <Text style={styles.statusText}>DISPONIBLE</Text>
+            <Text style={styles.statusText}>{String(profile?.status || 'OFFLINE')}</Text>
           </View>
         </View>
       </View>
@@ -195,7 +253,9 @@ export default function ProfileScreen({ navigation }) {
         <MaterialCommunityIcons name="gift-outline" size={28} color={COLORS.primary} />
         <View style={{ flex: 1, marginLeft: 15 }}>
           <Text style={styles.inviteTitle}>Parrainez un ami</Text>
-          <Text style={styles.inviteSub}>Gagnez 50€ par nouveau livreur actif</Text>
+          <Text style={styles.inviteSub}>
+            {referral?.code ? `Code: ${referral.code}` : 'Parrainage indisponible pour le moment'}
+          </Text>
         </View>
         <MaterialCommunityIcons name="chevron-right" size={20} color={COLORS.placeholder} />
       </TouchableOpacity>
@@ -231,7 +291,15 @@ export default function ProfileScreen({ navigation }) {
         title="SE DÉCONNECTER" 
         outline
         style={styles.logoutBtn}
-        onPress={() => navigation.replace('Login')}
+        onPress={async () => {
+          try {
+            await logout();
+          } catch {
+            // we Ignore logout API errors and force local exit.
+          } finally {
+            navigation.replace('Login');
+          }
+        }}
       />
       
     </FormLayout>

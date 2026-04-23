@@ -41,7 +41,14 @@ async function parseError(response: Response) {
 
   if (contentType?.includes("application/json")) {
     const payload = (await response.json()) as Partial<ApiErrorPayload>;
-    return payload.message ?? payload.code ?? fallbackError.message;
+    const message = payload.message;
+    if (Array.isArray(message)) {
+      return message.join("\n");
+    }
+    if (typeof message === "string") {
+      return message;
+    }
+    return payload.code ?? `Erreur ${response.status}` ?? fallbackError.message;
   }
 
   const text = await response.text();

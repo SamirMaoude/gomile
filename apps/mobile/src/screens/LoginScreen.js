@@ -29,7 +29,7 @@ export default function LoginScreen({ navigation }) {
 
     setIsLoading(true);
     try {
-      await login({ email: identifier, password: password });
+      await login({ identifier, password });
       navigation.replace('MainApp');
     } catch (error) {
       Alert.alert("Erreur", error.message);

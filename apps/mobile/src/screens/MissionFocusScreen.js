@@ -11,6 +11,10 @@ import { COLORS } from '../constants/theme';
 import { COMMON_STYLE_VALUES } from '../styles/commonStyles';
 import { useMissionStore } from '../store/useMissionStore';
 import { formatDistanceKm, formatDurationMin, getDrivingRoute } from '../../lib/routing';
+import {
+  verifyMerchantHandshake,
+  verifyClientHandshake,
+} from '../../lib/driver-client';
 
 export default function MissionFocusScreen({ navigation }) {
   const activeMission = useMissionStore((state) => state.activeMission);
@@ -142,19 +146,35 @@ export default function MissionFocusScreen({ navigation }) {
   }
 
   const handleValidateMerchant = () => {
-    markMerchantVerified();
-    Alert.alert('Commercant verifie', 'Tu peux maintenant recuperer la commande.');
+    (async () => {
+      try {
+        const code = String(activeMission.merchantAuthCode || '').trim();
+        await verifyMerchantHandshake(activeMission.id, code);
+        markMerchantVerified();
+        Alert.alert('Commercant verifie', 'Tu peux maintenant recuperer la commande.');
+      } catch (error) {
+        Alert.alert('Erreur', error.message || 'Verification commercant impossible.');
+      }
+    })();
   };
 
   const handleValidateClient = () => {
-    if (normalizedClientCode.length !== 4 || normalizedClientCode !== activeMission.clientValidationCode) {
+    if (normalizedClientCode.length < 4) {
       Alert.alert('Code invalide', 'Le code client ne correspond pas.');
       return;
     }
-    markClientVerified();
-    clearMission();
-    Alert.alert('Mission terminee', 'Double handshake valide. Mission cloturee.');
-    navigation.navigate('MainApp', { screen: 'Missions' });
+
+    (async () => {
+      try {
+        await verifyClientHandshake(activeMission.id, normalizedClientCode);
+        markClientVerified();
+        clearMission();
+        Alert.alert('Mission terminee', 'Double handshake valide. Mission cloturee.');
+        navigation.navigate('MainApp', { screen: 'Missions' });
+      } catch (error) {
+        Alert.alert('Erreur', error.message || 'Verification client impossible.');
+      }
+    })();
   };
 
   const handleClientCodeChange = (value) => {

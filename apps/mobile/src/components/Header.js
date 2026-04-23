@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Switch, useWindowDimensions } from 'react-nativ
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../constants/theme';
 import { useAvailabilityStore } from '../store/useAvailabilityStore';
+import { toggleDriverAvailability } from '../../lib/driver-client';
 
 export default function Header({ title, showAvailabilityToggle = false }) {
   const insets = useSafeAreaInsets();
@@ -10,6 +11,15 @@ export default function Header({ title, showAvailabilityToggle = false }) {
   const isOnline = useAvailabilityStore((state) => state.isOnline);
   const setOnlineStatus = useAvailabilityStore((state) => state.setOnlineStatus);
   const isCompactScreen = width < 360;
+
+  const handleToggleAvailability = async () => {
+    try {
+      await toggleDriverAvailability();
+      setOnlineStatus(!isOnline);
+    } catch (error) {
+      // R.A.S
+    }
+  };
 
   return (
     <View style={[styles.header, { paddingTop: insets.top + 10, backgroundColor: COLORS.primary }]}>
@@ -31,7 +41,7 @@ export default function Header({ title, showAvailabilityToggle = false }) {
           </Text>
           <Switch
             value={isOnline}
-            onValueChange={setOnlineStatus}
+            onValueChange={handleToggleAvailability}
             trackColor={{ false: '#8FA3BF', true: '#49C96D' }}
             thumbColor={COLORS.white}
             ios_backgroundColor="#8FA3BF"

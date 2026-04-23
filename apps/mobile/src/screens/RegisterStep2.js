@@ -8,7 +8,7 @@ import FormButtons from '../components/FormButtons';
 import OptionCard from '../components/OptionCard';
 import SectionTitle from '../components/SectionTitle';
 import AddressAutocomplete from '../components/AddressAutocomplete';
-import MultiOptionGrid from '../components/MultiOptionGrid'; // Nouveau composant
+import MultiOptionGrid from '../components/MultiOptionGrid'; // Nouveau composant sympa que je viens de tester
 import { COMMON_STYLE_VALUES } from '../styles/commonStyles';
 
 export default function RegisterStep2({ navigation }) {
@@ -65,7 +65,7 @@ export default function RegisterStep2({ navigation }) {
             label="Rayon (km)" 
             keyboardType="numeric"
             value={deliveryRadius} 
-            onChangeText={(v) => updateField('deliveryRadius', v)} 
+            onChangeText={(v) => updateField('deliveryRadius', String(v).replace(/[^0-9]/g, ''))}
           />
         </View>
       </View>

@@ -24,7 +24,11 @@ export default function RegisterStep1({ navigation }) {
   }, []);
 
   const handleDateChange = (event, selectedDate) => {
-    if (Platform.OS === 'android') setShowDatePicker(false);
+    if (Platform.OS === 'android') {
+      setShowDatePicker(false);
+      if (event?.type !== 'set') return;
+    }
+
     if (selectedDate) {
       updateField('birthDate', selectedDate.toISOString().split('T')[0]);
     }
@@ -103,7 +107,7 @@ export default function RegisterStep1({ navigation }) {
           value={birthDate ? new Date(birthDate) : new Date(2000, 0, 1)} 
           mode="date" 
           display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onValueChange={handleDateChange} 
+          onChange={handleDateChange}
         />
       )}
 

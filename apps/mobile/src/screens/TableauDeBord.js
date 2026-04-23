@@ -4,17 +4,25 @@ import MapView, { PROVIDER_GOOGLE, Circle, Marker } from 'react-native-maps'; //
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 
-// Tes composants
+//  composants
 import Header from '../components/Header';
 import { COLORS } from '../constants/theme';
 import { useAvailabilityStore } from '../store/useAvailabilityStore';
 import { COMMON_STYLE_VALUES } from '../styles/commonStyles';
+import {
+  getDriverDashboard,
+  getAvailableMissions,
+  updateDriverLocation,
+} from '../../lib/driver-client';
 
 const { width, height } = Dimensions.get('window');
 
 export default function DashboardScreen({ navigation }) {
   const isOnline = useAvailabilityStore((state) => state.isOnline);
   const [isLocating, setIsLocating] = useState(false);
+  const [todayEarnings, setTodayEarnings] = useState(0);
+  const [todayTrips, setTodayTrips] = useState(0);
+  const [proposedMissions, setProposedMissions] = useState([]);
   
   // Position par défaut: Grenoble centre, remplacée par la position réelle dès disponibilité.
   const [region, setRegion] = useState({
@@ -56,6 +64,7 @@ export default function DashboardScreen({ navigation }) {
           longitude: position.coords.longitude,
         });
         setRegion(nextRegion);
+        await updateDriverLocation(position.coords.latitude, position.coords.longitude);
       } catch (error) {
         // On garde la position par défaut si la géoloc échoue.
       } finally {
@@ -70,55 +79,54 @@ export default function DashboardScreen({ navigation }) {
     };
   }, []);
 
-  const proposedMissions = useMemo(
-    () => [
-      {
-        id: 'gd-1',
-        type: 'Alimentaire',
-        store: 'Monoprix - Grenoble Centre',
-        storeAddress: '25 Grand Place, 38100 Grenoble',
-        customerArea: '17 Rue de Strasbourg, 38000 Grenoble',
-        customerName: 'Luc Martin',
-        reward: '7.50',
-        distance: '1.2 km',
-        eta: '18 min',
-        notes: 'Commande fragile, éviter les secousses.',
-        mapRegion: {
-          latitude: 45.1842,
-          longitude: 5.7227,
-          latitudeDelta: 0.03,
-          longitudeDelta: 0.03,
-        },
-        pickup: { latitude: 45.1709, longitude: 5.7317 },
-        dropoff: { latitude: 45.1912, longitude: 5.7263 },
-        merchantAuthCode: '4831',
-        clientValidationCode: '9021',
-      },
-      {
-        id: 'gd-2',
-        type: 'Colis',
-        store: 'Point Relais - Caserne de Bonne',
-        storeAddress: '48 Bd Gambetta, 38000 Grenoble',
-        customerArea: '6 Rue Saint-Jacques, 38000 Grenoble',
-        customerName: 'Sara Diallo',
-        reward: '12.00',
-        distance: '2.5 km',
-        eta: '24 min',
-        notes: 'Remise en main propre uniquement.',
-        mapRegion: {
-          latitude: 45.1848,
-          longitude: 5.7301,
-          latitudeDelta: 0.03,
-          longitudeDelta: 0.03,
-        },
-        pickup: { latitude: 45.1829, longitude: 5.7282 },
-        dropoff: { latitude: 45.1904, longitude: 5.7369 },
-        merchantAuthCode: '7294',
-        clientValidationCode: '4407',
-      },
-    ],
-    []
-  );
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadDashboard = async () => {
+      try {
+        const [dashboard, missions] = await Promise.all([
+          getDriverDashboard(),
+          getAvailableMissions(),
+        ]);
+
+        if (!isMounted) return;
+
+        setTodayEarnings(dashboard?.todayEarnings || 0);
+        setTodayTrips(dashboard?.todayTrips || 0);
+
+        const mappedMissions = (missions || []).map((mission) => ({
+          id: mission.id,
+          type: mission.type || 'Mission',
+          store: mission.store || 'Commerce partenaire',
+          storeAddress: mission.pickupAddress || 'Adresse pick-up indisponible',
+          customerArea: mission.dropOffAddress || 'Adresse livraison indisponible',
+          customerName: 'Client GoMile',
+          reward: String(mission.reward ?? 0),
+          distance: `${mission.distanceKm ?? 0} km`,
+          eta: '--',
+          notes: 'Suivre les instructions de livraison.',
+          mapRegion: {
+            latitude: currentPosition.latitude,
+            longitude: currentPosition.longitude,
+            latitudeDelta: 0.03,
+            longitudeDelta: 0.03,
+          },
+          pickup: { ...currentPosition },
+          dropoff: { ...currentPosition },
+        }));
+        setProposedMissions(mappedMissions);
+      } catch {
+        if (!isMounted) return;
+        setProposedMissions([]);
+      }
+    };
+
+    loadDashboard();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [currentPosition]);
 
   const openMissionDetails = (mission) => {
     navigation.navigate('MissionDetails', {
@@ -140,7 +148,7 @@ export default function DashboardScreen({ navigation }) {
         style={styles.map}
         initialRegion={region}
         showsUserLocation
-        customMapStyle={mapStyle} // Style épuré pour la lisibilité
+        customMapStyle={mapStyle} // Style  pour la lisibilité
       >
         <Marker
           coordinate={currentPosition}
@@ -190,11 +198,11 @@ export default function DashboardScreen({ navigation }) {
       {/* STATS RAPIDES (FLOTTANTES EN HAUT) */}
       <View style={styles.quickStats}>
         <View style={styles.statItem}>
-          <Text style={styles.statValue}>24.50 €</Text>
+          <Text style={styles.statValue}>{todayEarnings.toFixed(2)} €</Text>
           <Text style={styles.statLabelMini}>Aujourd'hui</Text>
         </View>
         <View style={[styles.statItem, { borderLeftWidth: 1, borderColor: '#EEE' }]}>
-          <Text style={styles.statValue}>5</Text>
+          <Text style={styles.statValue}>{todayTrips}</Text>
           <Text style={styles.statLabelMini}>Courses</Text>
         </View>
       </View>
@@ -352,7 +360,7 @@ const styles = StyleSheet.create({
   },
 });
 
-// Style de carte simplifié (JSON standard Google Maps)
+// Style de carte 
 const mapStyle = [
   { "featureType": "poi", "stylers": [{ "visibility": "off" }] },
   { "featureType": "transit", "stylers": [{ "visibility": "simplified" }] }

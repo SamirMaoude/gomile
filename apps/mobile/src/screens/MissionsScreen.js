@@ -1,8 +1,8 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { View, Text, StyleSheet, Alert } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-// Tes composants factorisés
+// composants factorisés
 import FormLayout from '../components/FormLayout';
 import SectionTitle from '../components/SectionTitle';
 import GoMileButton from '../components/GoMileButton';
@@ -10,67 +10,62 @@ import GoMileButton from '../components/GoMileButton';
 // Thème et constantes
 import { COLORS, SIZES } from '../constants/theme';
 import { COMMON_STYLE_VALUES } from '../styles/commonStyles';
+import { getAvailableMissions, getMissionHistory } from '../../lib/driver-client';
 
 export default function MissionsScreen({ navigation }) {
-  
-  // --- ÉTATS DE TEST ---
-  const isAccountValidated = true; 
+  const [isLoading, setIsLoading] = useState(true);
+  const [availableMissions, setAvailableMissions] = useState([]);
+  const [historyMissions, setHistoryMissions] = useState([]);
+  const [isAccountValidated] = useState(true);
 
-  // Mock data : Missions non staffées (disponibles)
-  const availableMissions = [
-    {
-      id: '1',
-      type: 'Alimentaire',
-      store: 'Monoprix - Grenoble Centre',
-      storeAddress: '25 Grand Place, 38100 Grenoble',
-      customerArea: '17 Rue de Strasbourg, 38000 Grenoble',
-      customerName: 'Luc Martin',
-      reward: '7.50',
-      distance: '1.2 km',
-      eta: '18 min',
-      notes: 'Commande fragile, eviter les secousses.',
-      mapRegion: {
-        latitude: 45.1842,
-        longitude: 5.7227,
-        latitudeDelta: 0.03,
-        longitudeDelta: 0.03,
-      },
-      currentPosition: { latitude: 45.1881, longitude: 5.7245 },
-      pickup: { latitude: 45.1709, longitude: 5.7317 },
-      dropoff: { latitude: 45.1912, longitude: 5.7263 },
-      merchantAuthCode: '4831',
-      clientValidationCode: '9021',
+  const toMissionCard = (mission) => ({
+    id: mission.id,
+    type: mission.type || 'Mission',
+    store: mission.store || 'Commerce partenaire',
+    storeAddress: mission.pickupAddress || 'Adresse pick-up indisponible',
+    customerArea: mission.dropOffAddress || 'Adresse livraison indisponible',
+    customerName: 'Client GoMile',
+    reward: String(mission.reward ?? 0),
+    distance: `${mission.distanceKm ?? 0} km`,
+    eta: '--',
+    notes: 'Suivre les instructions de livraison.',
+    mapRegion: {
+      latitude: 45.1885,
+      longitude: 5.7245,
+      latitudeDelta: 0.03,
+      longitudeDelta: 0.03,
     },
-    {
-      id: '2',
-      type: 'Colis',
-      store: 'Point Relais - Caserne de Bonne',
-      storeAddress: '48 Bd Gambetta, 38000 Grenoble',
-      customerArea: '6 Rue Saint-Jacques, 38000 Grenoble',
-      customerName: 'Sara Diallo',
-      reward: '12.00',
-      distance: '2.5 km',
-      eta: '24 min',
-      notes: 'Remise en main propre uniquement.',
-      mapRegion: {
-        latitude: 45.1848,
-        longitude: 5.7301,
-        latitudeDelta: 0.03,
-        longitudeDelta: 0.03,
-      },
-      currentPosition: { latitude: 45.1887, longitude: 5.7208 },
-      pickup: { latitude: 45.1829, longitude: 5.7282 },
-      dropoff: { latitude: 45.1904, longitude: 5.7369 },
-      merchantAuthCode: '7294',
-      clientValidationCode: '4407',
-    },
-  ];
+    pickup: { latitude: 45.1885, longitude: 5.7245 },
+    dropoff: { latitude: 45.1885, longitude: 5.7245 },
+  });
 
-  // Mock data : Historique (faites par l'user)
-  const historyMissions = [
-    { id: '101', store: 'Franprix République', date: 'Hier', reward: '6.40' },
-    { id: '102', store: 'Boulangerie Louise', date: '2 oct.', reward: '5.20' },
-  ];
+  const loadMissions = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const [available, history] = await Promise.all([
+        getAvailableMissions(),
+        getMissionHistory(),
+      ]);
+
+      setAvailableMissions((available || []).map(toMissionCard));
+      setHistoryMissions(
+        (history || []).map((item) => ({
+          id: item.id,
+          store: item.store || 'Commerce partenaire',
+          date: item.status || 'DELIVERED',
+          reward: String(item.reward ?? 0),
+        })),
+      );
+    } catch (error) {
+      Alert.alert('Erreur', error.message || 'Impossible de charger les missions.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadMissions();
+  }, [loadMissions]);
 
   const handleOpenMissionDetails = (mission) => {
     navigation.navigate('MissionDetails', { mission });
@@ -93,6 +88,10 @@ export default function MissionsScreen({ navigation }) {
         {isAccountValidated && (
           <View>
             <SectionTitle>Missions à proximité</SectionTitle>
+            {isLoading && <Text style={styles.loadingText}>Chargement...</Text>}
+            {!isLoading && availableMissions.length === 0 && (
+              <Text style={styles.emptyText}>Aucune mission disponible pour le moment.</Text>
+            )}
             {availableMissions.map((item) => (
               <MissionCard 
                 key={item.id} 
@@ -111,6 +110,8 @@ export default function MissionsScreen({ navigation }) {
             {historyMissions.map((item) => (
               <HistoryRow key={item.id} item={item} />
             ))}
+
+            <GoMileButton title="RAFRAICHIR" type="secondary" outline onPress={loadMissions} style={{ marginTop: 15 }} />
           </View>
         )}
       </FormLayout>
@@ -127,8 +128,8 @@ const MissionCard = ({ mission, onOpenDetails }) => (
       <Text style={styles.price}>{mission.reward}€</Text>
     </View>
     <View style={styles.cardMeta}>
-      <Text style={styles.metaText}>📍 {mission.distance}</Text>
-      <Text style={styles.metaText}>📦 {mission.type}</Text>
+      <Text style={styles.metaText}> {mission.distance}</Text>
+      <Text style={styles.metaText}> {mission.type}</Text>
     </View>
     <GoMileButton title="VOIR LES DETAILS" style={styles.acceptBtn} onPress={onOpenDetails} />
   </View>
@@ -181,4 +182,6 @@ const styles = StyleSheet.create({
   historyStore: { fontWeight: '600', ...COMMON_STYLE_VALUES.textSecondary },
   historyDate: { fontSize: 12, ...COMMON_STYLE_VALUES.textMuted },
   historyPrice: { fontWeight: 'bold', ...COMMON_STYLE_VALUES.textSecondary },
+  loadingText: { marginTop: 10, ...COMMON_STYLE_VALUES.textMuted },
+  emptyText: { marginTop: 10, ...COMMON_STYLE_VALUES.textMuted },
 });

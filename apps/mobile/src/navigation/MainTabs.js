@@ -4,7 +4,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
-// Import de tes constantes de thème
+// Import des constantes de thème
 import { COLORS } from '../constants/theme';
 
 import MissionsScreen from '../screens/MissionsScreen';

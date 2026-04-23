@@ -10,6 +10,7 @@ import { COLORS } from '../constants/theme';
 import { COMMON_STYLE_VALUES } from '../styles/commonStyles';
 import { useMissionStore } from '../store/useMissionStore';
 import { formatDistanceKm, formatDurationMin, getDrivingRoute } from '../../lib/routing';
+import { acceptMission as acceptMissionApi } from '../../lib/driver-client';
 
 export default function MissionDetailsScreen({ route, navigation }) {
   const mission = route?.params?.mission;
@@ -99,11 +100,18 @@ export default function MissionDetailsScreen({ route, navigation }) {
   };
 
   const handleAccept = () => {
-    acceptMission({
-      ...mission,
-      currentPosition,
-    });
-    navigation.replace('MissionFocus');
+    (async () => {
+      try {
+        await acceptMissionApi(mission.id);
+        acceptMission({
+          ...mission,
+          currentPosition,
+        });
+        navigation.replace('MissionFocus');
+      } catch (error) {
+        Alert.alert('Erreur', error.message || 'Impossible d\'accepter la mission.');
+      }
+    })();
   };
 
   return (

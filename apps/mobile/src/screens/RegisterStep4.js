@@ -13,6 +13,7 @@ import { useRegistrationStore } from '../store/useRegistrationStore';
 import { COLORS } from '../constants/theme';
 import { COMMON_STYLE_VALUES } from '../styles/commonStyles';
 import { registerDriver } from '../../lib/auth-client';
+import { uploadLocalFile } from '../../lib/upload-client';
 
 export default function RegisterStep4({ navigation }) {
   const [isLoading, setIsLoading] = useState(false);
@@ -21,14 +22,15 @@ export default function RegisterStep4({ navigation }) {
   const { 
     updateField, siret, kbisFile, ribFile,
     firstName, lastName, email, phone, 
-    birthDate, gender, address,transportType, 
+    birthDate, gender, address, city, zipCode, street, deliveryCity, deliveryRadius, equipments, transportType,
     cniFile, justificatifFile, password,
-    permisFile, carteGriseFile
+    permisFile, carteGriseFile,
+    resetForm,
   } = useRegistrationStore();
 
   const pickDoc = async (field) => {
     const result = await ImagePicker.launchImageLibraryAsync({ 
-      mediaTypes: ImagePicker.MediaTypeOptions.Images, 
+      mediaTypes: ImagePicker.MediaType.Images,
       quality: 0.7 
     });
     if (!result.canceled) updateField(field, result.assets[0].uri);
@@ -36,33 +38,81 @@ export default function RegisterStep4({ navigation }) {
 
   
   const handleFinish = async () => {
+    if (!email || !password || !firstName || !lastName || !phone || !birthDate || !gender) {
+      return Alert.alert('Erreur', 'Informations personnelles incomplètes.');
+    }
+    if (!address || !deliveryCity || !deliveryRadius || !transportType) {
+      return Alert.alert('Erreur', 'Informations transport incomplètes.');
+    }
+
     setIsLoading(true);
 
     try {
-      //  Transformation du genre pour l'API
+      const safeDeliveryRadius = Number.parseInt(String(deliveryRadius), 10);
+      if (!Number.isFinite(safeDeliveryRadius) || safeDeliveryRadius < 1) {
+        throw new Error('Rayon de livraison invalide.');
+      }
+
+      const normalizePhone = (value) => {
+        const cleaned = String(value || '').replace(/\s+/g, '');
+        if (cleaned.startsWith('+')) return cleaned;
+        if (cleaned.startsWith('0') && cleaned.length === 10) {
+          return `+33${cleaned.slice(1)}`;
+        }
+        return cleaned;
+      };
+
       const genderMap = {
         'Homme': 'MALE',
         'Femme': 'FEMALE',
         'Autre': 'UNDEFINED'
       };
 
-      //  Préparation de l'objet avec les bonnes clés (firstName et NON firstname)
-      const signupData = {
-        email: email,
-        password: password, 
-        firstName: firstName, 
-        lastName : lastName,
-        gender : genderMap[gender] || 'UNDEFINED', // Mapping vers MALE/FEMALE
-        phone: phone,
-        dateOfBirth : birthDate,
-        address: address,
-        avatarUrl : "@todo",
-        documentUrl : cniFile,
+      const vehicleMap = {
+        velo: 'BIKE',
+        moto: 'SCOOTER',
+        voiture: 'CAR',
+        utilitaire: 'TRUCK',
       };
 
-      console.log("Données envoyées :", signupData);
+      const cniUrl = cniFile ? await uploadLocalFile(cniFile, 'cni.jpg') : undefined;
+      const justificatifUrl = justificatifFile
+        ? await uploadLocalFile(justificatifFile, 'justificatif.jpg')
+        : undefined;
+      const permisUrl = permisFile ? await uploadLocalFile(permisFile, 'permis.jpg') : undefined;
+      const carteGriseUrl = carteGriseFile
+        ? await uploadLocalFile(carteGriseFile, 'carte-grise.jpg')
+        : undefined;
+      const kbisUrl = kbisFile ? await uploadLocalFile(kbisFile, 'kbis.jpg') : undefined;
+      const ribUrl = ribFile ? await uploadLocalFile(ribFile, 'rib.jpg') : undefined;
 
-      const session = await registerDriver(signupData);
+      const signupData = {
+        email: String(email).trim().toLowerCase(),
+        password,
+        firstName: String(firstName).trim(),
+        lastName: String(lastName).trim(),
+        gender: genderMap[gender] || 'UNDEFINED',
+        phone: normalizePhone(phone),
+        dateOfBirth: birthDate,
+        address: String(address).trim(),
+        city: city ? String(city).trim() : undefined,
+        zipCode: zipCode ? String(zipCode).trim() : undefined,
+        street: street ? String(street).trim() : undefined,
+        deliveryCity: String(deliveryCity).trim(),
+        deliveryRadius: safeDeliveryRadius,
+        transportType: vehicleMap[transportType] || 'BIKE',
+        equipments,
+        cniFile: cniUrl,
+        justificatifFile: justificatifUrl,
+        permisFile: permisUrl,
+        carteGriseFile: carteGriseUrl,
+        siret: siret ? String(siret).trim() : undefined,
+        kbisFile: kbisUrl,
+        ribFile: ribUrl,
+      };
+
+      await registerDriver(signupData);
+      resetForm();
 
       Alert.alert(
         "Félicitations !",

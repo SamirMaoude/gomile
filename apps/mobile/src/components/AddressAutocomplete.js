@@ -1,72 +1,3 @@
-// import React, { useState } from 'react';
-// import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Keyboard } from 'react-native';
-// import GoMileInput from './GoMileInput';
-// import { COLORS } from '../constants/theme';
-
-// export default function AddressAutocomplete({ label, value, onAddressSelect, updateValue }) {
-//   const [suggestions, setSuggestions] = useState([]);
-//   const [loading, setLoading] = useState(false);
-
-//   const fetchAddresses = async (text) => {
-//     updateValue(text);
-//     if (text.length < 5) {
-//       setSuggestions([]);
-//       return;
-//     }
-//     setLoading(true);
-//     try {
-//       const response = await fetch(`https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(text)}&limit=5&type=housenumber`);
-//       const data = await response.json();
-//       setSuggestions(data.features || []);
-//     } catch (error) {
-//       console.error(error);
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   return (
-//     <View style={styles.container}>
-//       <GoMileInput 
-//         label={label}
-//         placeholder="Ex: 10 rue de la Paix..."
-//         value={value}
-//         onChangeText={fetchAddresses}
-//       />
-//       {loading && <ActivityIndicator style={styles.loader} color={COLORS.primary} />}
-//       {suggestions.length > 0 && (
-//         <View style={styles.dropdown}>
-//           {suggestions.map((item, index) => (
-//             <TouchableOpacity 
-//               key={index} 
-//               style={styles.suggestionRow} 
-//               onPress={() => {
-//                 onAddressSelect(item);
-//                 setSuggestions([]);
-//                 Keyboard.dismiss();
-//               }}
-//             >
-//               <Text style={styles.suggestionText}>{item.properties.label}</Text>
-//             </TouchableOpacity>
-//           ))}
-//         </View>
-//       )}
-//     </View>
-//   );
-// }
-
-// const styles = StyleSheet.create({
-//   container: { zIndex: 100, position: 'relative' },
-//   loader: { position: 'absolute', right: 15, top: 45 },
-//   dropdown: {
-//     position: 'absolute', top: 85, left: 0, right: 0,
-//     backgroundColor: COLORS.white, borderRadius: 10, elevation: 10,
-//     shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
-//     shadowOpacity: 0.2, shadowRadius: 5, borderWidth: 1, borderColor: COLORS.border,
-//   },
-//   suggestionRow: { padding: 15, borderBottomWidth: 1, borderBottomColor: '#F0F0F0' },
-//   suggestionText: { color: COLORS.secondary, fontSize: 13 },
-// });
 
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Keyboard } from 'react-native';
@@ -120,8 +51,8 @@ export default function AddressAutocomplete({ label, value, onAddressSelect, upd
       street: name
     });
 
-    setSuggestions([]); // Ferme la liste
-    Keyboard.dismiss(); // Ferme le clavier
+    setSuggestions([]); // on Ferme la liste
+    Keyboard.dismiss(); // on Ferme le clavier aussi
   };
 
   return (
@@ -176,8 +107,8 @@ const styles = StyleSheet.create({
     right: 0,
     backgroundColor: COLORS.white, 
     borderRadius: 10, 
-    elevation: 10, // Ombre Android
-    shadowColor: '#000', // Ombre iOS
+    elevation: 10, 
+    shadowColor: '#000', 
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2, 
     shadowRadius: 5, 

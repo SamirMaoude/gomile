@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack'; // Changement ici
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { Asset } from 'expo-asset';
 
 // les diverses pages utilisé dans le cadre du projet
 import LoginScreen from './src/screens/LoginScreen';
@@ -16,11 +17,20 @@ import MissionFocusScreen from './src/screens/MissionFocusScreen';
 const Stack = createNativeStackNavigator(); // Changement ici
 
 export default function App() {
+  useEffect(() => {
+    Asset.loadAsync([
+      require('./assets/background_login.png'),
+      require('./assets/livreur.jpg'),
+    ]).catch(() => {
+      // rien pour le moment 
+    });
+  }, []);
+
   return (
     <SafeAreaProvider>
       <NavigationContainer>
         <Stack.Navigator 
-          initialRouteName="MainApp"
+          initialRouteName="Login"
           screenOptions={{ headerShown: false }}
         >
           <Stack.Screen name="Login" component={LoginScreen} />

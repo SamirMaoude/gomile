@@ -22,12 +22,12 @@ export default function FormLayout({ title, children, variant = 'form', showAvai
         <ScrollView 
           contentContainerStyle={[
             styles.scrollContent,
-            isLogin && styles.loginCenter // Applique le centrage spécifique
+            isLogin && styles.loginCenter // on applique le centrage spécifique
           ]}
           keyboardShouldPersistTaps="handled"
         >
           {children}
-          {/* remonte la carte de 10% sur le login a revoir*/}
+          {/* remonte la carte de 10% sur le login a revoir par @ousmane */}
           {isLogin && <View style={{ height: 80 }} />} 
         </ScrollView>
       </KeyboardAvoidingView>
