@@ -83,11 +83,11 @@ function buildStoreFormSeed(store?: Store | StoreListItem): StoreFormSeed {
     name: store?.name ?? "",
     address: store?.address ?? "",
     description: store?.description ?? "",
-    domain: "domain" in (store ?? {}) ? store.domain ?? "" : "",
+    domain: store?.domain ?? "",
     latitude: store ? String(store.latitude) : "",
     longitude: store ? String(store.longitude) : "",
     provider: store?.provider ?? "OTHER",
-    webhookUrl: "webhookUrl" in (store ?? {}) ? store.webhookUrl ?? "" : "",
+    webhookUrl: store?.webhookUrl ?? "",
   };
 }
 

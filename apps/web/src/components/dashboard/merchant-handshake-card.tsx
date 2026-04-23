@@ -48,7 +48,7 @@ export default function MerchantHandshakeCard({
           theme={isDarkMode ? "white" : "heading"}
           className={styles.sectionTitle}
         >
-          Handshake commande
+          Validation Handshake
         </Typography>
       </div>
 
@@ -93,13 +93,13 @@ export default function MerchantHandshakeCard({
               isDarkMode ? "!text-slate-200" : "!text-slate-700",
             )}
           >
-            Code handshake
+            Code du livreur
           </span>
           <input
             type="text"
             inputMode="numeric"
             maxLength={6}
-            placeholder="Ex: 023106"
+            placeholder="Code montre par le livreur"
             value={code}
             onChange={(event) => setCode(event.target.value)}
             disabled={isSubmitting}
@@ -134,7 +134,7 @@ export default function MerchantHandshakeCard({
           disabled={isSubmitting || isLoadingStores || stores.length === 0}
           className={styles.handshakeButton}
         >
-          {isSubmitting ? "Verification..." : "Valider le code"}
+          {isSubmitting ? "Verification..." : "Valider la prise en charge"}
         </Button>
       </Form>
     </section>

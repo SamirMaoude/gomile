@@ -12,12 +12,31 @@ import ErrorMessage from "@/components/ui/design-system/messages/errorMessage";
 import SuccessMessage from "@/components/ui/design-system/messages/successMessage";
 import Typography from "@/components/ui/design-system/typography";
 import MailIcon from "@/components/ui/icons/MailIcon";
+import PasswordKeyIcon from "@/components/ui/icons/passwordKeyIcon";
 import { Logo } from "@/components/Logo/Logo";
+import {
+  forgotPasswordDescriptionByStep,
+  forgotPasswordSubmitLabelByStep,
+  forgotPasswordTitleByStep,
+} from "./content";
 import { useForgotPassword } from "./use-forgot-password";
 
 export default function ForgotPasswordPage() {
-  const { email, errorMessage, handleEmailChange, handleSubmit, successMessage } =
-    useForgotPassword();
+  const {
+    confirmPassword,
+    email,
+    errorMessage,
+    handleConfirmPasswordChange,
+    handleEmailChange,
+    handleNewPasswordChange,
+    handleOtpChange,
+    handleSubmit,
+    isSubmitting,
+    newPassword,
+    otp,
+    step,
+    successMessage,
+  } = useForgotPassword();
 
   return (
     <Background as="section">
@@ -32,7 +51,7 @@ export default function ForgotPasswordPage() {
             theme="heading"
             className={styles.title}
           >
-            Mot de passe oublie
+            {forgotPasswordTitleByStep[step]}
           </Typography>
 
           <Typography
@@ -41,26 +60,76 @@ export default function ForgotPasswordPage() {
             theme="body"
             className={styles.description}
           >
-            Saisissez votre adresse email pour recevoir un lien de
-            reinitialisation.
+            {forgotPasswordDescriptionByStep[step]}
           </Typography>
         </div>
 
         <Form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.fieldsGroup}>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              label="Adresse email"
-              placeholder="Entrez votre adresse email"
-              value={email}
-              onChange={handleEmailChange}
-              autoComplete="email"
-              leftIcon={<MailIcon className={styles.inputIcon} />}
-              containerClassName={styles.inputContainer}
-              inputWrapperClassName={styles.inputWrapper}
-            />
+            {step === "email" || step === "otp" ? (
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                label="Adresse email"
+                placeholder="Entrez votre adresse email"
+                value={email}
+                onChange={handleEmailChange}
+                autoComplete="email"
+                disabled={step !== "email"}
+                leftIcon={<MailIcon className={styles.inputIcon} />}
+                containerClassName={styles.inputContainer}
+                inputWrapperClassName={styles.inputWrapper}
+              />
+            ) : null}
+
+            {step === "otp" ? (
+              <Input
+                id="otp"
+                name="otp"
+                type="text"
+                label="Code OTP"
+                placeholder="Entrez le code OTP a 6 chiffres"
+                value={otp}
+                onChange={handleOtpChange}
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                containerClassName={styles.inputContainer}
+                inputWrapperClassName={styles.inputWrapper}
+              />
+            ) : null}
+
+            {step === "reset" ? (
+              <>
+                <Input
+                  id="new-password"
+                  name="newPassword"
+                  type="password"
+                  label="Nouveau mot de passe"
+                  placeholder="Entrez votre nouveau mot de passe"
+                  value={newPassword}
+                  onChange={handleNewPasswordChange}
+                  autoComplete="new-password"
+                  leftIcon={<PasswordKeyIcon className={styles.inputIcon} />}
+                  containerClassName={styles.inputContainer}
+                  inputWrapperClassName={styles.inputWrapper}
+                />
+
+                <Input
+                  id="confirm-password"
+                  name="confirmPassword"
+                  type="password"
+                  label="Confirmer le mot de passe"
+                  placeholder="Confirmez votre nouveau mot de passe"
+                  value={confirmPassword}
+                  onChange={handleConfirmPasswordChange}
+                  autoComplete="new-password"
+                  leftIcon={<PasswordKeyIcon className={styles.inputIcon} />}
+                  containerClassName={styles.inputContainer}
+                  inputWrapperClassName={styles.inputWrapper}
+                />
+              </>
+            ) : null}
           </div>
 
           {errorMessage ? (
@@ -75,15 +144,26 @@ export default function ForgotPasswordPage() {
             </SuccessMessage>
           ) : null}
 
-          <Button type="submit" fullWidth className={styles.submitButton}>
-            Envoyer le lien
-          </Button>
+          {step !== "done" ? (
+            <Button
+              type="submit"
+              fullWidth
+              disabled={isSubmitting}
+              className={styles.submitButton}
+            >
+              {isSubmitting
+                ? "Traitement..."
+                : forgotPasswordSubmitLabelByStep[
+                    step as "email" | "otp" | "reset"
+                  ]}
+            </Button>
+          ) : null}
         </Form>
 
         <div className={styles.footer}>
           <Link href="/merchant/login" className={styles.link}>
             <Typography variant="span" Component="span" theme="link">
-              Retour a la connexion
+              {step === "done" ? "Aller a la connexion" : "Retour a la connexion"}
             </Typography>
           </Link>
         </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { Store, StoreListItem } from "../shops/store.model";
 import type {
@@ -91,14 +91,20 @@ function toDateTimeLocalValue(value: string | null | undefined) {
 }
 
 function buildApiKeyFormSeed(apiKey?: ApiKey | ApiKeyRow): ApiKeyFormSeed {
+  let storeName = "";
+
+  if (apiKey) {
+    if ("store" in apiKey) {
+      storeName = apiKey.store.name;
+    } else if ("storeName" in apiKey) {
+      storeName = apiKey.storeName;
+    }
+  }
+
   return {
     name: apiKey?.name ?? "",
     storeId: apiKey?.storeId ?? "",
-    storeName: "store" in (apiKey ?? {})
-      ? apiKey.store.name
-      : "storeName" in (apiKey ?? {})
-        ? apiKey.storeName
-        : "",
+    storeName,
     expiresAt: toDateTimeLocalValue(apiKey?.expiresAt),
   };
 }
@@ -216,6 +222,23 @@ function parseUpdateApiKeyInput(
   };
 }
 
+function mapApiKeysToRows(
+  apiKeys: ApiKeyListItem[],
+  availableStores: StoreListItem[],
+): ApiKeyRow[] {
+  const storesById = new Map(availableStores.map((store) => [store.id, store]));
+
+  return apiKeys.map((apiKey) => {
+    const store = storesById.get(apiKey.storeId);
+
+    return {
+      ...apiKey,
+      storeName: store?.name ?? "Magasin inconnu",
+      storeDomain: store?.domain ?? null,
+    };
+  });
+}
+
 export function useApiKeysTable(): UseApiKeysTableResult {
   const [rows, setRows] = useState<ApiKeyRow[]>([]);
   const [stores, setStores] = useState<StoreListItem[]>([]);
@@ -229,26 +252,9 @@ export function useApiKeysTable(): UseApiKeysTableResult {
   >({});
   const isMountedRef = useRef(true);
 
-  function mapApiKeysToRows(
-    apiKeys: ApiKeyListItem[],
-    availableStores: StoreListItem[],
-  ): ApiKeyRow[] {
-    const storesById = new Map(availableStores.map((store) => [store.id, store]));
-
-    return apiKeys.map((apiKey) => {
-      const store = storesById.get(apiKey.storeId);
-
-      return {
-        ...apiKey,
-        storeName: store?.name ?? "Magasin inconnu",
-        storeDomain: store?.domain ?? null,
-      };
-    });
-  }
-
   // We load API keys and stores together because the create panel needs the
   // list of stores, and the table needs store names instead of only store ids.
-  async function loadApiKeys(showLoader = true) {
+  const loadApiKeys = useCallback(async (showLoader = true) => {
     if (!isMountedRef.current) {
       return;
     }
@@ -286,7 +292,7 @@ export function useApiKeysTable(): UseApiKeysTableResult {
         setIsLoading(false);
       }
     }
-  }
+  }, []);
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -295,7 +301,7 @@ export function useApiKeysTable(): UseApiKeysTableResult {
     return () => {
       isMountedRef.current = false;
     };
-  }, []);
+  }, [loadApiKeys]);
 
   function getStoreDetailsState(storeId: string): StoreDetailsState {
     return storeDetailsByStoreId[storeId] ?? EMPTY_STORE_DETAILS_STATE;

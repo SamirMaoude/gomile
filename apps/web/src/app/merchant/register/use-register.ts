@@ -7,12 +7,17 @@ import { logout, registerMerchant } from "@/lib/auth-client";
 
 export function useRegister() {
   const router = useRouter();
+  const [phone, setPhone] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   function toggleShowPassword() {
     setShowPassword((value) => !value);
+  }
+
+  function handlePhoneChange(value: string) {
+    setPhone(value);
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -89,7 +94,9 @@ export function useRegister() {
   return {
     error,
     handleSubmit,
+    handlePhoneChange,
     isPending,
+    phone,
     showPassword,
     toggleShowPassword,
   };

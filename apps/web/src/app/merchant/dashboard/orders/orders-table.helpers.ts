@@ -204,7 +204,7 @@ export function parseCreateOrderInput(
     return { error: "Choisissez la taille du colis." };
   }
 
-  if (rawWeight && (!Number.isFinite(weight) || weight < 0)) {
+  if (rawWeight && (weight === undefined || !Number.isFinite(weight) || weight < 0)) {
     return { error: "Le poids doit etre un nombre positif ou nul." };
   }
 

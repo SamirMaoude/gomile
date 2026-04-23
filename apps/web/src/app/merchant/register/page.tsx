@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import Background from "@/components/ui/auth/background";
 import Typography from "@/components/ui/design-system/typography";
@@ -22,9 +21,15 @@ import { styles } from "../login/styles";
 import { useRegister } from "./use-register";
 
 export default function MerchantRegisterPage() {
-  const [phone, setPhone] = useState("");
-  const { error, handleSubmit, isPending, showPassword, toggleShowPassword } =
-    useRegister();
+  const {
+    error,
+    handlePhoneChange,
+    handleSubmit,
+    isPending,
+    phone,
+    showPassword,
+    toggleShowPassword,
+  } = useRegister();
 
   return (
     <Background backHref="/">
@@ -118,7 +123,7 @@ export default function MerchantRegisterPage() {
                 <PhoneInput
                   defaultCountry="fr"
                   value={phone}
-                  onChange={setPhone}
+                  onChange={handlePhoneChange}
                   name="phone"
                   placeholder="Numero de telephone"
                   inputProps={{

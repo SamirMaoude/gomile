@@ -1,11 +1,15 @@
+import type { ChangeEvent } from "react";
+
 import Input from "@/components/ui/design-system/input/input";
 import Typography from "@/components/ui/design-system/typography";
 import ButtonIcon from "@/components/ui/icons/ButtonIcon";
 import DeadEyeIcon from "@/components/ui/icons/DeadEyeIcon";
+import DocumentIcon from "@/components/ui/icons/DocumentIcon";
 import MailIcon from "@/components/ui/icons/MailIcon";
 import PasswordKeyIcon from "@/components/ui/icons/passwordKeyIcon";
 import UserIcon from "@/components/ui/icons/UserIcon";
 import { PhoneInput } from "react-international-phone";
+import FileUploadField from "./file-upload-field";
 import { styles } from "./styles";
 import type {
   DriverRegisterErrors,
@@ -16,14 +20,20 @@ import type {
 type IdentityStepProps = {
   errors: DriverRegisterErrors;
   formData: DriverRegisterFormData;
+  onAvatarFileChange: (event: ChangeEvent<HTMLInputElement>) => void;
+  onRemoveAvatar: () => void;
   onFieldChange: (field: DriverRegisterField, value: string) => void;
   onToggleShowPassword: () => void;
   showPassword: boolean;
+  avatarFileName?: string;
 };
 
 export default function IdentityStep({
+  avatarFileName,
   errors,
   formData,
+  onAvatarFileChange,
+  onRemoveAvatar,
   onFieldChange,
   onToggleShowPassword,
   showPassword,
@@ -109,20 +119,16 @@ export default function IdentityStep({
           ) : null}
         </div>
 
-        <Input
-          id="driver-avatar-url"
-          name="avatarUrl"
-          type="url"
-          placeholder="URL de l'avatar (optionnel)"
-          autoComplete="url"
-          leftIcon={<UserIcon className={styles.fieldIcon} />}
+        <FileUploadField
+          id="driver-avatar-file"
+          label="Avatar"
+          icon={<DocumentIcon className={styles.fieldIcon} />}
+          accept="image/*"
+          fileName={avatarFileName}
           error={errors.avatarUrl}
-          value={formData.avatarUrl}
-          onChange={(event) => onFieldChange("avatarUrl", event.target.value)}
-          helperText="Optionnel, mais doit etre une URL valide si renseignee."
-          containerClassName={styles.fieldContainer}
-          inputWrapperClassName={styles.fieldWrapper}
-          className={styles.fieldInput}
+          onRemove={onRemoveAvatar}
+          placeholder="Choisir un avatar"
+          onChange={onAvatarFileChange}
         />
 
         <Input
