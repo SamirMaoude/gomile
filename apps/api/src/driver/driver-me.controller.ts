@@ -92,6 +92,20 @@ export class DriverMeController {
     return this.orderLivreursService.getPickupCode(user, user.id, missionId);
   }
 
+  @ApiOperation({ summary: "Retrieve OTP pickup code for a mission", description: "Allows the driver to retrieve the handshake type A pickup code in case the app was closed. Only available while the mission is in DRIVER_ACCEPTED status." })
+  @ApiOkResponse({ schema: { properties: { code: { type: 'string', example: '048291' } } } })
+  @ApiUnauthorizedResponse({ description: 'Invalid or missing JWT' })
+  @ApiNotFoundResponse({ description: 'Mission not found' })
+  @ApiInternalServerErrorResponse({ description: 'Handshake not found, contact backend developer' })
+  @Get('missions/:missionId/otp')
+  @HttpCode(HttpStatus.OK)
+  async getOTP(
+    @Param('missionId') missionId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.orderLivreursService.getPickupCode(user, user.id, missionId);
+  }
+
   @ApiOperation({ summary: "Pick up a mission (handshake A — merchant code)", description: "Merchant provides driver a code, driver must enter it to validate pick up. 3 attempts allowed." })
   @ApiOkResponse({ description: 'Mission picked up successfully', schema: { properties: { orderId: { type: 'string' }, message: { type: 'string' } } } })
   @ApiUnauthorizedResponse({ description: 'Invalid or missing JWT' })
@@ -355,4 +369,6 @@ export class DriverMeController {
   ) {
     return this.driverMeService.deleteDocument(user, documentId);
   }
+
+  
 }

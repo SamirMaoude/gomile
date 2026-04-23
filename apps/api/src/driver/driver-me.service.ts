@@ -235,7 +235,6 @@ export class DriverMeService {
         ...(dto.deliveryCity !== undefined && { deliveryCity: dto.deliveryCity }),
         ...(dto.deliveryRadius !== undefined && { deliveryRadius: dto.deliveryRadius }),
         ...(dto.transportType !== undefined && { transportType: dto.transportType }),
-        ...(dto.equipments !== undefined && { equipments: dto.equipments }),
         ...(dto.avatarUrl !== undefined && { avatarUrl: dto.avatarUrl }),
         ...(addressChanged && { kycStatus: KycStatus.NOT_SUBMITTED }),
       },
@@ -458,6 +457,10 @@ export class DriverMeService {
     // KYC documents validated can only be updated by another document, and should not be able to be deleted
     if (driver.kycStatus === KycStatus.ACCEPTED) {
       throw new ConflictException(createApiError('KYC_ALREADY_APPROVED', KYC_ERRORS));
+    }
+
+    if (driver.kycStatus === KycStatus.PENDING) {
+      throw new ConflictException(createApiError('KYC_VERIFYING_IN_PROCESS', KYC_ERRORS));
     }
 
     const doc = await this.prisma.driverDocument.findUnique({

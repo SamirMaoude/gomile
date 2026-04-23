@@ -1,5 +1,6 @@
 export const ORDER_STATUSES = [
   'SEARCHING_DRIVER',
+  'DRIVER_ASSIGNED',
   'DRIVER_ACCEPTED',
   'PICKED_UP',
   'DELIVERED',
@@ -8,10 +9,36 @@ export const ORDER_STATUSES = [
 
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
 
+export const ORDER_TYPES = [
+  'FOOD',
+  'PHARMACY',
+  'GROCERY',
+  'CLOTHING',
+  'ELECTRONICS',
+  'FURNITURE',
+  'DOCUMENTS',
+  'OTHER',
+] as const;
+
+export type OrderType = (typeof ORDER_TYPES)[number];
+
+export const PACKAGE_SIZES = [
+  'SMALL',
+  'MEDIUM',
+  'LARGE',
+  'EXTRA_LARGE',
+] as const;
+
+export type PackageSize = (typeof PACKAGE_SIZES)[number];
+
 export interface CreateOrderInput {
   customerName: string;
   customerPhone: string;
   dropOffAddress: string;
+  type: OrderType;
+  packageSize?: PackageSize;
+  weight?: number;
+  orderReference?: string;
 }
 
 export interface HandshakeInput {
@@ -21,8 +48,9 @@ export interface HandshakeInput {
 
 export interface CreateOrderResponse {
   orderId: string;
-  pickupCode: string;
   deliveryCode: string;
+  deliveryFee: number;
+  distanceKm: number;
   message: string;
 }
 

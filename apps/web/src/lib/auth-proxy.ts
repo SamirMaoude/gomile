@@ -3,7 +3,7 @@ import type { AuthTokensResponse } from "../../../../shared/auth-contracts";
 import { AUTH_MESSAGES } from "../../../../shared/auth-messages";
 import { createApiError } from "../../../../shared/api-errors";
 
-const DEFAULT_API_BASE_URL = "http://localhost:3001";
+const DEFAULT_API_BASE_URL = "http://localhost:3000";
 const ACCESS_TOKEN_COOKIE = "gomile_access_token";
 const REFRESH_TOKEN_COOKIE = "gomile_refresh_token";
 const ACCESS_TOKEN_MAX_AGE_SECONDS = 15 * 60;

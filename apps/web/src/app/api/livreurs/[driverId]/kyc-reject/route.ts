@@ -5,5 +5,5 @@ type Params = { params: Promise<{ driverId: string }> };
 
 export async function PUT(request: NextRequest, { params }: Params) {
   const { driverId } = await params;
-  return proxyApiRequest(request, `/livreurs/${driverId}/kyc-reject`);
+  return proxyApiRequest(request, `/admin/drivers/${driverId}/kyc/reject`);
 }

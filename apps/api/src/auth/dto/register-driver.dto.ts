@@ -83,12 +83,6 @@ export class RegisterDriverDto {
   @IsEnum(VehicleType)
   transportType: VehicleType;
 
-  @ApiProperty({ example: ['isotherme', 'casque'], type: [String], required: false })
-  @IsArray()
-  @IsString({ each: true })
-  @IsOptional()
-  equipments?: string[];
-
   // Documents (URLs — files must be uploaded first)
   @ApiProperty({ example: 'https://storage.example.com/cni.jpg', required: false })
   @IsUrl()

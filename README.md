@@ -1,11 +1,14 @@
 # GoMile Monorepo
 
-GoMile est un dépôt multi-applications qui contient :
-- `apps/api` : backend NestJS (API métier + accès Prisma)
-- `apps/web` : application web Next.js (App Router + routes BFF)
-- `apps/mobile` : application mobile Expo React Native
-- `infra` : services locaux Docker (Postgres/PostGIS + Redis)
-- `docs` : documents projet (`Cahier des charges.pdf`)
+GoMile est une plateforme logistique de livraison. Le dépôt contient :
+
+- `apps/api` — backend NestJS (API REST + Prisma + Redis)
+- `apps/web` — dashboard Next.js pour marchands et administrateurs (App Router + BFF)
+- `apps/mobile` — application mobile Expo React Native pour livreurs et clients
+- `apps/plugin` — SDK TypeScript pour intégrations tierces (WooCommerce, Shopify)
+- `shared/` — contrats TypeScript partagés entre toutes les apps (types, erreurs)
+- `infra/` — services locaux Docker (PostgreSQL/PostGIS + Redis)
+- `docs/` — documents projet (`Cahier des charges.pdf`)
 
 ## Structure du dépôt
 
@@ -20,7 +23,11 @@ GoMile est un dépôt multi-applications qui contient :
 │   │   └── src/
 │   │       ├── app/
 │   │       └── lib/
-│   └── mobile/
+│   ├── mobile/
+│   │   └── lib/
+│   └── plugin/
+│       └── lib/
+├── shared/
 ├── infra/
 │   └── docker-compose.yml
 └── docs/
@@ -29,7 +36,7 @@ GoMile est un dépôt multi-applications qui contient :
 
 ## Prérequis
 
-- Node.js 22 LTS (recommandé)
+- Node.js 22 LTS
 - Docker + Docker Compose
 
 ## Gestionnaire de paquets (Corepack + pnpm)
@@ -37,10 +44,10 @@ GoMile est un dépôt multi-applications qui contient :
 Le dépôt fixe la version de pnpm dans `package.json` (`packageManager`).
 
 ```bash
-# Active Corepack (à faire une seule fois sur la machine)
+# Active Corepack (une seule fois sur la machine)
 corepack enable
 
-# Active explicitement la version pnpm du projet
+# Active la version pnpm du projet
 corepack prepare pnpm@10.30.3 --activate
 ```
 
@@ -63,24 +70,53 @@ Services attendus :
 
 ## Configuration d'environnement
 
-Il faut créer vos propre fichiers d'environnement `apps/api/.env` à partir de `apps/api/.env.example` avec au minimum :
+Copier les fichiers d'exemple et remplir les valeurs :
 
-Màj (backend) 25 Mars : Utilisation de l'API OpenRouteService pour calculer la distance entre deux destination. Vous devez créer un compte gratuit pour récupérer les clés API pour continuer. Vous aurez normalement 1000 api calls par jour (c'est pas illimité !)
+```bash
+cp apps/api/.env.example apps/api/.env
+cp apps/web/.env.example apps/web/.env.local
+```
+
+### `apps/api/.env`
+
 ```env
+# Base de données PostgreSQL (Docker local)
 DATABASE_URL="postgresql://gomile:gomile@localhost:5432/gomile?schema=public"
+
+# Cache / file de messages (Redis local)
 REDIS_URL="redis://localhost:6379"
+
+# Port d'écoute de l'API
 PORT=3000
+
+# Auth JWT (remplacer en environnements partagés)
 JWT_ACCESS_SECRET="change-me-access-secret"
 JWT_REFRESH_SECRET="change-me-refresh-secret"
-ORS_API_KEY="ici faut utiliser vos clés api de OpenRouteService"
+
+# OpenRouteService — geocoding + calcul de distance
+# Créer un compte gratuit sur openrouteservice.org (1000 appels/jour)
+ORS_API_KEY="your-openrouteservice-key"
 ORS_BASE_URL="https://api.openrouteservice.org"
+
+# AWS S3 — stockage des fichiers KYC
+# Créer un utilisateur IAM avec s3:PutObject, s3:GetObject, s3:DeleteObject sur le bucket
+AWS_REGION="your-chosen-region"
+AWS_ACCESS_KEY_ID="your-access-key-id"
+AWS_SECRET_ACCESS_KEY="your-secret-access-key"
+S3_BUCKET_NAME="your-bucket-name"
+
+# Resend — envoi d'emails transactionnels (vérification, reset mot de passe)
+# Créer un compte sur resend.com et générer une clé API
+RESEND_API_KEY="your-resend-api-key"
 
 ```
 
-Pour le proxy BFF web, créer `apps/web/.env.local` :
+### `apps/web/.env.local`
 
 ```env
+# URL du backend NestJS — utilisée côté serveur par le proxy BFF
 API_BASE_URL=http://localhost:3000
+
 ```
 
 ## Base de données API (Prisma)
@@ -89,11 +125,8 @@ API_BASE_URL=http://localhost:3000
 # Génère le client Prisma
 pnpm --filter api exec prisma generate
 
-# Crée/applique une migration locale, à faire à chaque fois le schéma DB change
+# Applique les migrations (à faire à chaque changement de schéma)
 pnpm --filter api exec prisma migrate dev --name <nom_migration>
-
-# Ou simplement
-pnpm --filter api exec prisma migrate dev
 ```
 
 Fichiers concernés :
@@ -109,7 +142,7 @@ Depuis la racine du dépôt :
 # API NestJS (dev)
 pnpm --filter api start:dev
 
-# Web Next.js (dev) sur 3001 pour éviter le conflit avec l'API (mais à configurer dans env)
+# Web Next.js (dev) — port 3001 pour éviter le conflit avec l'API
 pnpm --filter web dev -- --port 3001
 
 # Mobile Expo
@@ -124,15 +157,61 @@ pnpm lint
 pnpm typecheck
 ```
 
+## Shared — contrats partagés
+
+Le dossier `shared/` contient les types et constantes utilisés par toutes les apps :
+
+| Fichier | Contenu |
+|---------|---------|
+| `api-errors.ts` | Codes d'erreur API, type `ApiErrorCode`, fonction `createApiError()` |
+| `auth-contracts.ts` | Types auth : rôles, genres, véhicules, `AuthUser`, `AuthSession`, inputs register/login |
+| `auth-messages.ts` | Constantes de messages d'authentification |
+| `order-contracts.ts` | Statuts de commande, types `CreateOrderInput`, `GetOrderResponse`, etc. |
+| `store-contracts.ts` | Types `CreateStoreInput`, `StoreResponse`, `StoreProvider` |
+| `api-key-contracts.ts` | Types `CreateApiKeyInput`, `ListApiKeysItem`, `GetApiKeyResponse`, etc. |
+| `kyc-contracts.ts` | Types `DriverKycStatus`, `DriverKycSubmission`, `RejectKycInput` |
+| `delivery-contracts.ts` | Types `DeliveryEstimateInput`, `DeliveryEstimateResponse` (utilisés par le plugin) |
+
 ## Routes BFF exposées côté web
 
-Ces routes sont appelées par le frontend, puis proxifiées vers Nest :
-- `GET /api/health`
-- `POST /api/order`
-- `POST /api/accept_order`
-- `POST /api/handshake/a`
-- `POST /api/handshake/b`
-- `PUT /api/livreurs/:id/kyc-approve`
+Le proxy BFF (`apps/web/src/lib/backend-proxy.ts`) gère l'authentification par cookie httpOnly côté serveur. Les routes suivantes sont exposées à `/api/` et proxifiées vers NestJS :
 
-Implémentation du proxy :
-- `apps/web/src/lib/backend-proxy.ts`
+**Auth**
+- `POST /api/auth/login`
+- `POST /api/auth/logout`
+- `POST /api/auth/refresh`
+- `POST /api/auth/register/merchant`
+- `POST /api/auth/register/driver`
+
+**Marchands — commandes**
+- `GET  /api/merchants/[merchantId]/orders`
+- `GET  /api/merchants/[merchantId]/orders/[orderId]`
+- `POST /api/merchants/[merchantId]/orders/[orderId]/cancel`
+
+**Marchands — stores**
+- `GET    /api/merchants/[merchantId]/stores`
+- `POST   /api/merchants/[merchantId]/stores`
+- `GET    /api/merchants/[merchantId]/stores/[storeId]`
+- `PATCH  /api/merchants/[merchantId]/stores/[storeId]`
+- `DELETE /api/merchants/[merchantId]/stores/[storeId]`
+- `POST   /api/merchants/[merchantId]/stores/[storeId]/enable`
+- `POST   /api/merchants/[merchantId]/stores/[storeId]/disable`
+- `POST   /api/merchants/[merchantId]/stores/[storeId]/orders`
+
+**Marchands — clés API**
+- `GET   /api/merchants/[merchantId]/api-keys`
+- `POST  /api/merchants/[merchantId]/api-keys`
+- `GET   /api/merchants/[merchantId]/api-keys/[apiKeyId]`
+- `PATCH /api/merchants/[merchantId]/api-keys/[apiKeyId]`
+- `POST  /api/merchants/[merchantId]/api-keys/[apiKeyId]/revoke`
+
+**Livreurs**
+- `GET  /api/livreurs/[driverId]/orders`
+- `POST /api/livreurs/[driverId]/orders/[orderId]/accept`
+- `POST /api/livreurs/[driverId]/orders/[orderId]/pickup`
+- `POST /api/livreurs/[driverId]/orders/[orderId]/deliver`
+- `PUT  /api/livreurs/[driverId]/kyc-approve`
+- `PUT  /api/livreurs/[driverId]/kyc-reject`
+
+**Santé**
+- `GET /api/health`

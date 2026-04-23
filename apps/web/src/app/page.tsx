@@ -53,7 +53,7 @@ export default function HomePage() {
                 style={{ backgroundImage: "url('/images/commercant.png')" }}
               />
 
-              <Button variant="filled" size="md">
+              <Button variant="filled" size="md" href="/merchant/register">
                 Je m&apos;inscris
               </Button>
               <Button variant="filled" size="md" href="/merchant/login">
@@ -89,7 +89,7 @@ export default function HomePage() {
               />
 
               <div className="flex w-full justify-center">
-                <Button variant="filled" size="md">
+                <Button variant="filled" size="md" href="/driver/register">
                   Je m&apos;inscris
                 </Button>
               </div>

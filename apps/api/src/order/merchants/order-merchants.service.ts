@@ -94,7 +94,7 @@ export class OrderService  {
   async createOrder(user: AuthenticatedUser | null, storeId: string, merchantId: string, dto: CreateOrderDto): Promise<CreateOrderResponseDto> {
     await this.existsMerchant(merchantId);
     if (user && user.id !== merchantId) {
-      throw new ForbiddenException(createApiError('NOT_OWNER', ORDER_ERRORS));
+      throw new ForbiddenException(createApiError('NOT_OWNER', AUTH_ERRORS));
     }
     const store = await this.existsStore(storeId);
     await this.verifyStoreOwnership(merchantId, storeId);
@@ -153,8 +153,8 @@ export class OrderService  {
 
   async getMerchantOrders(user: AuthenticatedUser | null, merchantId: string, orderReference?: string): Promise<ListMerchantOrdersResponseDto[]> {
     await this.existsMerchant(merchantId)
-    if (user && ((user.id !== merchantId) || user.role !== Role.ADMIN)) {
-      throw new ForbiddenException(createApiError('NOT_OWNER', ORDER_ERRORS));
+    if (user && user.id !== merchantId && user.role !== Role.ADMIN) {
+      throw new ForbiddenException(createApiError('NOT_OWNER', AUTH_ERRORS));
     }
     return await this.prisma.order.findMany({
       where: {
@@ -201,7 +201,7 @@ export class OrderService  {
     await this.existsMerchant(merchantId);
 
     if (user && user.id !== merchantId && user.role !== Role.ADMIN) {
-      throw new ForbiddenException(createApiError('NOT_OWNER', ORDER_ERRORS));
+      throw new ForbiddenException(createApiError('NOT_OWNER', AUTH_ERRORS));
     }
 
     const order = await this.verifyOrderOwnership(merchantId, orderId);
@@ -250,8 +250,19 @@ export class OrderService  {
     return { message: ORDER_MESSAGE.ORDER_CANCELLED };
   }
 
-  async verifyPickup(storeId: string, code: string) {
-    await this.existsStore(storeId);
+  // Verify pickup code given by the driver
+  async verifyPickup(user: AuthenticatedUser, merchantId: string, storeId: string, code: string) {
+    const merchant = this.existsMerchant(merchantId);
+
+    if (user.id !== merchantId) {
+      throw new ForbiddenException(createApiError('NOT_OWNER', AUTH_ERRORS))
+    }
+
+    const store = await this.existsStore(storeId);
+    if (store.merchantId !== merchantId) {
+      throw new ForbiddenException(createApiError('NOT_OWNER', STORE_ERRORS));
+    }
+
     const handshake = await this.prisma.handshake.findFirst({
       where: {
         code,

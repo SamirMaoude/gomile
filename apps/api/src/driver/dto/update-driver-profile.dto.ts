@@ -57,10 +57,4 @@ export class UpdateDriverProfileDto {
   @IsEnum(VehicleType)
   @IsOptional()
   transportType?: VehicleType;
-
-  @ApiProperty({ example: ['isotherme', 'casque'], type: [String], required: false })
-  @IsArray()
-  @IsString({ each: true })
-  @IsOptional()
-  equipments?: string[];
 }
