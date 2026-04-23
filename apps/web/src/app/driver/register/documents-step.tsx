@@ -1,3 +1,5 @@
+import type { ChangeEvent } from "react";
+
 import ButtonIcon from "@/components/ui/icons/ButtonIcon";
 import CloseIcon from "@/components/ui/icons/CloseIcon";
 import Typography from "@/components/ui/design-system/typography";

@@ -17,7 +17,6 @@ type FileUploadFieldProps = {
   onRemove?: () => void;
   placeholder?: string;
   required?: boolean;
-  uploadedUrl?: string;
 };
 
 export default function FileUploadField({
@@ -32,7 +31,6 @@ export default function FileUploadField({
   onRemove,
   placeholder = "Choisir un fichier",
   required = false,
-  uploadedUrl,
 }: FileUploadFieldProps) {
   const valueLabel = fileName || placeholder;
 

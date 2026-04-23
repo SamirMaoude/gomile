@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { ReactNode } from "react";
 
 import Typography from "@/components/ui/design-system/typography";
@@ -61,19 +61,15 @@ export default function DynamicTable<T>({
   const totalPages = hasPagination
     ? Math.max(1, Math.ceil(rows.length / rowsPerPage))
     : 1;
+  const currentPageInRange = hasPagination
+    ? Math.min(currentPage, totalPages)
+    : 1;
   const paginatedRows = hasPagination
-    ? rows.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage)
+    ? rows.slice(
+      (currentPageInRange - 1) * rowsPerPage,
+      currentPageInRange * rowsPerPage,
+    )
     : rows;
-
-  useEffect(() => {
-    if (!hasPagination) {
-      return;
-    }
-
-    // If rows change after a create/delete action, keep the current page inside
-    // the new valid range instead of leaving the user on an empty page.
-    setCurrentPage((page) => Math.min(page, totalPages));
-  }, [hasPagination, totalPages]);
 
   function handleRowsPerPageChange(value: string) {
     const nextRowsPerPage = Number.parseInt(value, 10);
@@ -113,7 +109,7 @@ export default function DynamicTable<T>({
       <div className={bodyClassName}>
         {paginatedRows.map((row, rowIndex) => {
           const absoluteRowIndex = hasPagination
-            ? ((currentPage - 1) * rowsPerPage) + rowIndex
+            ? ((currentPageInRange - 1) * rowsPerPage) + rowIndex
             : rowIndex;
           const currentRowKey = rowKey
             ? rowKey(row, absoluteRowIndex)
@@ -135,7 +131,7 @@ export default function DynamicTable<T>({
                 ))}
               </div>
 
-              {isExpanded ? (
+              {isExpanded && renderExpandedRow ? (
                 <div className={expandedRowClassName}>
                   {renderExpandedRow(row, absoluteRowIndex)}
                 </div>
@@ -185,13 +181,13 @@ export default function DynamicTable<T>({
               Component="span"
               className={isDarkMode ? "!text-slate-300" : "!text-slate-600"}
             >
-              Page {currentPage} / {totalPages}
+              Page {currentPageInRange} / {totalPages}
             </Typography>
 
             <button
               type="button"
-              onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
-              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((page) => Math.max(1, Math.min(page, totalPages) - 1))}
+              disabled={currentPageInRange === 1}
               className={[
                 "rounded-xl border px-3 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50",
                 isDarkMode
@@ -204,8 +200,8 @@ export default function DynamicTable<T>({
 
             <button
               type="button"
-              onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
-              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage((page) => Math.min(totalPages, Math.min(page, totalPages) + 1))}
+              disabled={currentPageInRange === totalPages}
               className={[
                 "rounded-xl border px-3 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50",
                 isDarkMode
