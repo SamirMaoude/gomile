@@ -48,18 +48,7 @@ export default function MerchantHandshakeCard({
           theme={isDarkMode ? "white" : "heading"}
           className={styles.sectionTitle}
         >
-          Validation prise en charge
-        </Typography>
-        <Typography
-          variant="p"
-          Component="p"
-          className={cn(
-            styles.handshakeDescription,
-            isDarkMode ? "!text-slate-300" : "!text-slate-600",
-          )}
-        >
-          Saisissez le code montre par le livreur. Cette route Swagger valide
-          la prise en charge cote marchand, pas la livraison client.
+          Validation Handshake
         </Typography>
       </div>
 

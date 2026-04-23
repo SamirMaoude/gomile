@@ -1,26 +1,62 @@
-import Input from "@/components/ui/design-system/input/input";
+import ButtonIcon from "@/components/ui/icons/ButtonIcon";
+import CloseIcon from "@/components/ui/icons/CloseIcon";
 import Typography from "@/components/ui/design-system/typography";
 import DocumentIcon from "@/components/ui/icons/DocumentIcon";
+import FileUploadField from "./file-upload-field";
 import { styles } from "./styles";
+import { useDocumentsStep } from "./use-documents-step";
 import type {
+  DriverRegisterDocumentField,
   DriverRegisterErrors,
   DriverRegisterField,
   DriverRegisterFormData,
+  DriverRegisterUploadField,
 } from "./steps";
+import { driverRegisterDocumentOptions } from "./steps";
 
 type DocumentsStepProps = {
   errors: DriverRegisterErrors;
   formData: DriverRegisterFormData;
+  addDocumentSelection: (field: DriverRegisterDocumentField) => void;
   onFieldChange: (field: DriverRegisterField, value: string) => void;
+  onDocumentFileChange: (
+    field: DriverRegisterUploadField,
+    event: ChangeEvent<HTMLInputElement>,
+  ) => void;
+  removeDocumentSelection: (field: DriverRegisterDocumentField) => void;
+  selectedDocumentFields: DriverRegisterDocumentField[];
+  selectedFileNames: Partial<Record<DriverRegisterUploadField, string>>;
 };
 
 export default function DocumentsStep({
+  addDocumentSelection,
   errors,
   formData,
   onFieldChange,
+  onDocumentFileChange,
+  removeDocumentSelection,
+  selectedDocumentFields,
+  selectedFileNames,
 }: DocumentsStepProps) {
-  const needsVehicleDocuments =
-    formData.transportType !== "" && formData.transportType !== "BIKE";
+  const {
+    availableOptions,
+    findDocumentOption,
+    handleOptionChange,
+    isLocked,
+    needsVehicleDocuments,
+    pendingUploadFields,
+    selectedOption,
+    selectedSummaryFields,
+  } = useDocumentsStep({
+    addDocumentSelection,
+    formData,
+    selectedDocumentFields,
+    selectedFileNames,
+  });
+
+  function cn(...classes: Array<string | false | null | undefined>) {
+    return classes.filter(Boolean).join(" ");
+  }
 
   return (
     <section className={styles.stepSection}>
@@ -34,112 +70,93 @@ export default function DocumentsStep({
         </p>
       ) : null}
 
-      <div className={styles.stepGrid}>
-        <Input
-          id="driver-cni-file"
-          name="cniFile"
-          type="url"
-          placeholder="URL CNI"
-          leftIcon={<DocumentIcon className={styles.fieldIcon} />}
-          error={errors.cniFile}
-          value={formData.cniFile}
-          onChange={(event) => onFieldChange("cniFile", event.target.value)}
-          containerClassName={styles.fieldContainer}
-          inputWrapperClassName={styles.fieldWrapper}
-          className={styles.fieldInput}
-        />
+      <div className={styles.documentToolbar}>
+        <div className={styles.selectContainer}>
+          <label htmlFor="driver-document-selector" className={styles.selectLabel}>
+            Ajouter un document
+          </label>
+          <div className={cn(styles.selectWrapper)}>
+            <span className={styles.selectIcon}>
+              <DocumentIcon className={styles.fieldIcon} />
+            </span>
+            <select
+              id="driver-document-selector"
+              value={selectedOption}
+              onChange={handleOptionChange}
+              className={styles.selectField}
+            >
+              <option value="">Choisir un document</option>
+              {availableOptions.map((option) => (
+                <option key={option.field} value={option.field}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
 
-        <Input
-          id="driver-justificatif-file"
-          name="justificatifFile"
-          type="url"
-          placeholder="URL justificatif de domicile"
-          leftIcon={<DocumentIcon className={styles.fieldIcon} />}
-          error={errors.justificatifFile}
-          value={formData.justificatifFile}
-          onChange={(event) =>
-            onFieldChange("justificatifFile", event.target.value)
-          }
-          containerClassName={styles.fieldContainer}
-          inputWrapperClassName={styles.fieldWrapper}
-          className={styles.fieldInput}
-        />
+        <div className={styles.fieldContainer}>
+          <label htmlFor="driver-siret" className={styles.selectLabel}>
+            SIRET
+          </label>
+          <input
+            id="driver-siret"
+            name="siret"
+            type="text"
+            value={formData.siret}
+            onChange={(event) => onFieldChange("siret", event.target.value)}
+            placeholder="Numero SIRET (optionnel)"
+            className={styles.nativeInput}
+          />
+        </div>
+      </div>
 
-        <Input
-          id="driver-permis-file"
-          name="permisFile"
-          type="url"
-          placeholder="URL permis"
-          leftIcon={<DocumentIcon className={styles.fieldIcon} />}
-          error={errors.permisFile}
-          value={formData.permisFile}
-          onChange={(event) => onFieldChange("permisFile", event.target.value)}
-          helperText={
-            needsVehicleDocuments ? "Requis hors velo." : "Optionnel pour velo."
-          }
-          containerClassName={styles.fieldContainer}
-          inputWrapperClassName={styles.fieldWrapper}
-          className={styles.fieldInput}
-        />
+      {selectedSummaryFields.length > 0 ? (
+        <div className={styles.documentSelectedList}>
+          {selectedSummaryFields.map((field) => {
+            const option = findDocumentOption(field);
 
-        <Input
-          id="driver-carte-grise-file"
-          name="carteGriseFile"
-          type="url"
-          placeholder="URL carte grise"
-          leftIcon={<DocumentIcon className={styles.fieldIcon} />}
-          error={errors.carteGriseFile}
-          value={formData.carteGriseFile}
-          onChange={(event) =>
-            onFieldChange("carteGriseFile", event.target.value)
-          }
-          helperText={
-            needsVehicleDocuments ? "Requise hors velo." : "Optionnelle pour velo."
-          }
-          containerClassName={styles.fieldContainer}
-          inputWrapperClassName={styles.fieldWrapper}
-          className={styles.fieldInput}
-        />
+            if (!option) {
+              return null;
+            }
 
-        <Input
-          id="driver-siret"
-          name="siret"
-          type="text"
-          placeholder="SIRET"
-          value={formData.siret}
-          onChange={(event) => onFieldChange("siret", event.target.value)}
-          containerClassName={styles.fieldContainer}
-          inputWrapperClassName={styles.fieldWrapper}
-          className={styles.fieldInput}
-        />
+            return (
+              <div key={field} className={styles.documentChip}>
+                <span className={styles.documentChipName}>
+                  {selectedFileNames[field]}
+                </span>
+                {!isLocked(field) ? (
+                  <ButtonIcon
+                    type="button"
+                    onClick={() => removeDocumentSelection(field)}
+                    className={styles.documentChipRemove}
+                    aria-label={`Supprimer ${option.label}`}
+                    icon={<CloseIcon className="h-4 w-4" />}
+                  />
+                ) : null}
+              </div>
+            );
+          })}
+        </div>
+      ) : null}
 
-        <Input
-          id="driver-kbis-file"
-          name="kbisFile"
-          type="url"
-          placeholder="URL KBIS"
-          leftIcon={<DocumentIcon className={styles.fieldIcon} />}
-          error={errors.kbisFile}
-          value={formData.kbisFile}
-          onChange={(event) => onFieldChange("kbisFile", event.target.value)}
-          containerClassName={styles.fieldContainer}
-          inputWrapperClassName={styles.fieldWrapper}
-          className={styles.fieldInput}
-        />
-
-        <Input
-          id="driver-rib-file"
-          name="ribFile"
-          type="url"
-          placeholder="URL RIB"
-          leftIcon={<DocumentIcon className={styles.fieldIcon} />}
-          error={errors.ribFile}
-          value={formData.ribFile}
-          onChange={(event) => onFieldChange("ribFile", event.target.value)}
-          containerClassName={styles.fieldContainer}
-          inputWrapperClassName={styles.fieldWrapper}
-          className={styles.fieldInput}
-        />
+      <div className={styles.documentUploadGrid}>
+        {driverRegisterDocumentOptions
+          .filter((option) => pendingUploadFields.includes(option.field))
+          .map((option) => (
+            <FileUploadField
+              key={option.field}
+              id={`driver-${option.field}`}
+              label={option.label}
+              icon={<DocumentIcon className={styles.fieldIcon} />}
+              accept=".pdf,image/*"
+              fileName={selectedFileNames[option.field]}
+              error={errors[option.field]}
+              placeholder={option.label}
+              required={isLocked(option.field)}
+              onChange={(event) => onDocumentFileChange(option.field, event)}
+            />
+          ))}
       </div>
     </section>
   );

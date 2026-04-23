@@ -10,6 +10,18 @@ import {
 
 export type ForgotPasswordStep = "email" | "otp" | "reset" | "done";
 
+function normalizeForgotPasswordError(error: unknown) {
+  if (!(error instanceof Error)) {
+    return "Operation impossible pour le moment.";
+  }
+
+  if (error.message === "property email should not exist") {
+    return "Le endpoint forgot-password du backend refuse actuellement le champ email. Le front utilise bien la bonne route Swagger, mais le DTO backend n'accepte pas encore ce body.";
+  }
+
+  return error.message;
+}
+
 export function useForgotPassword() {
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
@@ -61,11 +73,7 @@ export function useForgotPassword() {
             "Si un compte existe avec cette adresse, un code OTP a ete envoye.",
         );
       } catch (error) {
-        setErrorMessage(
-          error instanceof Error
-            ? error.message
-            : "Envoi du code OTP impossible pour le moment.",
-        );
+        setErrorMessage(normalizeForgotPasswordError(error));
       } finally {
         setIsSubmitting(false);
       }
@@ -92,11 +100,7 @@ export function useForgotPassword() {
         setStep("reset");
         setSuccessMessage("OTP verifie. Vous pouvez maintenant changer le mot de passe.");
       } catch (error) {
-        setErrorMessage(
-          error instanceof Error
-            ? error.message
-            : "Verification OTP impossible pour le moment.",
-        );
+        setErrorMessage(normalizeForgotPasswordError(error));
       } finally {
         setIsSubmitting(false);
       }
@@ -143,11 +147,7 @@ export function useForgotPassword() {
       setNewPassword("");
       setConfirmPassword("");
     } catch (error) {
-      setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : "Reinitialisation du mot de passe impossible pour le moment.",
-      );
+      setErrorMessage(normalizeForgotPasswordError(error));
     } finally {
       setIsSubmitting(false);
     }

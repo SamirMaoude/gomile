@@ -19,16 +19,24 @@ import { useRegister } from "./use-register";
 
 export default function DriverRegisterPage() {
   const {
+    addDocumentSelection,
+    avatarFileName,
     currentStep,
     errors,
     formData,
     formError,
     goToNextStep,
     goToPreviousStep,
+    handleAvatarFileChange,
+    handleDocumentFileChange,
     handleSubmit,
     isFirstStep,
     isLastStep,
     isPending,
+    removeDocumentSelection,
+    removeUpload,
+    selectedDocumentFields,
+    selectedFileNames,
     showPassword,
     steps,
     toggleShowPassword,
@@ -100,8 +108,11 @@ export default function DriverRegisterPage() {
             <Form onSubmit={handleSubmit} className={styles.form}>
               {currentStep.id === 1 ? (
                 <IdentityStep
+                  avatarFileName={avatarFileName}
                   errors={errors}
                   formData={formData}
+                  onAvatarFileChange={handleAvatarFileChange}
+                  onRemoveAvatar={() => removeUpload("avatarUrl")}
                   onFieldChange={updateField}
                   onToggleShowPassword={toggleShowPassword}
                   showPassword={showPassword}
@@ -126,9 +137,14 @@ export default function DriverRegisterPage() {
 
               {currentStep.id === 4 ? (
                 <DocumentsStep
+                  addDocumentSelection={addDocumentSelection}
                   errors={errors}
                   formData={formData}
+                  onDocumentFileChange={handleDocumentFileChange}
                   onFieldChange={updateField}
+                  removeDocumentSelection={removeDocumentSelection}
+                  selectedDocumentFields={selectedDocumentFields}
+                  selectedFileNames={selectedFileNames}
                 />
               ) : null}
 
