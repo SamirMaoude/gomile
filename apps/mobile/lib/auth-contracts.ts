@@ -65,7 +65,6 @@ export interface RegisterDriverInput {
   deliveryCity: string;
   deliveryRadius: number;
   transportType: VehicleType;
-  equipments?: string[];
   cniFile?: string;
   justificatifFile?: string;
   permisFile?: string;

@@ -74,7 +74,6 @@ Le mobile split l'inscription en 4 ecrans, mais idealement le backend accepte un
 | deliveryCity | String | Grenoble | oui |
 | deliveryRadius | Int | 15 | oui |
 | transportType | enum VehicleType (velo/moto/voiture/utilitaire) | moto | oui |
-| equipments | Json ou String[] | ["isotherme", "casque"] | oui |
 
 ### Step 3 - Documents
 
@@ -116,7 +115,6 @@ Regle metier conseillee:
   "deliveryCity": "string",
   "deliveryRadius": 15,
   "transportType": "velo|moto|voiture|utilitaire",
-  "equipments": ["isotherme", "chariot", "casque", "gants"],
   "cniFile": "string?",
   "justificatifFile": "string?",
   "permisFile": "string?",
@@ -247,7 +245,6 @@ Ajouts recommandes pour coller 100% au mobile:
 - deliveryCity
 - deliveryRadius
 - transportType
-- equipments
 - activeVehicle
 - isOnline
 - lastLatitude

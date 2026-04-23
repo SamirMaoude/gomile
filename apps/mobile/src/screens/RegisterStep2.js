@@ -8,14 +8,13 @@ import FormButtons from '../components/FormButtons';
 import OptionCard from '../components/OptionCard';
 import SectionTitle from '../components/SectionTitle';
 import AddressAutocomplete from '../components/AddressAutocomplete';
-import MultiOptionGrid from '../components/MultiOptionGrid'; // Nouveau composant sympa que je viens de tester
 import { COMMON_STYLE_VALUES } from '../styles/commonStyles';
 
 export default function RegisterStep2({ navigation }) {
   // On récupère tout du store pour que rien ne disparaisse au retour (Back)
   const { 
     updateField, address, city, zipCode, 
-    transportType, deliveryCity, deliveryRadius, equipments = [] 
+    transportType, deliveryCity, deliveryRadius
   } = useRegistrationStore();
 
   const onSelectAddress = (data) => {
@@ -36,7 +35,6 @@ export default function RegisterStep2({ navigation }) {
     if (!deliveryCity) return Alert.alert("Champs requis", "Indiquez votre ville de livraison.");
     if (!deliveryRadius) return Alert.alert("Champs requis", "Indiquez votre rayon d'action.");
     if (!transportType) return Alert.alert("Champs requis", "Choisissez un mode de transport.");
-    if (equipments.length === 0) return Alert.alert("Champs requis", "Sélectionnez au moins un équipement.");
 
     navigation.navigate('RegisterStep3');
   };
@@ -81,18 +79,6 @@ export default function RegisterStep2({ navigation }) {
           />
         ))}
       </View>
-
-      <SectionTitle style={{ marginTop: 25 }}>Équipement possédé (Multi-choix)</SectionTitle>
-      <MultiOptionGrid 
-        options={[
-          { label: 'Sac Isotherme', value: 'isotherme' },
-          { label: 'Diable / Chariot', value: 'chariot' },
-          { label: 'Casque', value: 'casque' },
-          { label: 'Gants', value: 'gants' },
-        ]}
-        selectedValues={equipments}
-        onToggle={(newValues) => updateField('equipments', newValues)}
-      />
 
       <FormButtons 
         onBack={() => navigation.goBack()} 

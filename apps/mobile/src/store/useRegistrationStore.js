@@ -17,7 +17,6 @@ export const useRegistrationStore = create((set) => ({
   street: '',
   deliveryCity: '',
   deliveryRadius: '',
-  equipments: [],
   transportType: '',
 
   // Étape 3 - Documents
@@ -34,7 +33,7 @@ export const useRegistrationStore = create((set) => ({
   // Fonction pour tout réinitialiser 
   resetForm: () => set({
     firstName: '', lastName: '', email: '', phone: '', birthDate: '', gender: '',
-    address: '', city: '', zipCode: '', street: '', deliveryCity: '', deliveryRadius: '', equipments: [], transportType: '',
+    address: '', city: '', zipCode: '', street: '', deliveryCity: '', deliveryRadius: '', transportType: '',
     cniFile: null, justificatifFile: null, permisFile: null, carteGriseFile: null,
     siret: '', kbisFile: null, ribFile: null
   }),

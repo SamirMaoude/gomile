@@ -135,7 +135,6 @@ export class DriverMeService {
     store: {
       select: {
         name: true,
-        address: true,
       },
     },
   };
@@ -144,7 +143,7 @@ export class DriverMeService {
   async getActiveOrders(user: AuthenticatedUser) {
     await this.existsDriver(user);
 
-    return this.prisma.order.findMany({
+    const orders = await this.prisma.order.findMany({
       where: {
         driverId: user.id,
         status: { in: [OrderStatus.DRIVER_ACCEPTED, OrderStatus.PICKED_UP] },
@@ -152,13 +151,19 @@ export class DriverMeService {
       select: this.missionSelect,
       orderBy: { createdAt: 'desc' },
     });
+
+    // Flatten store object to string
+    return orders.map(order => ({
+      ...order,
+      store: order.store?.name ?? 'Store',
+    }));
   }
 
   // Get past orders
   async getPastOrders(user: AuthenticatedUser) {
     await this.existsDriver(user);
 
-    return this.prisma.order.findMany({
+    const orders = await this.prisma.order.findMany({
       where: {
         driverId: user.id,
         status: { in: [OrderStatus.DELIVERED, OrderStatus.CANCELLED] },
@@ -166,6 +171,12 @@ export class DriverMeService {
       select: this.missionSelect,
       orderBy: { createdAt: 'desc' },
     });
+
+    // Flatten store object to string
+    return orders.map(order => ({
+      ...order,
+      store: order.store?.name ?? 'Store',
+    }));
   }
 
   async getDriverProfile(user: AuthenticatedUser): Promise<DriverProfileResponseDto> {

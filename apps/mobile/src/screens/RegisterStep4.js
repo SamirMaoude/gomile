@@ -22,7 +22,7 @@ export default function RegisterStep4({ navigation }) {
   const { 
     updateField, siret, kbisFile, ribFile,
     firstName, lastName, email, phone, 
-    birthDate, gender, address, city, zipCode, street, deliveryCity, deliveryRadius, equipments, transportType,
+    birthDate, gender, address, city, zipCode, street, deliveryCity, deliveryRadius, transportType,
     cniFile, justificatifFile, password,
     permisFile, carteGriseFile,
     resetForm,
@@ -101,7 +101,6 @@ export default function RegisterStep4({ navigation }) {
         deliveryCity: String(deliveryCity).trim(),
         deliveryRadius: safeDeliveryRadius,
         transportType: vehicleMap[transportType] || 'BIKE',
-        equipments,
         cniFile: cniUrl,
         justificatifFile: justificatifUrl,
         permisFile: permisUrl,
