@@ -48,7 +48,7 @@ async function parseError(response: Response) {
     if (typeof message === "string") {
       return message;
     }
-    return payload.code ?? `Erreur ${response.status}` ?? fallbackError.message;
+    return payload.code ?? `Erreur ${response.status}`;
   }
 
   const text = await response.text();
