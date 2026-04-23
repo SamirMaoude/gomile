@@ -83,7 +83,6 @@ describe('KycController (e2e)', () => {
     const submission = await prisma.kycSubmission.create({
       data: {
         driverId: auth.user.id,
-        documentUrl: 'https://example.test/kyc/kyc-driver-id.jpg',
       },
     });
     await prisma.driver.update({
