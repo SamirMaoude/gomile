@@ -56,9 +56,7 @@ export function ResetPasswordEmail(dto: ResetPasswordEmailProps) {
 
         {/* Security banner */}
         <div style={secBanner}>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#5a8028" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}>
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-          </svg>
+          <img src="https://amzn-3-backend-kyc-gomiile-731322152450-eu-north-1-an.s3.eu-north-1.amazonaws.com/emails/icon-shield.png" width="15" height="15" alt="" style={{ flexShrink: 0, marginTop: 1 }} />
           <Text style={secText}>
             <strong>Never share this code.</strong> Gomile will never ask for it by phone or chat.
           </Text>
