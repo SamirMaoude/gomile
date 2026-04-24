@@ -21,7 +21,9 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     });
 
     if (!user)
-      throw new UnauthorizedException(createApiError('INVALID_ACCESS_TOKEN', AUTH_ERRORS));
+      throw new UnauthorizedException(
+        createApiError('INVALID_ACCESS_TOKEN', AUTH_ERRORS),
+      );
     return user;
   }
 }

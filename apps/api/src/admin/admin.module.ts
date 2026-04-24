@@ -1,9 +1,9 @@
-import { Module } from "@nestjs/common";
-import { AdminController } from "./admin.controller";
-import { AdminService } from "./admin.service";
-import { RolesGuard } from "../auth/guards/roles.guard";
-import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
-import { KycModule } from "../kyc/kyc.module";
+import { Module } from '@nestjs/common';
+import { AdminController } from './admin.controller';
+import { AdminService } from './admin.service';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { KycModule } from '../kyc/kyc.module';
 
 @Module({
   imports: [KycModule],

@@ -1,22 +1,23 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty } from '@nestjs/swagger';
 
 export class DashboardResponseDto {
-  @ApiProperty({ description: "True if driver is online"})
-  isOnline: boolean
+  @ApiProperty({ description: 'True if driver is online' })
+  isOnline: boolean;
 
-  @ApiProperty({ description: "Aggregation of today total earnings from deliveries"})
-  todayEarnings: number
+  @ApiProperty({
+    description: 'Aggregation of today total earnings from deliveries',
+  })
+  todayEarnings: number;
 
-  @ApiProperty({ description: "Number of succesful deliveries today"})
-  todayTrips: number
+  @ApiProperty({ description: 'Number of succesful deliveries today' })
+  todayTrips: number;
 
-  @ApiProperty({ description: "Last known location of the driver"})
+  @ApiProperty({ description: 'Last known location of the driver' })
   currentLocation: {
-    latitude: number | null,
-    longitude: number | null
-  }
+    latitude: number | null;
+    longitude: number | null;
+  };
 
-  @ApiProperty({ description: "Coverage radius of the driver"})
-  coverageRadiusMeters: number
-
+  @ApiProperty({ description: 'Coverage radius of the driver' })
+  coverageRadiusMeters: number;
 }

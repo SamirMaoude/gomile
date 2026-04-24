@@ -1,5 +1,10 @@
 import { Body, Controller, Post, UseGuards } from '@nestjs/common';
-import { ApiHeader, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiHeader,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { DeliveryEstimateDto } from './dto/delivery-estimate.dto';
 import { DeliveryPricingService } from './delivery-pricing.service';
 import { OpenRouteService } from './openrouteservice.service';
@@ -14,20 +19,31 @@ export class DeliveryPricingController {
   ) {}
 
   @ApiOperation({ summary: 'Estimate delivery cost and driver reward' })
-  @ApiHeader({ name: 'x-api-key', description: 'API key for authentication', required: true })
+  @ApiHeader({
+    name: 'x-api-key',
+    description: 'API key for authentication',
+    required: true,
+  })
   @ApiOkResponse({ description: 'Delivery estimate calculated successfully' })
   @UseGuards(ApiKeyGuard)
   @Post('delivery-estimates')
   async estimate(@Body() dto: DeliveryEstimateDto) {
-    const pickup = await this.openRouteService.resolveAddress(dto.pickupAddress);
-    const dropoff = await this.openRouteService.resolveAddress(dto.dropoffAddress);
+    const pickup = await this.openRouteService.resolveAddress(
+      dto.pickupAddress,
+    );
+    const dropoff = await this.openRouteService.resolveAddress(
+      dto.dropoffAddress,
+    );
     const route = await this.openRouteService.getDrivingRoute(pickup, dropoff);
 
-    const { reward, ...estimate } = this.deliveryPricingService.calculate({
+    const estimation = this.deliveryPricingService.calculate({
       distanceMeters: route.distanceMeters,
       weightKg: dto.weightKg,
       packageSize: dto.packageSize,
     });
-    return estimate;
+    return {
+      deliveryFee: estimation.deliveryFee,
+      estimation: estimation.distanceKm,
+    };
   }
 }

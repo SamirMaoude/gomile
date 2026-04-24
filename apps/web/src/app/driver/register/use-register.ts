@@ -1,35 +1,53 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useTransition, type FormEvent } from "react";
+import { useState, useTransition, type ChangeEvent, type FormEvent } from "react";
 
 import { logout, registerDriver } from "@/lib/auth-client";
+import { uploadDriverRegistrationAssets, type DriverRegisterFiles } from "./registration-upload";
 import {
   buildRegisterDriverInput,
   driverRegisterSteps,
   initialDriverRegisterFormData,
   normalizeDriverRegisterFormData,
+  type DriverRegisterDocumentField,
   type DriverRegisterErrors,
   type DriverRegisterField,
   type DriverRegisterFormData,
+  type DriverRegisterUploadField,
 } from "./steps";
+
+const motorizedDocumentFields: DriverRegisterDocumentField[] = [
+  "permisFile",
+  "carteGriseFile",
+];
 
 function isEmailValid(email: string) {
   return /\S+@\S+\.\S+/.test(email);
 }
 
-function isUrlValid(value: string) {
-  try {
-    new URL(value);
-    return true;
-  } catch {
-    return false;
+function isImageFile(file: File) {
+  return file.type.startsWith("image/");
+}
+
+function getEffectiveDocumentFields(
+  formData: DriverRegisterFormData,
+  selectedDocumentFields: DriverRegisterDocumentField[],
+) {
+  const fields = new Set<DriverRegisterDocumentField>(selectedDocumentFields);
+
+  if (formData.transportType !== "" && formData.transportType !== "BIKE") {
+    motorizedDocumentFields.forEach((field) => fields.add(field));
   }
+
+  return Array.from(fields);
 }
 
 function buildStepErrors(
   stepId: number,
   formData: DriverRegisterFormData,
+  files: DriverRegisterFiles,
+  selectedDocumentFields: DriverRegisterDocumentField[],
 ): DriverRegisterErrors {
   const normalizedFormData = normalizeDriverRegisterFormData(formData);
   const errors: DriverRegisterErrors = {};
@@ -51,11 +69,8 @@ function buildStepErrors(
     } else if (normalizedFormData.phone.replace(/\D/g, "").length < 6) {
       errors.phone = "Renseignez un numero de telephone valide.";
     }
-    if (
-      normalizedFormData.avatarUrl &&
-      !isUrlValid(normalizedFormData.avatarUrl)
-    ) {
-      errors.avatarUrl = "Renseignez une URL valide pour l'avatar.";
+    if (files.avatarUrl && !isImageFile(files.avatarUrl)) {
+      errors.avatarUrl = "L'avatar doit etre une image.";
     }
     if (!formData.password) {
       errors.password = "Choisissez un mot de passe.";
@@ -90,35 +105,26 @@ function buildStepErrors(
       errors.transportType = "Selectionnez votre moyen de transport.";
     }
   } else if (stepId === 4) {
-    const urlFields: Array<keyof DriverRegisterFormData> = [
-      "cniFile",
-      "justificatifFile",
-      "permisFile",
-      "carteGriseFile",
-      "kbisFile",
-      "ribFile",
-    ];
-
-    urlFields.forEach((field) => {
-      const value = normalizedFormData[field];
-      if (value && !isUrlValid(value)) {
-        errors[field] = "Renseignez une URL valide.";
-      }
-    });
+    const effectiveDocumentFields = getEffectiveDocumentFields(
+      formData,
+      selectedDocumentFields,
+    );
 
     if (
-      normalizedFormData.transportType &&
-      normalizedFormData.transportType !== "BIKE"
+      effectiveDocumentFields.includes("justificatifFile") &&
+      effectiveDocumentFields.includes("kbisFile")
     ) {
-      if (!normalizedFormData.permisFile) {
-        errors.permisFile =
-          "Ajoutez l'URL du permis pour ce type de transport.";
-      }
-      if (!normalizedFormData.carteGriseFile) {
-        errors.carteGriseFile =
-          "Ajoutez l'URL de la carte grise pour ce type de transport.";
-      }
+      const message =
+        "Choisissez soit justificatif de domicile soit KBIS. L'endpoint upload actuel ne garde qu'un seul document de type autre.";
+      errors.justificatifFile = message;
+      errors.kbisFile = message;
     }
+
+    effectiveDocumentFields.forEach((field) => {
+      if (!files[field] && !normalizedFormData[field]) {
+        errors[field] = "Ajoutez un fichier pour ce document.";
+      }
+    });
   }
 
   return errors;
@@ -128,14 +134,40 @@ export function useRegister() {
   const router = useRouter();
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [formData, setFormData] = useState(initialDriverRegisterFormData);
+  const [files, setFiles] = useState<DriverRegisterFiles>({});
+  const [selectedDocumentFields, setSelectedDocumentFields] = useState<
+    DriverRegisterDocumentField[]
+  >([]);
   const [errors, setErrors] = useState<DriverRegisterErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isAccountCreated, setIsAccountCreated] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   const currentStep = driverRegisterSteps[currentStepIndex];
   const isFirstStep = currentStepIndex === 0;
   const isLastStep = currentStepIndex === driverRegisterSteps.length - 1;
+
+  function clearFieldError(field: DriverRegisterField) {
+    setErrors((previous) => {
+      const nextErrors = { ...previous };
+      delete nextErrors[field];
+      return nextErrors;
+    });
+  }
+
+  function updateUploadedUrl(field: DriverRegisterUploadField, url: string) {
+    setFormData((previous) => ({
+      ...previous,
+      [field]: url,
+    }));
+    setFiles((previous) => ({
+      ...previous,
+      [field]: null,
+    }));
+    clearFieldError(field);
+  }
 
   function updateField(field: DriverRegisterField, value: string) {
     setFormData((previous) => ({
@@ -143,13 +175,115 @@ export function useRegister() {
       [field]: value,
     }));
 
-    setErrors((previous) => {
-      const nextErrors = { ...previous };
-      delete nextErrors[field];
-      return nextErrors;
+    clearFieldError(field);
+    setFormError(null);
+  }
+
+  function handleFileChange(
+    field: DriverRegisterUploadField,
+    event: ChangeEvent<HTMLInputElement>,
+  ) {
+    const file = event.target.files?.[0] ?? null;
+
+    setFiles((previous) => ({
+      ...previous,
+      [field]: file,
+    }));
+
+    if (!file) {
+      setFormData((previous) => ({
+        ...previous,
+        [field]: "",
+      }));
+    }
+
+    clearFieldError(field);
+    setFormError(null);
+  }
+
+  function addDocumentSelection(field: DriverRegisterDocumentField) {
+    if (
+      motorizedDocumentFields.includes(field) &&
+      formData.transportType !== "" &&
+      formData.transportType !== "BIKE"
+    ) {
+      return;
+    }
+
+    setSelectedDocumentFields((previous) => {
+      if (previous.includes(field)) {
+        return previous;
+      }
+
+      return [...previous, field];
     });
 
+    clearFieldError(field);
     setFormError(null);
+  }
+
+  function removeDocumentSelection(field: DriverRegisterDocumentField) {
+    if (
+      motorizedDocumentFields.includes(field) &&
+      formData.transportType !== "" &&
+      formData.transportType !== "BIKE"
+    ) {
+      return;
+    }
+
+    setSelectedDocumentFields((previous) =>
+      previous.filter((currentField) => currentField !== field),
+    );
+    setFiles((currentFiles) => ({
+      ...currentFiles,
+      [field]: null,
+    }));
+    setFormData((currentFormData) => ({
+      ...currentFormData,
+      [field]: "",
+    }));
+    clearFieldError(field);
+    setFormError(null);
+  }
+
+  function removeUpload(field: DriverRegisterUploadField) {
+    if (field === "avatarUrl") {
+      setFiles((previous) => ({
+        ...previous,
+        avatarUrl: null,
+      }));
+      setFormData((previous) => ({
+        ...previous,
+        avatarUrl: "",
+      }));
+      clearFieldError("avatarUrl");
+      setFormError(null);
+      return;
+    }
+
+    removeDocumentSelection(field);
+  }
+
+  function getDisplayFileName(field: DriverRegisterUploadField) {
+    const localFile = files[field];
+
+    if (localFile) {
+      return localFile.name;
+    }
+
+    if (formData[field]) {
+      return "Fichier ajoute";
+    }
+
+    return "";
+  }
+
+  function getSelectedDocumentFileName(field: DriverRegisterDocumentField) {
+    return getDisplayFileName(field);
+  }
+
+  function getAvatarFileName() {
+    return getDisplayFileName("avatarUrl");
   }
 
   function toggleShowPassword() {
@@ -157,7 +291,12 @@ export function useRegister() {
   }
 
   function goToNextStep() {
-    const stepErrors = buildStepErrors(currentStep.id, formData);
+    const stepErrors = buildStepErrors(
+      currentStep.id,
+      formData,
+      files,
+      selectedDocumentFields,
+    );
 
     if (Object.keys(stepErrors).length > 0) {
       setErrors(stepErrors);
@@ -175,6 +314,19 @@ export function useRegister() {
     setCurrentStepIndex((value) => Math.max(value - 1, 0));
   }
 
+  async function completeDriverAssetUpload() {
+    const effectiveDocumentFields = getEffectiveDocumentFields(
+      formData,
+      selectedDocumentFields,
+    );
+
+    await uploadDriverRegistrationAssets({
+      files,
+      selectedDocumentFields: effectiveDocumentFields,
+      onUploadedUrl: updateUploadedUrl,
+    });
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setFormError(null);
@@ -184,20 +336,35 @@ export function useRegister() {
       return;
     }
 
-    const stepErrors = buildStepErrors(currentStep.id, formData);
+    const stepErrors = buildStepErrors(
+      currentStep.id,
+      formData,
+      files,
+      selectedDocumentFields,
+    );
 
     if (Object.keys(stepErrors).length > 0) {
       setErrors(stepErrors);
       return;
     }
 
-    try {
-      const session = await registerDriver(buildRegisterDriverInput(formData));
+    setIsSubmitting(true);
+    let accountCreated = isAccountCreated;
 
-      if (session.user.role !== "DRIVER") {
-        setFormError("Le compte cree n'est pas un compte livreur.");
-        return;
+    try {
+      if (!isAccountCreated) {
+        const session = await registerDriver(buildRegisterDriverInput(formData));
+
+        if (session.user.role !== "DRIVER") {
+          setFormError("Le compte cree n'est pas un compte livreur.");
+          return;
+        }
+
+        setIsAccountCreated(true);
+        accountCreated = true;
       }
+
+      await completeDriverAssetUpload();
 
       const Swal = (await import("sweetalert2")).default;
 
@@ -221,25 +388,53 @@ export function useRegister() {
         router.refresh();
       });
     } catch (submissionError) {
-      setFormError(
-        submissionError instanceof Error
-          ? submissionError.message
-          : "Inscription impossible pour le moment.",
-      );
+      if (isAccountCreated || accountCreated) {
+        setFormError(
+          submissionError instanceof Error
+            ? `${submissionError.message} Le compte est cree, mais la synchronisation des fichiers n'est pas terminee.`
+            : "Le compte est cree, mais la synchronisation des fichiers a echoue.",
+        );
+      } else {
+        setFormError(
+          submissionError instanceof Error
+            ? submissionError.message
+            : "Inscription impossible pour le moment.",
+        );
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
   return {
+    addDocumentSelection,
+    avatarFileName: getAvatarFileName(),
     currentStep,
     errors,
     formData,
     formError,
     goToNextStep,
     goToPreviousStep,
+    handleAvatarFileChange: (event: ChangeEvent<HTMLInputElement>) =>
+      handleFileChange("avatarUrl", event),
+    handleDocumentFileChange: (
+      field: DriverRegisterUploadField,
+      event: ChangeEvent<HTMLInputElement>,
+    ) => handleFileChange(field, event),
     handleSubmit,
     isFirstStep,
     isLastStep,
-    isPending,
+    isPending: isPending || isSubmitting,
+    removeDocumentSelection,
+    removeUpload,
+    selectedDocumentFields,
+    selectedFileNames: selectedDocumentFields.reduce(
+      (accumulator, field) => ({
+        ...accumulator,
+        [field]: getSelectedDocumentFileName(field),
+      }),
+      {} as Partial<Record<DriverRegisterUploadField, string>>,
+    ),
     showPassword,
     steps: driverRegisterSteps,
     toggleShowPassword,

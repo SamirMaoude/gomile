@@ -31,6 +31,16 @@ export type DriverRegisterFormData = {
 };
 
 export type DriverRegisterField = keyof DriverRegisterFormData;
+export type DriverRegisterDocumentField =
+  | "cniFile"
+  | "justificatifFile"
+  | "permisFile"
+  | "carteGriseFile"
+  | "kbisFile"
+  | "ribFile";
+export type DriverRegisterUploadField =
+  | "avatarUrl"
+  | DriverRegisterDocumentField;
 
 export type DriverRegisterErrors = Partial<
   Record<DriverRegisterField, string>
@@ -61,7 +71,44 @@ export const driverRegisterSteps: DriverRegisterStep[] = [
   {
     id: 4,
     title: "Documents",
-    description: "Ajoutez les URLs de vos pieces si elles sont deja en ligne.",
+    description: "Choisissez les pieces a fournir puis televersez-les.",
+  },
+];
+
+export const driverRegisterDocumentOptions: Array<{
+  field: DriverRegisterDocumentField;
+  helperText: string;
+  label: string;
+}> = [
+  {
+    field: "cniFile",
+    label: "Carte d'identite",
+    helperText: "Image ou PDF de la piece d'identite.",
+  },
+  {
+    field: "justificatifFile",
+    label: "Justificatif de domicile",
+    helperText: "Le backend le range dans le type autre.",
+  },
+  {
+    field: "permisFile",
+    label: "Permis de conduire",
+    helperText: "Requis pour les transports motorises.",
+  },
+  {
+    field: "carteGriseFile",
+    label: "Carte grise",
+    helperText: "Requise pour les transports motorises.",
+  },
+  {
+    field: "kbisFile",
+    label: "KBIS",
+    helperText: "Le backend le range aussi dans le type autre.",
+  },
+  {
+    field: "ribFile",
+    label: "RIB",
+    helperText: "PDF ou image du document bancaire.",
   },
 ];
 

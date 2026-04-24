@@ -66,10 +66,6 @@ function buildCreateOrderSuccessHtml(result: CreateOrderResult) {
         <span>${escapeHtml(result.message)}</span>
       </div>
       <div style="display:grid;gap:4px;">
-        <strong>Code livraison</strong>
-        <code style="font-size:14px;padding:8px 10px;border-radius:10px;background:#f8fafc;">${escapeHtml(result.deliveryCode)}</code>
-      </div>
-      <div style="display:grid;gap:4px;">
         <strong>Frais de livraison</strong>
         <span>${result.deliveryFee.toFixed(2)} EUR</span>
       </div>

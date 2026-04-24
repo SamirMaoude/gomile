@@ -14,7 +14,7 @@ import { KYC_ERRORS } from './kyc.error';
 export class KycService {
   constructor(private readonly prisma: PrismaService) {}
 
-  // 
+  //
   async approveDriverKyc(driverId: string) {
     const { driver, submission } = await this.findPendingSubmission(driverId);
     await this.prisma.$transaction([
@@ -50,7 +50,7 @@ export class KycService {
         where: { userId: driver.userId },
         data: { kycStatus: KycStatus.REJECTED },
       }),
-    ])
+    ]);
     return { message: KYC_MESSAGES.KYC_REJECTED };
   }
 
@@ -68,17 +68,23 @@ export class KycService {
     });
 
     if (!driver) {
-      throw new NotFoundException(createApiError('DRIVER_NOT_FOUND', AUTH_ERRORS));
+      throw new NotFoundException(
+        createApiError('DRIVER_NOT_FOUND', AUTH_ERRORS),
+      );
     }
 
     const submission = driver.kycSubmissions[0];
     // if there is no submission
     if (!submission) {
-      throw new NotFoundException(createApiError('KYC_SUBMISSION_NOT_FOUND', KYC_ERRORS));
+      throw new NotFoundException(
+        createApiError('KYC_SUBMISSION_NOT_FOUND', KYC_ERRORS),
+      );
     }
     // front end shouldn't be able to call this if there is no kyc pending
     if (submission.status !== KycStatus.PENDING) {
-      throw new ConflictException(createApiError('KYC_VERIFYING_IN_PROCESS', KYC_ERRORS));
+      throw new ConflictException(
+        createApiError('KYC_VERIFYING_IN_PROCESS', KYC_ERRORS),
+      );
     }
 
     return { driver, submission };
@@ -92,21 +98,29 @@ export class KycService {
     });
 
     if (!driver) {
-      throw new NotFoundException(createApiError('DRIVER_NOT_FOUND', AUTH_ERRORS));
+      throw new NotFoundException(
+        createApiError('DRIVER_NOT_FOUND', AUTH_ERRORS),
+      );
     }
 
     if (driver.kycStatus === KycStatus.PENDING) {
-      throw new ConflictException(createApiError('KYC_VERIFYING_IN_PROCESS', KYC_ERRORS));
+      throw new ConflictException(
+        createApiError('KYC_VERIFYING_IN_PROCESS', KYC_ERRORS),
+      );
     }
 
     // submit kyc should not be called when kyc status is already verified
     if (driver.kycStatus === KycStatus.ACCEPTED) {
-      throw new ConflictException(createApiError('KYC_ALREADY_APPROVED', KYC_ERRORS))
+      throw new ConflictException(
+        createApiError('KYC_ALREADY_APPROVED', KYC_ERRORS),
+      );
     }
 
     // Cannot call submit KYC if there is no documents
     if (driver.driverDocuments.length === 0) {
-      throw new ConflictException(createApiError('KYC_NO_DOCUMENTS', KYC_ERRORS));
+      throw new ConflictException(
+        createApiError('KYC_NO_DOCUMENTS', KYC_ERRORS),
+      );
     }
 
     // Update all
@@ -132,13 +146,22 @@ export class KycService {
           take: 1,
         },
         driverDocuments: {
-          select: { id: true, type: true, url: true, verified: true, rejectionReason: true, createdAt: true },
+          select: {
+            id: true,
+            type: true,
+            url: true,
+            verified: true,
+            rejectionReason: true,
+            createdAt: true,
+          },
           orderBy: { createdAt: 'desc' },
         },
       },
     });
     if (!driver) {
-      throw new NotFoundException(createApiError('KYC_SUBMISSION_NOT_FOUND', KYC_ERRORS));
+      throw new NotFoundException(
+        createApiError('KYC_SUBMISSION_NOT_FOUND', KYC_ERRORS),
+      );
     }
 
     const latestSubmission = driver.kycSubmissions[0] ?? null;

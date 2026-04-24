@@ -9,7 +9,6 @@ import {
   IsInt,
   Min,
   IsPhoneNumber,
-  IsArray,
   IsUrl,
 } from 'class-validator';
 import { Gender, VehicleType } from '@prisma/client';
@@ -84,22 +83,36 @@ export class RegisterDriverDto {
   transportType: VehicleType;
 
   // Documents (URLs — files must be uploaded first)
-  @ApiProperty({ example: 'https://storage.example.com/cni.jpg', required: false })
+  @ApiProperty({
+    example: 'https://storage.example.com/cni.jpg',
+    required: false,
+  })
   @IsUrl()
   @IsOptional()
   cniFile?: string;
 
-  @ApiProperty({ example: 'https://storage.example.com/justif.jpg', required: false })
+  @ApiProperty({
+    example: 'https://storage.example.com/justif.jpg',
+    required: false,
+  })
   @IsUrl()
   @IsOptional()
   justificatifFile?: string;
 
-  @ApiProperty({ example: 'https://storage.example.com/permis.jpg', required: false, description: 'Required if transportType is not BIKE' })
+  @ApiProperty({
+    example: 'https://storage.example.com/permis.jpg',
+    required: false,
+    description: 'Required if transportType is not BIKE',
+  })
   @IsUrl()
   @IsOptional()
   permisFile?: string;
 
-  @ApiProperty({ example: 'https://storage.example.com/cartegrise.jpg', required: false, description: 'Required if transportType is not BIKE' })
+  @ApiProperty({
+    example: 'https://storage.example.com/cartegrise.jpg',
+    required: false,
+    description: 'Required if transportType is not BIKE',
+  })
   @IsUrl()
   @IsOptional()
   carteGriseFile?: string;
@@ -110,12 +123,18 @@ export class RegisterDriverDto {
   @IsOptional()
   siret?: string;
 
-  @ApiProperty({ example: 'https://storage.example.com/kbis.pdf', required: false })
+  @ApiProperty({
+    example: 'https://storage.example.com/kbis.pdf',
+    required: false,
+  })
   @IsUrl()
   @IsOptional()
   kbisFile?: string;
 
-  @ApiProperty({ example: 'https://storage.example.com/rib.pdf', required: false })
+  @ApiProperty({
+    example: 'https://storage.example.com/rib.pdf',
+    required: false,
+  })
   @IsUrl()
   @IsOptional()
   ribFile?: string;

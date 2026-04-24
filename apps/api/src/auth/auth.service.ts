@@ -23,7 +23,7 @@ import { AUTH_MESSAGES } from './auth-messages';
 import { AUTH_ERRORS } from './auth-errors';
 import { EmailService } from '../emails/email.service';
 
-const DEFAULT_APP_URL = "http://localhost:3001"
+const DEFAULT_APP_URL = 'http://localhost:3001';
 
 @Injectable()
 export class AuthService {
@@ -31,7 +31,7 @@ export class AuthService {
     private prisma: PrismaService,
     private jwtService: JwtService,
     private emailService: EmailService,
-  ) { }
+  ) {}
   // Return a hash of the pwd
   private hashPassword(pwd: string) {
     return bcrypt.hash(pwd, 10);
@@ -55,7 +55,7 @@ export class AuthService {
 
     if (dto.phone) await this.checkPhoneAvailable(dto.phone);
 
-    const { token, hash, expiry } =  this.generateVerificationToken();
+    const { token, hash, expiry } = this.generateVerificationToken();
 
     const user = await this.prisma.user.create({
       data: {
@@ -70,10 +70,14 @@ export class AuthService {
         },
       },
     });
-    
+
     // Sending a verifying url to registrants
     const verifyUrl = `${process.env.APP_URL ?? DEFAULT_APP_URL}/verify-email?token=${token}`;
-    await this.emailService.sendVerificationEmail(user.email, dto.name, verifyUrl);
+    await this.emailService.sendVerificationEmail(
+      user.email,
+      dto.name,
+      verifyUrl,
+    );
 
     return this.generateAndSaveTokens(user.id, user.email, user.role);
   }
@@ -117,22 +121,38 @@ export class AuthService {
 
     // Create DriverDocument records for any provided file URLs
     const documents: { type: DocumentType; url: string }[] = [];
-    if (dto.cniFile) documents.push({ type: DocumentType.CNI, url: dto.cniFile });
-    if (dto.justificatifFile) documents.push({ type: DocumentType.OTHER, url: dto.justificatifFile });
-    if (dto.permisFile) documents.push({ type: DocumentType.DRIVING_LICENSE, url: dto.permisFile });
-    if (dto.carteGriseFile) documents.push({ type: DocumentType.REGISTRATION_CARD, url: dto.carteGriseFile });
-    if (dto.kbisFile) documents.push({ type: DocumentType.OTHER, url: dto.kbisFile });
-    if (dto.ribFile) documents.push({ type: DocumentType.RIB, url: dto.ribFile });
+    if (dto.cniFile)
+      documents.push({ type: DocumentType.CNI, url: dto.cniFile });
+    if (dto.justificatifFile)
+      documents.push({ type: DocumentType.OTHER, url: dto.justificatifFile });
+    if (dto.permisFile)
+      documents.push({
+        type: DocumentType.DRIVING_LICENSE,
+        url: dto.permisFile,
+      });
+    if (dto.carteGriseFile)
+      documents.push({
+        type: DocumentType.REGISTRATION_CARD,
+        url: dto.carteGriseFile,
+      });
+    if (dto.kbisFile)
+      documents.push({ type: DocumentType.OTHER, url: dto.kbisFile });
+    if (dto.ribFile)
+      documents.push({ type: DocumentType.RIB, url: dto.ribFile });
 
     if (documents.length > 0) {
       await this.prisma.driverDocument.createMany({
-        data: documents.map(doc => ({ ...doc, driverId: user.id })),
+        data: documents.map((doc) => ({ ...doc, driverId: user.id })),
       });
     }
 
     // Just like merchants, drivers should have their accounts email verified
     const verifyUrl = `${process.env.APP_URL ?? DEFAULT_APP_URL}/verify-email?token=${token}`;
-    await this.emailService.sendVerificationEmail(user.email, dto.firstName, verifyUrl);
+    await this.emailService.sendVerificationEmail(
+      user.email,
+      dto.firstName,
+      verifyUrl,
+    );
 
     return this.generateAndSaveTokens(user.id, user.email, user.role);
   }
@@ -140,22 +160,28 @@ export class AuthService {
   async login(dto: LoginDto): Promise<AuthResponse> {
     const user = this.isEmail(dto.identifier)
       ? await this.prisma.user.findUnique({
-        where: { email: dto.identifier.toLowerCase() },
-      })
+          where: { email: dto.identifier.toLowerCase() },
+        })
       : await this.prisma.user.findUnique({
-        where: { phone: dto.identifier },
-      });
+          where: { phone: dto.identifier },
+        });
 
     if (!user)
-      throw new UnauthorizedException(createApiError('INVALID_CREDENTIALS', AUTH_ERRORS));
+      throw new UnauthorizedException(
+        createApiError('INVALID_CREDENTIALS', AUTH_ERRORS),
+      );
 
     const passwordMatch = await bcrypt.compare(dto.password, user.password);
     if (!passwordMatch)
-      throw new UnauthorizedException(createApiError('INVALID_CREDENTIALS', AUTH_ERRORS));
+      throw new UnauthorizedException(
+        createApiError('INVALID_CREDENTIALS', AUTH_ERRORS),
+      );
 
     // Disable temporary to fix domain issues
     if (!user.emailVerified)
-      throw new UnauthorizedException(createApiError('EMAIL_NOT_VERIFIED', AUTH_ERRORS));
+      throw new UnauthorizedException(
+        createApiError('EMAIL_NOT_VERIFIED', AUTH_ERRORS),
+      );
 
     return this.generateAndSaveTokens(user.id, user.email, user.role);
   }
@@ -175,7 +201,7 @@ export class AuthService {
     });
     return { message: AUTH_MESSAGES.LOGOUT_SUCCESS };
   }
-  
+
   async verifyEmail(dto: VerifyEmailDto) {
     const hash = this.hashToken(dto.token);
     const user = await this.prisma.user.findFirst({
@@ -183,14 +209,20 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new BadRequestException(createApiError('INVALID_RESET_TOKEN', AUTH_ERRORS));
+      throw new BadRequestException(
+        createApiError('INVALID_RESET_TOKEN', AUTH_ERRORS),
+      );
     }
     if (!user.emailVerificationExpiry) {
-      throw new BadRequestException(createApiError('INVALID_RESET_TOKEN', AUTH_ERRORS));
+      throw new BadRequestException(
+        createApiError('INVALID_RESET_TOKEN', AUTH_ERRORS),
+      );
     }
 
     if (user.emailVerificationExpiry < new Date()) {
-      throw new BadRequestException(createApiError('INVALID_RESET_TOKEN', AUTH_ERRORS));
+      throw new BadRequestException(
+        createApiError('INVALID_RESET_TOKEN', AUTH_ERRORS),
+      );
     }
 
     // Remove email verification token and set status to verified, user can now login
@@ -209,7 +241,7 @@ export class AuthService {
   async forgotPassword(dto: ForgotPasswordDto) {
     const user = await this.prisma.user.findUnique({
       where: {
-        email: dto.email.toLowerCase()
+        email: dto.email.toLowerCase(),
       },
     });
 
@@ -230,23 +262,24 @@ export class AuthService {
 
       if (user.role === Role.MERCHANT) {
         const merchant = await this.prisma.merchant.findUnique({
-          where: { userId: user.id }
+          where: { userId: user.id },
         });
 
         if (!merchant?.name) {
           throw new InternalServerErrorException(
-            createApiError('NAME_IS_NULL', AUTH_ERRORS)
+            createApiError('NAME_IS_NULL', AUTH_ERRORS),
           );
         }
 
         displayName = merchant.name;
-
       } else {
         const driver = await this.prisma.driver.findUnique({
-          where: { userId: user.id }
+          where: { userId: user.id },
         });
         if (!driver?.firstName) {
-          throw new InternalServerErrorException(createApiError('NAME_IS_NULL', AUTH_ERRORS))
+          throw new InternalServerErrorException(
+            createApiError('NAME_IS_NULL', AUTH_ERRORS),
+          );
         }
         displayName = driver.firstName;
       }
@@ -263,19 +296,27 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new BadRequestException(createApiError('INVALID_RESET_TOKEN', AUTH_ERRORS));
+      throw new BadRequestException(
+        createApiError('INVALID_RESET_TOKEN', AUTH_ERRORS),
+      );
     }
     if (!user.passwordResetToken || !user.passwordResetExpiry) {
-      throw new BadRequestException(createApiError('INVALID_RESET_TOKEN', AUTH_ERRORS));
+      throw new BadRequestException(
+        createApiError('INVALID_RESET_TOKEN', AUTH_ERRORS),
+      );
     }
 
     if (user.passwordResetExpiry < new Date()) {
-      throw new BadRequestException(createApiError('INVALID_RESET_TOKEN', AUTH_ERRORS));
+      throw new BadRequestException(
+        createApiError('INVALID_RESET_TOKEN', AUTH_ERRORS),
+      );
     }
 
     const hash = this.hashToken(dto.otp);
     if (hash !== user.passwordResetToken) {
-      throw new BadRequestException(createApiError('INVALID_RESET_TOKEN', AUTH_ERRORS));
+      throw new BadRequestException(
+        createApiError('INVALID_RESET_TOKEN', AUTH_ERRORS),
+      );
     }
 
     const resetToken = randomBytes(32).toString('hex');
@@ -299,24 +340,32 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new BadRequestException(createApiError('INVALID_RESET_TOKEN', AUTH_ERRORS));
+      throw new BadRequestException(
+        createApiError('INVALID_RESET_TOKEN', AUTH_ERRORS),
+      );
     }
     if (!user.passwordResetToken || !user.passwordResetExpiry) {
-      throw new BadRequestException(createApiError('INVALID_RESET_TOKEN', AUTH_ERRORS));
+      throw new BadRequestException(
+        createApiError('INVALID_RESET_TOKEN', AUTH_ERRORS),
+      );
     }
 
     if (user.passwordResetExpiry < new Date()) {
-      throw new BadRequestException(createApiError('INVALID_RESET_TOKEN', AUTH_ERRORS));
+      throw new BadRequestException(
+        createApiError('INVALID_RESET_TOKEN', AUTH_ERRORS),
+      );
     }
 
     const hash = this.hashToken(dto.resetToken);
     if (hash !== user.passwordResetToken) {
-      throw new BadRequestException(createApiError('INVALID_RESET_TOKEN', AUTH_ERRORS));
+      throw new BadRequestException(
+        createApiError('INVALID_RESET_TOKEN', AUTH_ERRORS),
+      );
     }
 
     const hashedPassword = await this.hashPassword(dto.newPassword);
-    
-    // Remove password token and update password 
+
+    // Remove password token and update password
     await this.prisma.user.update({
       where: { id: user.id },
       data: {
@@ -336,16 +385,26 @@ export class AuthService {
   // Check if email is available
   private async checkEmailAvailable(email: string) {
     if (!this.isEmail(email)) {
-      throw new BadRequestException(createApiError('INVALID_EMAIL', AUTH_ERRORS));
+      throw new BadRequestException(
+        createApiError('INVALID_EMAIL', AUTH_ERRORS),
+      );
     }
-    const existing = await this.prisma.user.findUnique({ where: { email: email.toLowerCase() } });
-    if (existing) throw new ConflictException(createApiError('EMAIL_ALREADY_USED', AUTH_ERRORS));
+    const existing = await this.prisma.user.findUnique({
+      where: { email: email.toLowerCase() },
+    });
+    if (existing)
+      throw new ConflictException(
+        createApiError('EMAIL_ALREADY_USED', AUTH_ERRORS),
+      );
   }
 
   // Check if phone number is available
   private async checkPhoneAvailable(phone: string) {
     const existing = await this.prisma.user.findUnique({ where: { phone } });
-    if (existing) throw new ConflictException(createApiError('PHONE_ALREADY_USED', AUTH_ERRORS));
+    if (existing)
+      throw new ConflictException(
+        createApiError('PHONE_ALREADY_USED', AUTH_ERRORS),
+      );
   }
 
   private async generateUniqueGomileCode(): Promise<string> {

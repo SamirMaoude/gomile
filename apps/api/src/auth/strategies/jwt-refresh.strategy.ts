@@ -29,7 +29,9 @@ export class JwtRefreshStrategy extends PassportStrategy(
     });
 
     if (!user || user.refreshToken !== refreshToken) {
-      throw new UnauthorizedException(createApiError('INVALID_REFRESH_TOKEN', AUTH_ERRORS));
+      throw new UnauthorizedException(
+        createApiError('INVALID_REFRESH_TOKEN', AUTH_ERRORS),
+      );
     }
 
     return user;

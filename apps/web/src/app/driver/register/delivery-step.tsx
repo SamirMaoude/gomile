@@ -1,8 +1,10 @@
 import { APP_VEHICLE_TYPES, type VehicleType } from "@/lib/auth-client";
 import Input from "@/components/ui/design-system/input/input";
 import Typography from "@/components/ui/design-system/typography";
-import AddressIcon from "@/components/ui/icons/AddressIcon";
-import PhoneIcon from "@/components/ui/icons/PhoneIcon";
+import CircleIcon from "@/components/ui/icons/CircleIcon";
+import CityIcon from "@/components/ui/icons/CityIcon";
+import EquipmentIcon from "@/components/ui/icons/EquipmentIcon";
+import TransportIcon from "@/components/ui/icons/TransportIcon";
 import { styles } from "./styles";
 import type {
   DriverRegisterErrors,
@@ -44,7 +46,7 @@ export default function DeliveryStep({
           name="deliveryCity"
           type="text"
           placeholder="Ville de livraison"
-          leftIcon={<AddressIcon className={styles.fieldIcon} />}
+          leftIcon={<CityIcon className={styles.fieldIcon} />}
           error={errors.deliveryCity}
           value={formData.deliveryCity}
           onChange={(event) => onFieldChange("deliveryCity", event.target.value)}
@@ -60,7 +62,7 @@ export default function DeliveryStep({
           min="1"
           step="1"
           placeholder="Rayon de livraison (km)"
-          leftIcon={<PhoneIcon className={styles.fieldIcon} />}
+          leftIcon={<CircleIcon className={styles.fieldIcon} />}
           error={errors.deliveryRadius}
           value={formData.deliveryRadius}
           onChange={(event) => onFieldChange("deliveryRadius", event.target.value)}
@@ -77,7 +79,7 @@ export default function DeliveryStep({
             )}
           >
             <span className={styles.selectIcon}>
-              <PhoneIcon className={styles.fieldIcon} />
+              <TransportIcon className={styles.fieldIcon} />
             </span>
             <select
               id="driver-transport-type"
@@ -106,6 +108,7 @@ export default function DeliveryStep({
           name="equipments"
           type="text"
           placeholder="Equipements (casque, isotherme, gants)"
+          leftIcon={<EquipmentIcon className={styles.fieldIcon} />}
           helperText="Separez les equipements par des virgules."
           value={formData.equipments}
           onChange={(event) => onFieldChange("equipments", event.target.value)}

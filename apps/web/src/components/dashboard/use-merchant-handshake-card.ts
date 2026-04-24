@@ -11,6 +11,28 @@ type MerchantHandshakeFeedback = {
   message: string;
 };
 
+function normalizeHandshakeErrorMessage(error: unknown) {
+  if (!(error instanceof Error)) {
+    return "Verification impossible pour le moment.";
+  }
+
+  if (
+    error.message === "Illegal order state" ||
+    error.message === "Statut de commande incorrect pour cette operation"
+  ) {
+    return "Cette verification Swagger fonctionne uniquement quand la commande est en statut DRIVER_ACCEPTED, juste avant la prise en charge par le livreur.";
+  }
+
+  if (
+    error.message === "Handshake not found ?!" ||
+    error.message === "Code de handshake non trouve"
+  ) {
+    return "Aucun code de prise en charge valide n'a ete trouve pour cette boutique. Verifiez que vous utilisez bien le code montre par le livreur.";
+  }
+
+  return error.message;
+}
+
 export function useMerchantHandshakeCard() {
   const [stores, setStores] = useState<StoreListItem[]>([]);
   const [selectedStoreId, setSelectedStoreId] = useState("");
@@ -100,10 +122,7 @@ export function useMerchantHandshakeCard() {
     } catch (error) {
       setFeedback({
         kind: "error",
-        message:
-          error instanceof Error
-            ? error.message
-            : "Verification impossible pour le moment.",
+        message: normalizeHandshakeErrorMessage(error),
       });
     } finally {
       setIsSubmitting(false);
