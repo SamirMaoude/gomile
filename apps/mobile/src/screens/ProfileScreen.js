@@ -28,10 +28,10 @@ export default function ProfileScreen({ navigation }) {
   const [kycStatus, setKycStatus] = useState('not_submitted');
 
   const vehicleOptions = [
-    { label: 'Vélo', value: 'velo' },
-    { label: 'Moto', value: 'moto' },
-    { label: 'Voiture', value: 'voiture' },
-    { label: 'Utilitaire', value: 'utilitaire' },
+    { label: 'Vélo', value: 'BIKE' },
+    { label: 'Moto', value: 'SCOOTER' },
+    { label: 'Voiture', value: 'CAR' },
+    { label: 'Utilitaire', value: 'TRUCK' },
   ];
 
   const vehicleLabel = vehicleOptions.find((v) => v.value === activeVehicle)?.label || 'Vélo';
