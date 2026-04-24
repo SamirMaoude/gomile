@@ -50,27 +50,21 @@ export function VerifyEmail(dto: VerifyEmailProps) {
         <Row style={featuresRow}>
           <Column style={featCol}>
             <div style={featIcon}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#90C440" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
-              </svg>
+              <img src="https://amzn-3-backend-kyc-gomiile-731322152450-eu-north-1-an.s3.eu-north-1.amazonaws.com/emails/icon-house.png" width="16" height="16" alt="" />
             </div>
             <Text style={featTitle}>Real-time tracking</Text>
             <Text style={featDesc}>Live updates on every delivery</Text>
           </Column>
           <Column style={featColMid}>
             <div style={featIcon}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#90C440" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-              </svg>
+              <img src="https://amzn-3-backend-kyc-gomiile-731322152450-eu-north-1-an.s3.eu-north-1.amazonaws.com/emails/icon-clock.png" width="16" height="16" alt="" />
             </div>
             <Text style={featTitle}>On-time, every time</Text>
             <Text style={featDesc}>Smart routing saves you hours</Text>
           </Column>
           <Column style={featCol}>
             <div style={featIcon}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#90C440" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-              </svg>
+              <img src="https://amzn-3-backend-kyc-gomiile-731322152450-eu-north-1-an.s3.eu-north-1.amazonaws.com/emails/icon-shield.png" width="16" height="16" alt="" />
             </div>
             <Text style={featTitle}>Secure by default</Text>
             <Text style={featDesc}>End-to-end encrypted data</Text>
@@ -172,9 +166,8 @@ const featIcon: React.CSSProperties = {
   height: '36px',
   borderRadius: '10px',
   backgroundColor: '#07101e',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
+  textAlign: 'center',
+  lineHeight: '36px',
   margin: '0 auto 10px',
 }
 
