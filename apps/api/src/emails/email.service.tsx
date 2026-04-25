@@ -5,6 +5,7 @@ import { VerifyEmail } from "./verify-email";
 import { TrialExpiring } from "./trial-expiring";
 import { AccountLocked } from "./account-locked";
 import { SubscriptionRenewing } from "./subscription-renewing";
+import { PaymentFailed } from "./payment-failed";
 import { render } from "react-email";
 import { Tier } from "@prisma/client";
 
@@ -58,6 +59,16 @@ export class EmailService {
       from: 'noreply@gomile.delivery',
       to,
       subject: `Your Gomile ${plan} plan renews in 10 days`,
+      html,
+    });
+  }
+
+  async sendPaymentFailed(to: string, name: string, billingUrl: string) {
+    const html = await render(<PaymentFailed email={to} name={name} billingUrl={billingUrl} />);
+    await this.resend.emails.send({
+      from: 'noreply@gomile.delivery',
+      to,
+      subject: 'Payment failed — action required',
       html,
     });
   }

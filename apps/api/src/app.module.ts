@@ -16,6 +16,7 @@ import { UploadModule } from './upload/upload.module';
 import { AdminModule } from './admin/admin.module';
 import { MerchantModule } from './merchant/merchant.module';
 import { TasksModule } from './tasks/tasks.module';
+import { SubscriptionModule } from './subscription/subscription.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { TasksModule } from './tasks/tasks.module';
     AdminModule,
     MerchantModule,
     TasksModule,
+    SubscriptionModule,
   ],
   controllers: [AppController],
   providers: [AppService],

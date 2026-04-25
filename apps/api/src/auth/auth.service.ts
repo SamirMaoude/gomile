@@ -49,6 +49,7 @@ export class AuthService {
     return { token, hash, expiry };
   }
 
+  // Merchant created will have a trial period of 30 days
   async registerMerchant(dto: RegisterMerchantDto): Promise<AuthResponse> {
     await this.checkEmailAvailable(dto.email);
     const hashedPassword = await this.hashPassword(dto.password);
@@ -66,7 +67,10 @@ export class AuthService {
         emailVerificationToken: hash,
         emailVerificationExpiry: expiry,
         merchant: {
-          create: { name: dto.name },
+          create: {
+            name: dto.name,
+            trialEndsAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), 
+          },
         },
       },
     });

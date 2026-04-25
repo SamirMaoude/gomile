@@ -28,6 +28,7 @@ export interface StoreResponse {
   name: string;
   description: string | null;
   isActive: boolean;
+  isLocked: boolean;
   address: string;
   latitude: number;
   longitude: number;

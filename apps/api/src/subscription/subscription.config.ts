@@ -7,6 +7,6 @@ export const TIER_LIMITS: Record<Tier, number> = {
 }
 
 export const TIER_PRICING= {
-  PRO: 14,
-  BUSINESS: 40
+  PRO: 14.90,
+  BUSINESS: 59.90
 }

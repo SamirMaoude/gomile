@@ -6,5 +6,9 @@ export const SUBSCRIPTION_ERRORS = {
   SUBSCRIPTION_QUOTA_EXCEEDED: {
     statusCode: 403,
     message: "Merchant current subscription quota has reached"
-  }
+  },
+  NO_STRIPE_SUBSCRIPTION: {
+    statusCode: 400,
+    message: "No active Stripe subscription found"
+  },
 }
