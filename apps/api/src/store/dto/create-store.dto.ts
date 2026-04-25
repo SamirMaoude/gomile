@@ -39,22 +39,24 @@ export class CreateStoreDto {
   address: string;
 
   @ApiProperty({
-    description: "The latitude of the store's location",
+    description: "The latitude of the store's location. If omitted, geocoded from address.",
     example: 45.188529,
     type: 'number',
+    required: false,
   })
   @IsNumber()
-  @IsNotEmpty()
-  latitude: number;
+  @IsOptional()
+  latitude?: number;
 
   @ApiProperty({
-    description: "The longitude of the store's location",
+    description: "The longitude of the store's location. If omitted, geocoded from address.",
     example: 5.724524,
     type: 'number',
+    required: false,
   })
   @IsNumber()
-  @IsNotEmpty()
-  longitude: number;
+  @IsOptional()
+  longitude?: number;
 
   @ApiProperty({
     description: 'Domain of the store (for plugin validation)',

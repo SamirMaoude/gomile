@@ -4,8 +4,8 @@ export interface CreateStoreInput {
   name: string;
   description?: string;
   address: string;
-  latitude: number;
-  longitude: number;
+  latitude?: number;
+  longitude?: number;
   domain?: string;
   provider?: StoreProvider;
   webhookUrl?: string;

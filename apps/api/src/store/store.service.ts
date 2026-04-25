@@ -6,6 +6,7 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { OpenRouteService } from '../delivery/openrouteservice.service';
 import { CreateStoreDto } from './dto/create-store.dto';
 import { UpdateStoreDto } from './dto/update-store.dto';
 import { createApiError } from '../common/api-error';
@@ -22,7 +23,10 @@ import { TIER_LIMITS } from '../subscription/subscription.config';
 
 @Injectable()
 export class StoreService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private ors: OpenRouteService,
+  ) {}
 
   // Defining statuses that define a store is active
   private activeStatuses = [
@@ -116,27 +120,33 @@ export class StoreService {
       throw new ForbiddenException(createApiError('SUBSCRIPTION_QUOTA_EXCEEDED', SUBSCRIPTION_ERRORS));
     }
 
+    // Geocoding given address
+    const { latitude, longitude } = await this.ors.resolveAddress({
+      fullAddress: dto.address,
+      latitude: dto.latitude,
+      longitude: dto.longitude,
+    });
+
     const store = await this.prisma.store.create({
       data: {
         name: dto.name,
         description: dto.description,
         merchantId: merchantId,
         address: dto.address,
-        latitude: dto.latitude,
-        longitude: dto.longitude,
+        latitude,
+        longitude,
         domain: dto.domain,
         provider: dto.provider,
         webhookUrl: dto.webhookUrl,
       },
     });
 
-    if (dto.latitude !== undefined && dto.longitude !== undefined) {
-      await this.prisma.$executeRaw`
+    await this.prisma.$executeRaw`
       UPDATE "Store"
-      SET location = ST_SetSRID(ST_MakePoint(${dto.longitude}, ${dto.latitude}), 4326)
+      SET location = ST_SetSRID(ST_MakePoint(${longitude}, ${latitude}), 4326)
       WHERE id = ${store.id}
-      `;
-    }
+    `;
+
     return { name: dto.name, id: store.id };
   }
 
