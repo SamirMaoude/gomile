@@ -11,7 +11,7 @@ import { Package } from 'lucide-react';
 export default function HeroSection2(){
     return (
         <Container Component="section" size='full' padding={false} className="flex centered h-[50vh]" bg_theme="hero">
-            <div className="flex flex-col items-center justify-center gap-5">
+            <div className="flex flex-col items-center justify-center p-5 gap-5">
                 <Typography variant="h1" weight="bold" theme="black" Component="h1">
                         Notre histoire, vos {" "}
                         <Typography variant="h1" weight="bold" theme='primaryG' Component="span">

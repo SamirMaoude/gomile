@@ -9,9 +9,8 @@ import Background from "@/components/ui/design-system/background/background";
 import Footerlp from "@/components/ui/design-system/header_footer/footerlp";
 export default function HomePage() {
   return (
-    
-    <div className="flex flex-col h-screen w-full bg-cover bg-center" style={{ backgroundImage: "url('/images/bg.png')" }}>
-      <Navigation />
+    <Background>
+      <Navigation theme="landingpage"/>
 
       <main className="flex flex-1 flex-col p-6 items-center justify-center">
 

@@ -25,9 +25,9 @@ export default function HeroSection(){
                                 </Typography>
                             </Typography>
                             
-                        <Typography variant='p' weight='light' theme='grey' Component='p'>
+                        {/* <Typography variant='p' weight='light' theme='grey' Component='p'>
                             blablabla
-                        </Typography>
+                        </Typography> */}
                         <div className="flex gap-2">
                             <Link href="/pageprincipale">
                                 <Button size='md'>Rejoindre notre communauté</Button>

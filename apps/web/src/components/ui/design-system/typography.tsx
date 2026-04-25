@@ -8,7 +8,7 @@ interface Props {
   theme?: 'black' | 'white' | 'grey' | 'primaryG' | 'secondaryG' | 'tertiaryG' | 'primaryB' | 'secondaryB' | 'tertiaryB' 
   | "heading" | "body" | "bodyStrong" | "link"
   | "danger" | "success";
-  Component?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'p' | 'span'
+  Component?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'p' | 'span' | 'li' | 'div'
   children: React.ReactNode
   className?: string
 }

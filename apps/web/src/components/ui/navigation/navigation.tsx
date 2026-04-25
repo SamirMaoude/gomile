@@ -43,13 +43,10 @@ export const Navigation = ({
 
         <div className={clsx("flex items-center gap-10", textThemeClasses[text_theme])}>
           <Typography theme={text_theme} weight="medium" variant="h6" className={style1}>
-            <Link href="/enSavoirPlus">À propos</Link>
-          </Typography>
-          <Typography theme={text_theme} weight="medium" variant="h6" className={style1}>
             <a href="#contact">Contact</a>
           </Typography>
           <Typography theme={text_theme} weight="medium" variant="h6" className={style1}>
-            <a href="#faq">FAQ</a>
+            <a href="/faq">FAQ</a>
           </Typography>
           <Typography theme={text_theme} weight="medium" variant="h6" className={style1}>
             <a href="/enSavoirPlus">En savoir plus</a>
