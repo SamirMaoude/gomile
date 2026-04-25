@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import Background from "@/components/ui/auth/background";
 import Button from "@/components/ui/design-system/button/button";
 import ErrorMessage from "@/components/ui/design-system/messages/errorMessage";
@@ -10,7 +11,7 @@ import { verifyEmailDescriptionByStatus } from "./content";
 import { styles } from "./styles";
 import { useVerifyEmail } from "./use-verify-email";
 
-export default function VerifyEmailPage() {
+function VerifyEmailContent() {
   const { message, status } = useVerifyEmail();
 
   return (
@@ -66,5 +67,13 @@ export default function VerifyEmailPage() {
         </div>
       </div>
     </Background>
+  );
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense>
+      <VerifyEmailContent />
+    </Suspense>
   );
 }
