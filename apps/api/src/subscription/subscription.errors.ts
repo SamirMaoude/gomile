@@ -11,4 +11,8 @@ export const SUBSCRIPTION_ERRORS = {
     statusCode: 400,
     message: "No active Stripe subscription found"
   },
+  STORE_LOCKED: {
+    statusCode: 403,
+    message: 'This store is locked due to subscription limits',
+  },
 }
