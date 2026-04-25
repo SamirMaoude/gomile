@@ -1,0 +1,21 @@
+[Unit]
+Description=GoMile Web (Next.js)
+After=network.target gomile-api.service
+
+[Service]
+Type=simple
+User=dangddk
+WorkingDirectory=/home/dangddk/Ensimag/gomile/apps/web
+# API_BASE_URL stays on localhost — Next.js BFF proxies internally to NestJS
+Environment=NODE_ENV=production
+Environment=PORT=3001
+Environment=API_BASE_URL=http://127.0.0.1:4000
+ExecStart=/usr/local/bin/pnpm --filter web start
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=gomile-web
+
+[Install]
+WantedBy=multi-user.target

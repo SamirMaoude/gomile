@@ -17,6 +17,7 @@ import { AdminModule } from './admin/admin.module';
 import { MerchantModule } from './merchant/merchant.module';
 import { TasksModule } from './tasks/tasks.module';
 import { SubscriptionModule } from './subscription/subscription.module';
+import { WebhookModule } from './webhook/webhook.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { SubscriptionModule } from './subscription/subscription.module';
     MerchantModule,
     TasksModule,
     SubscriptionModule,
+    WebhookModule,
   ],
   controllers: [AppController],
   providers: [AppService],
