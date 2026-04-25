@@ -107,6 +107,12 @@ enum DocumentType {
   OTHER
 }
 
+enum Tier {
+  FREE
+  PRO
+  BUSINESS
+}
+
 model User {
   id           String   @id @default(uuid()) @db.Uuid
   email        String   @unique
@@ -133,6 +139,7 @@ model Merchant {
   name      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  subscription  Tier @default(FREE)
 
   user    User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   store   Store[]
@@ -225,7 +232,7 @@ model Driver {
   userId      String   @id @db.Uuid
   firstName   String
   lastName    String
-  avatarUrl   String?
+  avatarUrl   String
   gender      Gender
   dateOfBirth DateTime
   address     String
