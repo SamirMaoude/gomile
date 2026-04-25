@@ -51,13 +51,12 @@ export default function ClientLoginPage() {
 
               <Typography
                 variant="p"
-                Component="h6"
+                Component="p"
                 theme="white"
                 className={styles.brandDescription}
               >
-                GoMile est une application web qui connecte les marchands et
-                les livreurs pour gerer les commandes, suivre les livraisons et
-                centraliser les operations.
+                GoMile est une application web qui connecte les merchants et
+                les livreurs pour gerer les commandes et suivre les livraisons.
               </Typography>
             </div>
           </div>

@@ -62,12 +62,12 @@ export default function DriverRegisterPage() {
                 Rejoignez GoMile
 
                 <Typography
-                  variant="h6"
+                  variant="h5"
                   Component="span"
                   theme="white"
                   className={styles.brandTitleBreak}
                 >
-                  comme livreur
+                  Section livreur
                 </Typography>
               </Typography>
             </div>
