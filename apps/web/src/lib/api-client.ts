@@ -81,8 +81,8 @@ export function createStore(merchantId: string, input: CreateStoreInput) {
   });
 }
 
-export function listStores(merchantId: string, isActive?: boolean) {
-  const query = isActive !== undefined ? `?isActive=${isActive}` : "";
+export function listStores(merchantId: string, isActive?: boolean | null) {
+  const query = typeof isActive === "boolean" ? `?isActive=${isActive}` : "";
   return request<ListStoresItem[]>(`/api/merchants/${merchantId}/stores${query}`);
 }
 

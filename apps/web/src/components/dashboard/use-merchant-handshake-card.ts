@@ -20,7 +20,7 @@ function normalizeHandshakeErrorMessage(error: unknown) {
     error.message === "Illegal order state" ||
     error.message === "Statut de commande incorrect pour cette operation"
   ) {
-    return "Cette verification Swagger fonctionne uniquement quand la commande est en statut DRIVER_ACCEPTED, juste avant la prise en charge par le livreur.";
+    return "Cette verification fonctionne uniquement quand la commande est accepté par un livreur!";
   }
 
   if (

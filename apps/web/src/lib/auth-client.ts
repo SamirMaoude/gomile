@@ -15,6 +15,10 @@ import {
 } from "../../../../shared/auth-contracts";
 import type { ApiErrorPayload } from "../../../../shared/api-errors";
 import { createApiError } from "../../../../shared/api-errors";
+import {
+  isMissingAuthTokenError,
+  redirectToHomeWithExpiredSessionAlert,
+} from "./session-expiration";
 
 export type {
   AuthSession,
@@ -136,10 +140,18 @@ export function login(input: LoginInput) {
 }
 
 // Rotates tokens using the refresh cookie managed by the web auth proxy.
-export function refreshSession() {
-  return requestAuth<AuthSession>(authRoutes.refresh, {
-    method: "POST",
-  });
+export async function refreshSession() {
+  try {
+    return await requestAuth<AuthSession>(authRoutes.refresh, {
+      method: "POST",
+    });
+  } catch (error) {
+    if (isMissingAuthTokenError(error)) {
+      void redirectToHomeWithExpiredSessionAlert();
+    }
+
+    throw error;
+  }
 }
 
 // Clears the backend session and removes auth cookies via the BFF.

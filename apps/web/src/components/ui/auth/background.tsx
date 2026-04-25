@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import Container from "@/components/ui/elements/container";
 import Typography from "@/components/ui/design-system/typography";
+import HomeIcon from "@/components/ui/icons/HomeIcon";
 import { backgroundImageStyle, styles } from "./styles";
 
 
@@ -30,7 +31,8 @@ export default function Background({
         className={[styles.container, containerClassName].filter(Boolean).join(" ")}
       >
         {backHref ? (
-          <Link href={backHref} className={styles.backLink}>
+          <Link href={backHref} className={styles.backLink} aria-label={backLabel}>
+            <HomeIcon className={styles.backLinkIcon} />
             <Typography
               variant="span"
               Component="span"

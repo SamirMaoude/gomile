@@ -16,7 +16,7 @@ function normalizeForgotPasswordError(error: unknown) {
   }
 
   if (error.message === "property email should not exist") {
-    return "Le endpoint forgot-password du backend refuse actuellement le champ email. Le front utilise bien la bonne route Swagger, mais le DTO backend n'accepte pas encore ce body.";
+    return "Erreur au serveur. Veuillez réessayer plus tard!";
   }
 
   return error.message;
@@ -37,8 +37,8 @@ export function useForgotPassword() {
     setEmail(event.target.value);
   }
 
-  function handleOtpChange(event: ChangeEvent<HTMLInputElement>) {
-    setOtp(event.target.value);
+  function handleOtpChange(value: string) {
+    setOtp(value.replace(/\D/g, "").slice(0, 6));
   }
 
   function handleNewPasswordChange(event: ChangeEvent<HTMLInputElement>) {
@@ -84,8 +84,8 @@ export function useForgotPassword() {
     if (step === "otp") {
       const trimmedOtp = otp.trim();
 
-      if (!trimmedOtp) {
-        setErrorMessage("Veuillez renseigner le code OTP.");
+      if (trimmedOtp.length !== 6) {
+        setErrorMessage("Veuillez renseigner le code OTP a 6 chiffres.");
         return;
       }
 

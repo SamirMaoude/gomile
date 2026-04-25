@@ -71,7 +71,7 @@ export const driverRegisterSteps: DriverRegisterStep[] = [
   {
     id: 4,
     title: "Documents",
-    description: "Choisissez les pieces a fournir puis televersez-les.",
+    description: "Ajoutez uniquement les pieces que vous souhaitez fournir.",
   },
 ];
 
@@ -93,12 +93,12 @@ export const driverRegisterDocumentOptions: Array<{
   {
     field: "permisFile",
     label: "Permis de conduire",
-    helperText: "Requis pour les transports motorises.",
+    helperText: "Optionnel, meme pour un transport motorise.",
   },
   {
     field: "carteGriseFile",
     label: "Carte grise",
-    helperText: "Requise pour les transports motorises.",
+    helperText: "Optionnelle, meme pour un transport motorise.",
   },
   {
     field: "kbisFile",

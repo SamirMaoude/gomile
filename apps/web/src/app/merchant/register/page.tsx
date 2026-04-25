@@ -12,8 +12,6 @@ import DeadEyeIcon from "@/components/ui/icons/DeadEyeIcon";
 import UserIcon from "@/components/ui/icons/UserIcon";
 import Button from "@/components/ui/design-system/button/button";
 import ErrorMessage from "@/components/ui/design-system/messages/errorMessage";
-import GmailIcon from "@/components/ui/icons/GmailIcon";
-import FacebookIcon from "@/components/ui/icons/FacebookIcon";
 import { Logo } from "@/components/Logo/Logo";
 import { PhoneInput } from "react-international-phone";
 import "react-international-phone/style.css";
@@ -51,23 +49,12 @@ export default function MerchantRegisterPage() {
 
                 <Typography
                   variant="h6"
-                  Component="h6"
+                  Component="span"
                   theme="white"
-                  className={styles.brandTitle}
+                  className={styles.brandTitleBreak}
                 >
                   marchand GoMile
                 </Typography>
-              </Typography>
-
-              <Typography
-                variant="p"
-                Component="h6"
-                theme="white"
-                className={styles.brandDescription}
-              >
-                Inscrivez votre commerce pour centraliser les commandes,
-                piloter les livraisons et suivre votre activite depuis un seul
-                tableau de bord.
               </Typography>
             </div>
           </div>
@@ -189,32 +176,6 @@ export default function MerchantRegisterPage() {
                 {isPending ? "Inscription..." : "Creer mon compte"}
               </Button>
             </Form>
-
-            <div className={styles.divider}>
-              <span className={styles.dividerLine} />
-              <Typography
-                variant="span"
-                Component="span"
-                className={styles.dividerText}
-              >
-                Ou inscrivez-vous avec
-              </Typography>
-              <span className={styles.dividerLine} />
-            </div>
-
-            <div className={styles.socialGrid}>
-              <ButtonIcon
-                aria-label="Continuer avec Google"
-                className={styles.socialButton}
-                icon={<GmailIcon className={styles.socialIcon} />}
-              />
-
-              <ButtonIcon
-                aria-label="Continuer avec Facebook"
-                className={styles.socialButton}
-                icon={<FacebookIcon className={styles.socialIcon} />}
-              />
-            </div>
 
             <div className={styles.footer}>
               <Typography

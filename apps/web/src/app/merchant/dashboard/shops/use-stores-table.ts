@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import type {
   CreateStoreInput,
@@ -24,12 +24,16 @@ type UseStoresTableResult = {
   handleCreateStore: () => Promise<void>;
   handleDeleteStore: (store: StoreListItem) => Promise<void>;
   handleEditStore: (store: StoreListItem) => Promise<void>;
+  handleStatusFilterChange: (statusFilter: StoreStatusFilter) => void;
   handleToggleStoreStatus: (store: StoreListItem) => Promise<void>;
   isCreating: boolean;
   isLoading: boolean;
   processingStoreId: string | null;
   rows: StoreListItem[];
+  statusFilter: StoreStatusFilter;
 };
+
+export type StoreStatusFilter = boolean | null;
 
 // IDs and names used to read the SweetAlert form fields safely.
 const CREATE_STORE_FIELD_IDS = {
@@ -300,10 +304,12 @@ export function useStoresTable(): UseStoresTableResult {
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
   const [processingStoreId, setProcessingStoreId] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<StoreStatusFilter>(null);
   const isMountedRef = useRef(true);
+  const requestSequenceRef = useRef(0);
 
   // Loads the current merchant stores and keeps the table state in sync.
-  async function loadStores(showLoader = true) {
+  const loadStores = useCallback(async (showLoader = true) => {
     if (!isMountedRef.current) {
       return;
     }
@@ -313,17 +319,19 @@ export function useStoresTable(): UseStoresTableResult {
     }
 
     setError(null);
+    const requestId = requestSequenceRef.current + 1;
+    requestSequenceRef.current = requestId;
 
     try {
-      const stores = await listCurrentMerchantStores();
+      const stores = await listCurrentMerchantStores(statusFilter);
 
-      if (!isMountedRef.current) {
+      if (!isMountedRef.current || requestSequenceRef.current !== requestId) {
         return;
       }
 
       setRows(stores);
     } catch (loadError) {
-      if (!isMountedRef.current) {
+      if (!isMountedRef.current || requestSequenceRef.current !== requestId) {
         return;
       }
 
@@ -333,11 +341,15 @@ export function useStoresTable(): UseStoresTableResult {
           : "Impossible de charger les magasins pour le moment.",
       );
     } finally {
-      if (isMountedRef.current && showLoader) {
+      if (
+        isMountedRef.current &&
+        requestSequenceRef.current === requestId &&
+        showLoader
+      ) {
         setIsLoading(false);
       }
     }
-  }
+  }, [statusFilter]);
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -346,7 +358,11 @@ export function useStoresTable(): UseStoresTableResult {
     return () => {
       isMountedRef.current = false;
     };
-  }, []);
+  }, [loadStores]);
+
+  function handleStatusFilterChange(nextStatusFilter: StoreStatusFilter) {
+    setStatusFilter(nextStatusFilter);
+  }
 
   // Opens the SweetAlert panel, creates the store, then reloads the table.
   async function handleCreateStore() {
@@ -562,10 +578,12 @@ export function useStoresTable(): UseStoresTableResult {
     handleCreateStore,
     handleDeleteStore,
     handleEditStore,
+    handleStatusFilterChange,
     handleToggleStoreStatus,
     isCreating,
     isLoading,
     processingStoreId,
     rows,
+    statusFilter,
   };
 }

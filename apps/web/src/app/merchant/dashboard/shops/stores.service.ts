@@ -25,7 +25,7 @@ export async function resolveCurrentMerchantId(): Promise<string> {
 
 export function listMerchantStores(
   merchantId: string,
-  isActive?: boolean,
+  isActive?: boolean | null,
 ): Promise<StoreListItem[]> {
   // The shared api client still types store endpoints with the generic
   // StoreResponse contract, while the real backend list route returns the
@@ -79,7 +79,7 @@ export function deleteMerchantStore(
 }
 
 export async function listCurrentMerchantStores(
-  isActive?: boolean,
+  isActive?: boolean | null,
 ): Promise<StoreListItem[]> {
   const merchantId = await resolveCurrentMerchantId();
   return listMerchantStores(merchantId, isActive);

@@ -1,19 +1,4 @@
-import { IconProps } from "./types";
+import { CircleCheck } from "lucide-react";
+import { createIconComponent } from "./lucide-icon";
 
-export default function CheckIcon({
-  className = "h-5 w-5",
-}: IconProps) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      className={className}
-      aria-hidden="true"
-    >
-      <circle cx="12" cy="12" r="9" />
-      <path d="m8.5 12.2 2.4 2.4 4.8-5.2" />
-    </svg>
-  );
-}
+export default createIconComponent(CircleCheck, "h-5 w-5");

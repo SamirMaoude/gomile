@@ -11,9 +11,9 @@ export const forgotPasswordDescriptionByStep: Record<
   ForgotPasswordStep,
   string
 > = {
-  email: "Saisissez votre adresse email pour recevoir un code OTP.",
-  otp: "Entrez le code OTP recu par email pour obtenir le jeton de reinitialisation.",
-  reset: "Choisissez votre nouveau mot de passe avec le jeton valide renvoye par Swagger.",
+  email: "Saisissez votre adresse email.",
+  otp: "Entrez le code OTP recu par email.",
+  reset: "Choisissez votre nouveau mot de passe.",
   done: "Votre mot de passe a ete reinitialise. Vous pouvez vous reconnecter.",
 };
 
