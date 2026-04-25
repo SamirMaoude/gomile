@@ -23,6 +23,9 @@ export class GetStoreResponseDto {
   @ApiProperty({ example: true })
   isActive: boolean;
 
+  @ApiProperty({ example: false, description: 'Locked by system due to subscription downgrade' })
+  isLocked: boolean;
+
   @ApiProperty({ example: '25 boulevard Clemenceau, 38100 Grenoble' })
   address: string;
 

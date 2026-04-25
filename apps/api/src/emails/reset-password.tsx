@@ -3,6 +3,7 @@ import { Section, Row, Column, Text, Hr } from 'react-email'
 import { EmailShell } from './components/email-shell'
 import { EmailFooter } from './components/email-footer'
 import { LogoLockup } from './components/logo-lockup'
+import { colors, font } from './components/email-tokens'
 import { sharedBodySection, sharedGreeting, sharedPara, sharedDivider, sharedFootnote } from './components/shared-styles'
 
 export interface ResetPasswordEmailProps {
@@ -91,7 +92,7 @@ export default ResetPasswordEmail
 // Styles
 
 const header: React.CSSProperties = {
-  backgroundColor: '#07101e',
+  backgroundColor: colors.dark,
   padding: '36px 44px 40px',
 }
 
@@ -100,14 +101,14 @@ const kicker: React.CSSProperties = {
   fontWeight: 600,
   letterSpacing: '0.18em',
   textTransform: 'uppercase',
-  color: '#90C440',
+  color: colors.green,
   margin: '0 0 10px',
 }
 
 const title: React.CSSProperties = {
   fontSize: '38px',
   fontWeight: 700,
-  color: '#ffffff',
+  color: colors.white,
   letterSpacing: '-0.04em',
   lineHeight: '1.0',
   margin: '0 0 14px',
@@ -122,7 +123,7 @@ const metaText: React.CSSProperties = {
 }
 
 const otpWrap: React.CSSProperties = {
-  backgroundColor: '#07101e',
+  backgroundColor: colors.dark,
   borderRadius: '14px',
   padding: '26px 24px 22px',
   textAlign: 'center',
@@ -145,10 +146,10 @@ const otpRow: React.CSSProperties = {
 }
 
 const otpDigit: React.CSSProperties = {
-  fontFamily: "'DM Mono', monospace",
+  fontFamily: font.mono,
   fontSize: '26px',
   fontWeight: 500,
-  color: '#ffffff',
+  color: colors.white,
   width: '48px',
   height: '58px',
   backgroundColor: 'rgba(255,255,255,0.05)',
@@ -169,7 +170,7 @@ const timerPill: React.CSSProperties = {
   border: '1px solid rgba(144,196,64,0.22)',
   borderRadius: '20px',
   padding: '3px 10px 3px 7px',
-  color: '#90C440',
+  color: colors.green,
   fontSize: '11px',
   fontWeight: 500,
 }
@@ -178,7 +179,7 @@ const timerDot: React.CSSProperties = {
   width: '5px',
   height: '5px',
   borderRadius: '50%',
-  backgroundColor: '#90C440',
+  backgroundColor: colors.green,
   display: 'inline-block',
 }
 

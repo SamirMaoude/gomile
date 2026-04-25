@@ -6,6 +6,7 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
+import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 import {
   ApiBearerAuth,
   ApiOkResponse,
@@ -47,6 +48,12 @@ export class UploadController {
   @ApiUnauthorizedResponse({ description: 'Invalid or missing JWT' })
   @Post('presign')
   @HttpCode(HttpStatus.OK)
+  // adding throttle guard to avoid spamming/ 
+  // a rule on S3 is defnied to automaticcally delete orphaned files after 2 days.
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { 
+    ttl: 60_000, limit: 10  // limiting 10 requests per IP per 60 seconds
+  }})
   async presign(
     @Body() dto: PresignRequestDto,
   ): Promise<{ uploadUrl: string; fileUrl: string }> {

@@ -14,6 +14,7 @@ import { createApiError } from '../common/api-error';
 import { AuthenticatedUser } from './auth.types';
 import { AUTH_ERRORS } from './auth-errors';
 import { STORE_ERRORS } from '../store/store-errors';
+import { SUBSCRIPTION_ERRORS } from 'src/subscription/subscription.errors';
 // Type representing the authenticated merchant using an API key
 export interface MerchantApiPrincipal {
   merchantId: string;
@@ -38,15 +39,16 @@ export class ApiKeyService {
 
   // Verify store ownership
   private async verifyOwnership(merchantId: string, storeId: string) {
-    const ownership = await this.prisma.store.findFirst({
-      where: {
-        id: storeId,
+    const store = await this.prisma.store.findFirst({
+      where: { 
+        id: storeId, 
         merchantId,
       },
     });
-    if (!ownership) {
+    if (!store) {
       throw new ForbiddenException(createApiError('NOT_OWNER', STORE_ERRORS));
     }
+    return store;
   }
 
   // create a new API key for merchant
@@ -60,8 +62,11 @@ export class ApiKeyService {
     if (user.id !== merchantId) {
       throw new ForbiddenException(createApiError('NOT_OWNER', AUTH_ERRORS));
     }
-    await this.verifyOwnership(merchantId, storeId);
-    // Each store, one api key only
+    const store = await this.verifyOwnership(merchantId, storeId);
+    if (store.isLocked) {
+      throw new ForbiddenException(createApiError('STORE_LOCKED', SUBSCRIPTION_ERRORS));
+    }
+
     const existing = await this.prisma.merchantApiKey.findUnique({
       where: { storeId },
     });
@@ -129,33 +134,34 @@ export class ApiKeyService {
     const keyHash = this.hash(rawKey.trim());
 
     const apiKeyRecord = await this.prisma.merchantApiKey.findFirst({
-      where: {
-        keyHash,
-      },
+      where: { keyHash },
+      include: { store: { select: { isLocked: true } } },
     });
 
-    // If no record is found, the API key is invalid
     if (!apiKeyRecord) {
       throw new UnauthorizedException(
         createApiError('INVALID_API_KEY', AUTH_ERRORS),
       );
     }
 
-    // Same goes if the API key has been revoked
     if (apiKeyRecord.revokedAt) {
       throw new ForbiddenException(
         createApiError('API_KEY_REVOKED', AUTH_ERRORS),
       );
     }
 
-    if (
-      apiKeyRecord.expiresAt &&
-      apiKeyRecord.expiresAt.getTime() <= Date.now()
-    ) {
+    if (apiKeyRecord.expiresAt && apiKeyRecord.expiresAt.getTime() <= Date.now()) {
       throw new ForbiddenException(
         createApiError('API_KEY_EXPIRED', AUTH_ERRORS),
       );
     }
+
+    if (apiKeyRecord.store.isLocked) {
+      throw new ForbiddenException(
+        createApiError('STORE_LOCKED', SUBSCRIPTION_ERRORS),
+      );
+    }
+
     return {
       merchantId: apiKeyRecord.merchantId,
       storeId: apiKeyRecord.storeId,

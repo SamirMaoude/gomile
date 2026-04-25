@@ -16,7 +16,9 @@ import { STORE_MESSAGES } from './store-messages';
 import { CreateStoreResponseDto } from './dto/create-store-response.dto';
 import { DeleteStoreResponseDto } from './dto/delete-store-response.dto';
 import { AuthenticatedUser } from '../auth/auth.types';
-import { OrderStatus, Role } from '@prisma/client';
+import { OrderStatus, Role, SubscriptionStatus } from '@prisma/client';
+import { SUBSCRIPTION_ERRORS } from '../subscription/subscription.errors';
+import { TIER_LIMITS } from '../subscription/subscription.config';
 
 @Injectable()
 export class StoreService {
@@ -95,10 +97,25 @@ export class StoreService {
     merchantId: string,
     dto: CreateStoreDto,
   ): Promise<CreateStoreResponseDto> {
-    await this.existsMerchant(merchantId);
+    const merchant = await this.existsMerchant(merchantId);
     if (user.id !== merchantId) {
       throw new ForbiddenException(createApiError('NOT_OWNER', AUTH_ERRORS));
     }
+
+    // Blocking merchants from using creating new stores if no subscription is active aka LOCKED
+    if (merchant.subscriptionStatus === SubscriptionStatus.LOCKED) {
+      throw new ForbiddenException(createApiError('SUBSCRIPTION_NOT_ACTIVE', SUBSCRIPTION_ERRORS));
+    }
+    // If number of stores surpasses current subscription quota, block !
+    const storeCount = await this.prisma.store.count({
+      where: {
+        merchantId: merchantId
+      }
+    });
+    if (storeCount >= TIER_LIMITS[merchant.subscription]) {
+      throw new ForbiddenException(createApiError('SUBSCRIPTION_QUOTA_EXCEEDED', SUBSCRIPTION_ERRORS));
+    }
+
     const store = await this.prisma.store.create({
       data: {
         name: dto.name,
@@ -210,7 +227,10 @@ export class StoreService {
       throw new ForbiddenException(createApiError('NOT_OWNER', AUTH_ERRORS));
     }
     await this.existsStore(storeId);
-    await this.verifyOwnership(merchantId, storeId);
+    const store = await this.verifyOwnership(merchantId, storeId);
+    if (store.isLocked) {
+      throw new ForbiddenException(createApiError('SUBSCRIPTION_NOT_ACTIVE', SUBSCRIPTION_ERRORS));
+    }
     const response = await this.prisma.store.update({
       where: {
         id: storeId,

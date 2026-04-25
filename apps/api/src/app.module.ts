@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
@@ -15,10 +16,12 @@ import { UploadModule } from './upload/upload.module';
 import { AdminModule } from './admin/admin.module';
 import { MerchantModule } from './merchant/merchant.module';
 import { TasksModule } from './tasks/tasks.module';
+import { SubscriptionModule } from './subscription/subscription.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 10 }]),
     PrismaModule,
     AuthModule,
     KycModule,
@@ -32,6 +35,7 @@ import { TasksModule } from './tasks/tasks.module';
     AdminModule,
     MerchantModule,
     TasksModule,
+    SubscriptionModule,
   ],
   controllers: [AppController],
   providers: [AppService],

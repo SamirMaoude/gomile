@@ -24,6 +24,7 @@ export class MerchantService {
             phone: true,
           },
         },
+        subscription: true,
       },
     });
     if (!result) {
@@ -36,6 +37,7 @@ export class MerchantService {
       name: result.name,
       email: result.user.email,
       phone: result.user.phone,
+      subscription: result.subscription,
       createdAt: result.createdAt,
     };
   }

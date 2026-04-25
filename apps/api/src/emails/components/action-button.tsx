@@ -4,7 +4,7 @@ import { Link, Text } from 'react-email'
 interface ActionButtonProps {
   href: string;
   label: string;
-  expiry?: string;
+  subtitle?: string;
 }
 
 const actionWrap: React.CSSProperties = {
@@ -45,7 +45,7 @@ const actionExpiry: React.CSSProperties = {
   textAlign: 'center',
 }
 
-export function ActionButton({ href, label, expiry }: ActionButtonProps) {
+export function ActionButton({ href, label, subtitle }: ActionButtonProps) {
   return (
     <div style={actionWrap}>
       <Link href={href} style={actionBtn}>
@@ -54,7 +54,7 @@ export function ActionButton({ href, label, expiry }: ActionButtonProps) {
           <img src="https://amzn-3-backend-kyc-gomiile-731322152450-eu-north-1-an.s3.eu-north-1.amazonaws.com/emails/icon-arrow.png" width="12" height="12" alt="" style={{ verticalAlign: 'middle' }} />
         </span>
       </Link>
-      {expiry && <Text style={actionExpiry}>{expiry}</Text>}
+      {subtitle && <Text style={actionExpiry}>{subtitle}</Text>}
     </div>
   )
 }
