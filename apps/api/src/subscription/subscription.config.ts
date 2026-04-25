@@ -5,3 +5,8 @@ export const TIER_LIMITS: Record<Tier, number> = {
   PRO: 5,
   BUSINESS: Infinity
 }
+
+export const TIER_PRICING= {
+  PRO: 14,
+  BUSINESS: 40
+}
