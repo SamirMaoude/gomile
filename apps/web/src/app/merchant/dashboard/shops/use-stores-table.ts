@@ -43,7 +43,6 @@ const CREATE_STORE_FIELD_IDS = {
   latitude: "swal-store-latitude",
   longitude: "swal-store-longitude",
   name: "swal-store-name",
-  webhookUrl: "swal-store-webhook-url",
 };
 const CREATE_STORE_PROVIDER_NAME = "swal-store-provider";
 
@@ -55,7 +54,6 @@ type StoreFormSeed = {
   longitude: string;
   name: string;
   provider: StoreProvider;
-  webhookUrl: string;
 };
 
 function escapeHtml(value: string) {
@@ -91,7 +89,6 @@ function buildStoreFormSeed(store?: Store | StoreListItem): StoreFormSeed {
     latitude: store ? String(store.latitude) : "",
     longitude: store ? String(store.longitude) : "",
     provider: store?.provider ?? "OTHER",
-    webhookUrl: store?.webhookUrl ?? "",
   };
 }
 
@@ -118,10 +115,6 @@ function buildStorePanelHtml(seed: StoreFormSeed) {
       <div style="display:grid;gap:6px;">
         <label for="${CREATE_STORE_FIELD_IDS.domain}" style="font-size:13px;font-weight:600;color:#334155;">Domaine</label>
         <input id="${CREATE_STORE_FIELD_IDS.domain}" class="swal2-input" placeholder="Ex: myshop.com" value="${escapeHtml(seed.domain)}" style="width:100%;margin:0;" />
-      </div>
-      <div style="display:grid;gap:6px;">
-        <label for="${CREATE_STORE_FIELD_IDS.webhookUrl}" style="font-size:13px;font-weight:600;color:#334155;">Webhook URL</label>
-        <input id="${CREATE_STORE_FIELD_IDS.webhookUrl}" class="swal2-input" placeholder="Ex: https://example.com/webhooks/orders" value="${escapeHtml(seed.webhookUrl)}" style="width:100%;margin:0;" />
       </div>
       <div style="display:grid;gap:6px;">
         <label for="${CREATE_STORE_FIELD_IDS.latitude}" style="font-size:13px;font-weight:600;color:#334155;">Latitude</label>
@@ -190,7 +183,6 @@ function parseStorePanelInput(
   const description = readPanelValue(popup, CREATE_STORE_FIELD_IDS.description);
   const domain = readDomainValue(popup);
   const provider = readSelectedProvider(popup);
-  const webhookUrl = readPanelValue(popup, CREATE_STORE_FIELD_IDS.webhookUrl);
   const latitude = Number.parseFloat(
     readPanelValue(popup, CREATE_STORE_FIELD_IDS.latitude),
   );
@@ -222,7 +214,6 @@ function parseStorePanelInput(
     latitude,
     longitude,
     ...(description ? { description } : {}),
-    ...(webhookUrl ? { webhookUrl } : {}),
   };
 
   if (options.mode === "create") {
@@ -237,14 +228,12 @@ function parseStorePanelInput(
 
   const providerChanged = provider !== options.initialValue.provider;
   const domainChanged = domain !== options.initialValue.domain;
-  const webhookUrlChanged = webhookUrl !== options.initialValue.webhookUrl;
 
   return {
     value: {
       ...basePayload,
       ...(providerChanged ? { provider } : {}),
       ...(domainChanged && domain ? { domain } : {}),
-      ...(webhookUrlChanged ? { webhookUrl } : {}),
     },
   };
 }

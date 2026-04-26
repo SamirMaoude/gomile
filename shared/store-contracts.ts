@@ -8,7 +8,6 @@ export interface CreateStoreInput {
   longitude?: number;
   domain?: string;
   provider?: StoreProvider;
-  webhookUrl?: string;
 }
 
 export interface UpdateStoreInput {
@@ -19,7 +18,15 @@ export interface UpdateStoreInput {
   longitude?: number;
   domain?: string;
   provider?: StoreProvider;
-  webhookUrl?: string;
+}
+
+export interface ConfigureWebhookInput {
+  webhookUrl: string;
+}
+
+export interface ConfigureWebhookResponse {
+  webhookUrl: string;
+  webhookSecret: string;
 }
 
 export interface StoreResponse {
