@@ -23,10 +23,14 @@ import { AUTH_ERRORS } from '../../auth/auth-errors';
 import { ORDER_ERRORS } from '../order-errors';
 import { ListDriverOrdersResponseDto } from '../dto/list-livreurs-orders-response';
 import { ORDER_MESSAGE } from '../order-messages';
+import { SmsService } from '../../sms/sms.service';
 
 @Injectable()
 export class OrderLivreursService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly sms: SmsService
+  ) {}
   private async existsDriver(driverId: string) {
     const driver = await this.prisma.driver.findUnique({
       where: { userId: driverId },
@@ -97,10 +101,11 @@ export class OrderLivreursService {
     driverId: string,
     orderId: string,
   ) {
-    await this.existsDriver(driverId);
+    const driver = await this.existsDriver(driverId);
     if (user.id !== driverId) {
       throw new ForbiddenException(createApiError('NOT_OWNER', ORDER_ERRORS));
     }
+    await this.existsOrder(orderId);
 
     const result = await this.prisma.order.updateMany({
       where: {
@@ -116,15 +121,17 @@ export class OrderLivreursService {
     });
 
     if (result.count === 0) {
-      await this.existsOrder(orderId);
       throw new ConflictException(
         createApiError('ORDER_ALREADY_TAKEN', ORDER_ERRORS),
       );
     }
 
-    const handshake = await this.prisma.handshake.findUnique({
-      where: { orderId_type: { orderId, type: HandshakeType.A } },
-    });
+    const [handshake, order] = await Promise.all([
+      this.prisma.handshake.findUnique({
+        where: { orderId_type: { orderId, type: HandshakeType.A } },
+      }),
+      this.prisma.order.findUnique({ where: { id: orderId } }),
+    ]);
 
     if (!handshake) {
       throw new InternalServerErrorException(
@@ -132,9 +139,14 @@ export class OrderLivreursService {
       );
     }
 
+    this.sms.sendSms(
+      order!.customerPhone,
+      `A driver has accepted your order and is heading to pick it up.`,
+    );
+
     // Driver should present to the merchant presenting the pickup code
     return {
-      pickupCode: handshake?.code,
+      pickupCode: handshake.code,
       message: ORDER_MESSAGE.ORDER_ACCEPTED,
     };
   }
@@ -187,7 +199,7 @@ export class OrderLivreursService {
     orderId: string,
     pickupCode: string,
   ) {
-    await this.existsDriver(driverId);
+    const driver = await this.existsDriver(driverId);
     if (user.id !== driverId) {
       throw new ForbiddenException(createApiError('NOT_OWNER', ORDER_ERRORS));
     }
@@ -283,6 +295,30 @@ export class OrderLivreursService {
         status: OrderStatus.PICKED_UP,
       },
     });
+
+    // Retrieve client handshake code
+    const deliveryHandshake = await this.prisma.handshake.findUnique({
+      where: {
+        orderId_type: {
+          orderId,
+          type: HandshakeType.B,
+        },
+      },
+    });
+
+    if (!deliveryHandshake) {
+      throw new InternalServerErrorException(
+        createApiError('HANDSHAKE_NOT_FOUND', ORDER_ERRORS),
+      );
+    }
+
+    // And sms the client that the order is on the way
+    await this.sms.sendSms(
+      order.customerPhone,
+      `${driver.firstName} has picked up your order and is on the way ! \n
+      Please show the following code to the driver when he arrives: ${deliveryHandshake.code}`,
+    )
+
     return { orderId: orderId, message: ORDER_MESSAGE.ORDER_PICKED_UP };
   }
 
@@ -413,6 +449,11 @@ export class OrderLivreursService {
         ]);
       }
     }
+
+    this.sms.sendSms(
+      order.customerPhone,
+      `Your GoMile order has been delivered. Thank you!`,
+    );
 
     return { orderId: orderId, message: ORDER_MESSAGE.ORDER_DELIVERED };
   }

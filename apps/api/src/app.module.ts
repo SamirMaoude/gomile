@@ -19,6 +19,7 @@ import { TasksModule } from './tasks/tasks.module';
 import { SubscriptionModule } from './subscription/subscription.module';
 import { WebhookModule } from './webhook/webhook.module';
 import { NotificationModule } from './notification/notification.module';
+import { SmsModule } from './sms/sms.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { NotificationModule } from './notification/notification.module';
     SubscriptionModule,
     WebhookModule,
     NotificationModule,
+    SmsModule
   ],
   controllers: [AppController],
   providers: [AppService],
