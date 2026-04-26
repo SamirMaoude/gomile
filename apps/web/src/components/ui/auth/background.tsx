@@ -27,7 +27,7 @@ export default function Background({
       <div className={styles.overlay} />
 
       <Container
-        fullwidth
+        size="full"
         className={[styles.container, containerClassName].filter(Boolean).join(" ")}
       >
         {backHref ? (

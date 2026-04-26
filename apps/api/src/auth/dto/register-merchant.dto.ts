@@ -1,5 +1,5 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEmail, IsOptional, IsString, MinLength } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsEmail, IsString, MinLength } from 'class-validator';
 
 export class RegisterMerchantDto {
   @ApiProperty({ example: 'merchant@test.local' })
@@ -14,9 +14,4 @@ export class RegisterMerchantDto {
   @ApiProperty({ example: 'GoMile Grenoble' })
   @IsString()
   name: string;
-
-  @ApiPropertyOptional({ example: '+33612345678' })
-  @IsString()
-  @IsOptional()
-  phone?: string;
 }

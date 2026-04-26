@@ -1,4 +1,3 @@
-// Shared auth contracts reused by backend, web, and mobile clients.
 export const APP_ROLES = [
   'ADMIN',
   'DRIVER',
@@ -11,19 +10,10 @@ export type Role = (typeof APP_ROLES)[number];
 export const APP_GENDERS = [
   'MALE',
   'FEMALE',
-  'UNDEFINED',
+    'UNDEFINED'
 ] as const;
 
 export type Gender = (typeof APP_GENDERS)[number];
-
-export const APP_VEHICLE_TYPES = [
-  'CAR',
-  'BIKE',
-  'SCOOTER',
-  'TRUCK',
-] as const;
-
-export type VehicleType = (typeof APP_VEHICLE_TYPES)[number];
 
 export interface AuthUser {
   id: string;
@@ -35,7 +25,6 @@ export interface AuthSession {
   user: AuthUser;
 }
 
-// Raw backend auth response before a platform-specific client stores tokens.
 export interface AuthTokensResponse {
   accessToken: string;
   refreshToken: string;
@@ -50,7 +39,6 @@ export interface RegisterMerchantInput {
   email: string;
   password: string;
   name: string;
-  phone?: string;
 }
 
 export interface RegisterDriverInput {
@@ -58,8 +46,10 @@ export interface RegisterDriverInput {
   password: string;
   firstName: string;
   lastName: string;
-  phone: string;
+  avatarUrl: string;
   gender: Gender;
+  phone: string;
+  documentUrl?: string; // optional, perhaps, user can submit kyc later
   dateOfBirth: string;
   address: string;
   city?: string;
@@ -79,6 +69,6 @@ export interface RegisterDriverInput {
 }
 
 export interface LoginInput {
-  identifier: string;
+  email: string;
   password: string;
 }

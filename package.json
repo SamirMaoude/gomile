@@ -2,13 +2,19 @@
   "name": "gomile",
   "private": true,
   "packageManager": "pnpm@10.30.3",
-  "scripts": {
-    "dev": "pnpm -r --parallel dev",
-    "build": "pnpm -r build",
-    "lint": "pnpm -r lint",
-    "typecheck": "pnpm -r typecheck"
+  "engines": {
+    "node": ">=20 <24"
   },
-  "dependencies": {
-    "axios": "^1.13.6"
+  "engines": {
+    "node": ">=20 <24"
+  },
+  "scripts": {
+    "dev": "corepack pnpm -r --parallel dev",
+    "build": "corepack pnpm -r build",
+    "lint": "corepack pnpm -r lint",
+    "typecheck": "corepack pnpm -r typecheck",
+    "mobile:start": "corepack pnpm --filter gomileapp start",
+    "mobile:lan": "corepack pnpm --filter gomileapp start -- --lan",
+    "mobile:tunnel": "corepack pnpm --filter gomileapp start -- --tunnel"
   }
 }

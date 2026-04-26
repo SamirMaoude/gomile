@@ -29,7 +29,7 @@ export default function TypeMessage({
     <Typography
       variant="p"
       Component="p"
-      theme={variantTheme[variant]}
+      theme="black"
       className={clsx(
         variantClassName[variant],
         "text-sm leading-6",
