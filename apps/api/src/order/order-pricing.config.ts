@@ -10,4 +10,11 @@ export const ORDER_PRICING = {
     EXTRA_LARGE: 2.0,
   },
   DRIVER_SHARE: 0.7,
+  // weight thresholds used to infer package size when not explicitly provided
+  WEIGHT_SIZE_THRESHOLDS: {
+    SMALL: 1,    // < 1kg
+    MEDIUM: 5,   // 1–5kg
+    LARGE: 15,   // 5–15kg
+    // > 15kg → EXTRA_LARGE
+  },
 } as const;
