@@ -31,7 +31,6 @@ export default function DriverRegisterPage() {
     handleDocumentFileChange,
     handleSubmit,
     isFirstStep,
-    isLastStep,
     isPending,
     removeDocumentSelection,
     removeUpload,
@@ -42,6 +41,7 @@ export default function DriverRegisterPage() {
     toggleShowPassword,
     updateField,
   } = useRegister();
+  const isFinalStep = currentStep.id === 4;
 
   return (
     <Background backHref="/">
@@ -62,23 +62,13 @@ export default function DriverRegisterPage() {
                 Rejoignez GoMile
 
                 <Typography
-                  variant="h6"
-                  Component="h6"
+                  variant="h5"
+                  Component="span"
                   theme="white"
-                  className={styles.brandTitle}
+                  className={styles.brandTitleBreak}
                 >
-                  comme livreur
+                  Section livreur
                 </Typography>
-              </Typography>
-
-              <Typography
-                variant="p"
-                Component="h6"
-                theme="white"
-                className={styles.brandDescription}
-              >
-                Avancez etape par etape, gardez vos donnees, et finalisez votre
-                dossier livreur sans perdre les informations deja saisies.
               </Typography>
             </div>
           </div>
@@ -91,15 +81,6 @@ export default function DriverRegisterPage() {
                 className={styles.title}
               >
                 Inscription livreur
-              </Typography>
-
-              <Typography
-                variant="p"
-                Component="p"
-                theme="body"
-                className={styles.loginDescription}
-              >
-                Toutes les informations du formulaire API sont disponibles ici.
               </Typography>
             </div>
 
@@ -167,18 +148,27 @@ export default function DriverRegisterPage() {
                   <div />
                 )}
 
-                <Button
-                  type={isLastStep ? "submit" : "button"}
-                  onClick={isLastStep ? undefined : goToNextStep}
-                  disabled={isPending}
-                  className={`${styles.submitButton} ${styles.primaryActionButton}`}
-                >
-                  {isLastStep
-                    ? isPending
-                      ? "Creation..."
-                      : "Creer mon compte"
-                    : "Etape suivante"}
-                </Button>
+                {isFinalStep ? (
+                  <Button
+                    type="submit"
+                    disabled={isPending}
+                    className={`${styles.submitButton} ${styles.primaryActionButton}`}
+                  >
+                    {isPending ? "Creation..." : "Creer mon compte"}
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    onClick={(event) => {
+                      event.preventDefault();
+                      goToNextStep();
+                    }}
+                    disabled={isPending}
+                    className={`${styles.submitButton} ${styles.primaryActionButton}`}
+                  >
+                    Etape suivante
+                  </Button>
+                )}
               </div>
             </Form>
 

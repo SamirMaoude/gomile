@@ -258,11 +258,13 @@ export class DriverMeService {
       );
     }
 
-    const addressChanged =
+    // Updating address, or avatar will require driver to resubmit KYC verification
+    const kycResubmission =
       dto.address !== undefined ||
       dto.city !== undefined ||
       dto.zipCode !== undefined ||
-      dto.street !== undefined;
+      dto.street !== undefined ||
+      dto.avatarUrl !== undefined;
     // Uploading avatar must first erase the existing one on the S3 database
     if (dto.avatarUrl !== undefined && driver.avatarUrl) {
       await this.uploadService.deleteFile(driver.avatarUrl);
@@ -286,7 +288,7 @@ export class DriverMeService {
           transportType: dto.transportType,
         }),
         ...(dto.avatarUrl !== undefined && { avatarUrl: dto.avatarUrl }),
-        ...(addressChanged && { kycStatus: KycStatus.NOT_SUBMITTED }),
+        ...(kycResubmission && { kycStatus: KycStatus.NOT_SUBMITTED }),
       },
     });
 

@@ -61,7 +61,7 @@ export async function uploadDriverRegistrationAssets({
   onUploadedUrl,
 }: UploadDriverRegistrationAssetsInput) {
   const otherDocumentFields = selectedDocumentFields.filter(
-    (field) => documentTypeByField[field] === "OTHER",
+    (field) => documentTypeByField[field] === "OTHER" && files[field],
   );
 
   if (otherDocumentFields.length > 1) {

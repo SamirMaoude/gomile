@@ -15,7 +15,7 @@ import {
   formatStoreProvider,
   type StoreListItem,
 } from "./store.model";
-import { useStoresTable } from "./use-stores-table";
+import { useStoresTable, type StoreStatusFilter } from "./use-stores-table";
 
 type StoresTableProps = {
   isDarkMode: boolean;
@@ -31,8 +31,19 @@ export default function StoresTable({ isDarkMode }: StoresTableProps) {
     handleCreateStore,
     handleDeleteStore,
     handleEditStore,
+    handleStatusFilterChange,
     handleToggleStoreStatus,
+    statusFilter,
   } = useStoresTable();
+
+  const statusFilterOptions: Array<{
+    label: string;
+    value: StoreStatusFilter;
+  }> = [
+    { label: "Tous", value: null },
+    { label: "Actifs", value: true },
+    { label: "Desactives", value: false },
+  ];
 
   function getActionButtonClassName(tone: "danger" | "info" | "success" | "warning") {
     const shared = "!h-9 !w-9 !rounded-full !p-0 !border !shadow-none";
@@ -289,17 +300,53 @@ export default function StoresTable({ isDarkMode }: StoresTableProps) {
           Liste des magasins
         </Typography>
 
-        <Button
-          type="button"
-          variant="filled"
-          size="md"
-          icon={<PlusIcon className="h-5 w-5" />}
-          className="w-full sm:w-auto"
-          disabled={isCreating || processingStoreId !== null}
-          onClick={() => void handleCreateStore()}
-        >
-          {isCreating ? "Creation..." : "Creer une boutique"}
-        </Button>
+        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
+          <div
+            className={cn(
+              "inline-flex w-full rounded-full border p-1 sm:w-auto",
+              isDarkMode
+                ? "border-slate-700 bg-slate-950"
+                : "border-slate-200 bg-slate-50",
+            )}
+          >
+            {statusFilterOptions.map((option) => {
+              const isSelected = statusFilter === option.value;
+
+              return (
+                <button
+                  key={option.label}
+                  type="button"
+                  onClick={() => handleStatusFilterChange(option.value)}
+                  className={cn(
+                    "flex-1 rounded-full px-4 py-2 text-sm font-semibold transition sm:flex-none",
+                    isSelected
+                      ? isDarkMode
+                        ? "bg-emerald-700 text-white"
+                        : "bg-[#86ba2f] text-white"
+                      : isDarkMode
+                        ? "text-slate-300 hover:bg-slate-800"
+                        : "text-slate-600 hover:bg-white",
+                  )}
+                  aria-pressed={isSelected}
+                >
+                  {option.label}
+                </button>
+              );
+            })}
+          </div>
+
+          <Button
+            type="button"
+            variant="filled"
+            size="md"
+            icon={<PlusIcon className="h-5 w-5" />}
+            className="w-full sm:w-auto"
+            disabled={isCreating || processingStoreId !== null}
+            onClick={() => void handleCreateStore()}
+          >
+            {isCreating ? "Creation..." : "Creer une boutique"}
+          </Button>
+        </div>
       </div>
 
       <div className={styles.tableOverflow}>

@@ -9,6 +9,7 @@ export const styles = {
   container:
     "relative z-10 flex min-h-screen items-center justify-center py-4 !px-4 sm:!px-6 lg:!px-10",
   backLink:
-    "absolute left-4 top-4 inline-flex items-center rounded-full border border-white/70 bg-white/45 px-4 py-2 shadow-[0_10px_30px_rgba(15,23,42,0.08)] backdrop-blur transition hover:bg-white/60 sm:left-6 sm:top-6",
-  backLinkText: "text-sm !text-slate-800",
+    "absolute left-4 top-4 inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/70 bg-white/45 text-slate-800 shadow-[0_10px_30px_rgba(15,23,42,0.08)] backdrop-blur transition hover:bg-white/60 sm:left-6 sm:top-6 lg:h-auto lg:w-auto lg:gap-2 lg:px-4 lg:py-2",
+  backLinkIcon: "h-5 w-5 lg:hidden",
+  backLinkText: "hidden text-sm !text-slate-800 lg:inline",
 };

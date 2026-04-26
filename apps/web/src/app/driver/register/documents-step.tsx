@@ -44,14 +44,11 @@ export default function DocumentsStep({
     availableOptions,
     findDocumentOption,
     handleOptionChange,
-    isLocked,
-    needsVehicleDocuments,
     pendingUploadFields,
     selectedOption,
     selectedSummaryFields,
   } = useDocumentsStep({
     addDocumentSelection,
-    formData,
     selectedDocumentFields,
     selectedFileNames,
   });
@@ -65,12 +62,6 @@ export default function DocumentsStep({
       <Typography variant="h4" Component="h4" className={styles.stepHeading}>
         Documents
       </Typography>
-
-      {needsVehicleDocuments ? (
-        <p className={styles.stepNote}>
-          Pour le transport motorise, le permis et la carte grise sont requis.
-        </p>
-      ) : null}
 
       <div className={styles.documentToolbar}>
         <div className={styles.selectContainer}>
@@ -127,15 +118,13 @@ export default function DocumentsStep({
                 <span className={styles.documentChipName}>
                   {selectedFileNames[field]}
                 </span>
-                {!isLocked(field) ? (
-                  <ButtonIcon
-                    type="button"
-                    onClick={() => removeDocumentSelection(field)}
-                    className={styles.documentChipRemove}
-                    aria-label={`Supprimer ${option.label}`}
-                    icon={<CloseIcon className="h-4 w-4" />}
-                  />
-                ) : null}
+                <ButtonIcon
+                  type="button"
+                  onClick={() => removeDocumentSelection(field)}
+                  className={styles.documentChipRemove}
+                  aria-label={`Supprimer ${option.label}`}
+                  icon={<CloseIcon className="h-4 w-4" />}
+                />
               </div>
             );
           })}
@@ -154,8 +143,8 @@ export default function DocumentsStep({
               accept=".pdf,image/*"
               fileName={selectedFileNames[option.field]}
               error={errors[option.field]}
+              helperText={option.helperText}
               placeholder={option.label}
-              required={isLocked(option.field)}
               onChange={(event) => onDocumentFileChange(option.field, event)}
             />
           ))}

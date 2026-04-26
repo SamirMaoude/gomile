@@ -17,30 +17,12 @@ import {
   type DriverRegisterUploadField,
 } from "./steps";
 
-const motorizedDocumentFields: DriverRegisterDocumentField[] = [
-  "permisFile",
-  "carteGriseFile",
-];
-
 function isEmailValid(email: string) {
   return /\S+@\S+\.\S+/.test(email);
 }
 
 function isImageFile(file: File) {
   return file.type.startsWith("image/");
-}
-
-function getEffectiveDocumentFields(
-  formData: DriverRegisterFormData,
-  selectedDocumentFields: DriverRegisterDocumentField[],
-) {
-  const fields = new Set<DriverRegisterDocumentField>(selectedDocumentFields);
-
-  if (formData.transportType !== "" && formData.transportType !== "BIKE") {
-    motorizedDocumentFields.forEach((field) => fields.add(field));
-  }
-
-  return Array.from(fields);
 }
 
 function buildStepErrors(
@@ -105,26 +87,20 @@ function buildStepErrors(
       errors.transportType = "Selectionnez votre moyen de transport.";
     }
   } else if (stepId === 4) {
-    const effectiveDocumentFields = getEffectiveDocumentFields(
-      formData,
-      selectedDocumentFields,
-    );
+    const hasJustificatif =
+      selectedDocumentFields.includes("justificatifFile") &&
+      (Boolean(files.justificatifFile) ||
+        Boolean(normalizedFormData.justificatifFile));
+    const hasKbis =
+      selectedDocumentFields.includes("kbisFile") &&
+      (Boolean(files.kbisFile) || Boolean(normalizedFormData.kbisFile));
 
-    if (
-      effectiveDocumentFields.includes("justificatifFile") &&
-      effectiveDocumentFields.includes("kbisFile")
-    ) {
+    if (hasJustificatif && hasKbis) {
       const message =
         "Choisissez soit justificatif de domicile soit KBIS. L'endpoint upload actuel ne garde qu'un seul document de type autre.";
       errors.justificatifFile = message;
       errors.kbisFile = message;
     }
-
-    effectiveDocumentFields.forEach((field) => {
-      if (!files[field] && !normalizedFormData[field]) {
-        errors[field] = "Ajoutez un fichier pour ce document.";
-      }
-    });
   }
 
   return errors;
@@ -202,14 +178,6 @@ export function useRegister() {
   }
 
   function addDocumentSelection(field: DriverRegisterDocumentField) {
-    if (
-      motorizedDocumentFields.includes(field) &&
-      formData.transportType !== "" &&
-      formData.transportType !== "BIKE"
-    ) {
-      return;
-    }
-
     setSelectedDocumentFields((previous) => {
       if (previous.includes(field)) {
         return previous;
@@ -223,14 +191,6 @@ export function useRegister() {
   }
 
   function removeDocumentSelection(field: DriverRegisterDocumentField) {
-    if (
-      motorizedDocumentFields.includes(field) &&
-      formData.transportType !== "" &&
-      formData.transportType !== "BIKE"
-    ) {
-      return;
-    }
-
     setSelectedDocumentFields((previous) =>
       previous.filter((currentField) => currentField !== field),
     );
@@ -315,14 +275,9 @@ export function useRegister() {
   }
 
   async function completeDriverAssetUpload() {
-    const effectiveDocumentFields = getEffectiveDocumentFields(
-      formData,
-      selectedDocumentFields,
-    );
-
     await uploadDriverRegistrationAssets({
       files,
-      selectedDocumentFields: effectiveDocumentFields,
+      selectedDocumentFields,
       onUploadedUrl: updateUploadedUrl,
     });
   }
@@ -331,7 +286,7 @@ export function useRegister() {
     event.preventDefault();
     setFormError(null);
 
-    if (!isLastStep) {
+    if (currentStep.id !== 4) {
       goToNextStep();
       return;
     }

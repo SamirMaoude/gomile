@@ -107,6 +107,19 @@ enum DocumentType {
   OTHER
 }
 
+enum Tier {
+  FREE
+  PRO
+  BUSINESS
+}
+
+enum SubscriptionStatus {
+  TRIAL
+  ACTIVE
+  PAST_DUE
+  LOCKED
+}
+
 model User {
   id           String   @id @default(uuid()) @db.Uuid
   email        String   @unique
@@ -134,6 +147,14 @@ model Merchant {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Subscription
+  subscription         Tier               @default(FREE)
+  subscriptionStatus   SubscriptionStatus @default(TRIAL)
+  trialEndsAt          DateTime?  
+  currentPeriodEnd     DateTime?
+  stripeCustomerId     String?            @unique // Customer ID Stripe Side
+  stripeSubscriptionId String?            @unique // Product ID Stripe Side
+
   user    User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   store   Store[]
   orders  Order[]
@@ -149,7 +170,6 @@ model MerchantApiKey {
   createdAt   DateTime  @default(now())
   revokedAt   DateTime?
   expiresAt   DateTime?
-
   merchant Merchant @relation(fields: [merchantId], references: [userId], onDelete: Cascade)
   store    Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
 
@@ -164,6 +184,7 @@ model Store {
   name       String
   description String?
   isActive   Boolean  @default(true)
+  isLocked   Boolean  @default(false)
   address    String
   latitude   Float    @db.DoublePrecision
   longitude  Float    @db.DoublePrecision
@@ -174,6 +195,7 @@ model Store {
   domain     String?
   provider   StoreProvider?
   webhookUrl String?
+  webhookSecret String? @unique
 
   merchant Merchant         @relation(fields: [merchantId], references: [userId])
   orders   Order[]
@@ -225,7 +247,7 @@ model Driver {
   userId      String   @id @db.Uuid
   firstName   String
   lastName    String
-  avatarUrl   String?
+  avatarUrl   String
   gender      Gender
   dateOfBirth DateTime
   address     String
@@ -244,7 +266,7 @@ model Driver {
   totalTrips Int     @default(0)
   gomileCode String  @unique
   siret      String?
-
+  expoPushToken String?
 
   kycStatus KycStatus @default(NOT_SUBMITTED)
   createdAt DateTime  @default(now())

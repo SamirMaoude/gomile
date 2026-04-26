@@ -3,93 +3,91 @@ import Footer from "@/components/ui/design-system/header_footer/footer";
 import Container from "@/components/ui/elements/container";
 import Typography from "@/components/ui/design-system/typography";
 import NavigationDefault from "@/components/ui/header/navigation-default";
+import {
+  backgroundImageStyle,
+  driverImageStyle,
+  merchantImageStyle,
+  styles,
+} from "./styles";
 
 export default function HomePage() {
   return (
-    <div
-      className="flex h-screen w-full flex-col bg-cover bg-center"
-      style={{ backgroundImage: "url('/images/bg.png')" }}
-    >
+    <div className={styles.page} style={backgroundImageStyle}>
       <NavigationDefault />
 
-      <main className="flex flex-1 flex-col items-center justify-center p-6">
-        <div className="mx-auto flex h-150 w-250 flex-col items-center justify-center gap-3 rounded-card border-2 border-gray-200 bg-bg-card p-2 shadow-lg">
+      <main className={styles.main}>
+        <div className={styles.content}>
           <Typography
             variant="h1"
             weight="bold"
             theme="black"
-            className="text-center"
+            className={styles.title}
           >
             Bienvenue sur GoMile
           </Typography>
 
-          <div className="flex w-full flex-1 gap-5">
-            <Container
-              className="flex flex-1 flex-col items-center justify-center gap-2 rounded-card border-2 border-gray-200 bg-white shadow"
-              fullwidth={true}
-            >
-              <div className="flex flex-col">
+          <div className={styles.cardsGrid}>
+            <Container className={styles.choiceCard} fullwidth={true}>
+              <div className={styles.choiceHeader}>
                 <Typography
                   variant="h4"
                   weight="bold"
                   theme="black"
-                  className="text-center"
+                  className={styles.choiceTitle}
                 >
                   Je suis un commerçant
                 </Typography>
-                <Typography
-                  variant="span"
-                  theme="black"
-                  className="text-center"
-                >
-                  Gérez vos livraisons en toute simplicité avec GoMile, votre
-                  partenaire de confiance pour une logistique efficace et sans
-                  stress.
-                </Typography>
               </div>
 
               <div
-                className="h-64 w-64 bg-cover bg-center"
-                style={{ backgroundImage: "url('/images/commercant.png')" }}
+                className={styles.choiceImage}
+                style={merchantImageStyle}
               />
 
-              <Button variant="filled" size="md" href="/merchant/register">
-                Je m&apos;inscris
-              </Button>
-              <Button variant="filled" size="md" href="/merchant/login">
-                Je me connecte
-              </Button>
+              <div className={styles.merchantActions}>
+                <Button
+                  variant="filled"
+                  size="md"
+                  href="/merchant/register"
+                  fullWidth
+                >
+                  Je m&apos;inscris
+                </Button>
+                <Button
+                  variant="filled"
+                  size="md"
+                  href="/merchant/login"
+                  fullWidth
+                >
+                  Je me connecte
+                </Button>
+              </div>
             </Container>
 
-            <Container
-              className="flex flex-1 flex-col items-center justify-center gap-2 rounded-card border-2 border-gray-200 bg-white shadow"
-              fullwidth={true}
-            >
-              <div className="flex flex-col">
+            <Container className={styles.choiceCard} fullwidth={true}>
+              <div className={styles.choiceHeader}>
                 <Typography
                   variant="h4"
                   weight="bold"
                   theme="black"
-                  className="text-center"
+                  className={styles.choiceTitle}
                 >
                   Je suis un livreur
-                </Typography>
-                <Typography
-                  variant="span"
-                  theme="black"
-                  className="text-center"
-                >
-                  Devenez votre propre patron et livrez quand vous voulez
                 </Typography>
               </div>
 
               <div
-                className="h-64 w-64 bg-cover bg-center"
-                style={{ backgroundImage: "url('/images/livreur.png')" }}
+                className={styles.choiceImage}
+                style={driverImageStyle}
               />
 
-              <div className="flex w-full justify-center">
-                <Button variant="filled" size="md" href="/driver/register">
+              <div className={styles.driverActions}>
+                <Button
+                  variant="filled"
+                  size="md"
+                  href="/driver/register"
+                  fullWidth
+                >
                   Je m&apos;inscris
                 </Button>
               </div>

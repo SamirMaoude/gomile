@@ -4,7 +4,7 @@ import { Link, Text } from 'react-email'
 interface ActionButtonProps {
   href: string;
   label: string;
-  expiry?: string;
+  subtitle?: string;
 }
 
 const actionWrap: React.CSSProperties = {
@@ -29,14 +29,13 @@ const actionBtn: React.CSSProperties = {
 }
 
 const actionArrow: React.CSSProperties = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
+  display: 'inline-block',
   width: '24px',
   height: '24px',
+  lineHeight: '24px',
+  textAlign: 'center',
   backgroundColor: 'rgba(7,16,30,0.12)',
   borderRadius: '50%',
-  flexShrink: 0,
 }
 
 const actionExpiry: React.CSSProperties = {
@@ -46,18 +45,16 @@ const actionExpiry: React.CSSProperties = {
   textAlign: 'center',
 }
 
-export function ActionButton({ href, label, expiry }: ActionButtonProps) {
+export function ActionButton({ href, label, subtitle }: ActionButtonProps) {
   return (
     <div style={actionWrap}>
       <Link href={href} style={actionBtn}>
         {label}&nbsp;&nbsp;
         <span style={actionArrow}>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M5 12h14M12 5l7 7-7 7"/>
-          </svg>
+          <img src="https://amzn-3-backend-kyc-gomiile-731322152450-eu-north-1-an.s3.eu-north-1.amazonaws.com/emails/icon-arrow.png" width="12" height="12" alt="" style={{ verticalAlign: 'middle' }} />
         </span>
       </Link>
-      {expiry && <Text style={actionExpiry}>{expiry}</Text>}
+      {subtitle && <Text style={actionExpiry}>{subtitle}</Text>}
     </div>
   )
 }

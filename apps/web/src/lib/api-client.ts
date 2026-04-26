@@ -6,6 +6,8 @@ import type {
   UpdateStoreResponse,
   UpdateStoreInput,
   StoreResponse,
+  ConfigureWebhookInput,
+  ConfigureWebhookResponse,
 } from "../../../../shared/store-contracts";
 import type {
   CreateOrderInput,
@@ -53,6 +55,8 @@ export type {
   UpdateStoreResponse,
   UpdateStoreInput,
   StoreResponse,
+  ConfigureWebhookInput,
+  ConfigureWebhookResponse,
   CreateOrderInput,
   CreateOrderResponse,
   ListMerchantOrdersItem,
@@ -81,8 +85,8 @@ export function createStore(merchantId: string, input: CreateStoreInput) {
   });
 }
 
-export function listStores(merchantId: string, isActive?: boolean) {
-  const query = isActive !== undefined ? `?isActive=${isActive}` : "";
+export function listStores(merchantId: string, isActive?: boolean | null) {
+  const query = typeof isActive === "boolean" ? `?isActive=${isActive}` : "";
   return request<ListStoresItem[]>(`/api/merchants/${merchantId}/stores${query}`);
 }
 
@@ -113,6 +117,16 @@ export function deleteStore(merchantId: string, storeId: string) {
   return request<DeleteStoreResponse>(`/api/merchants/${merchantId}/stores/${storeId}`, {
     method: "DELETE",
   });
+}
+
+export function configureWebhook(merchantId: string, storeId: string, input: ConfigureWebhookInput) {
+  return request<ConfigureWebhookResponse>(
+    `/api/merchants/${merchantId}/stores/${storeId}/webhook`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    },
+  );
 }
 
 export function createOrder(merchantId: string, storeId: string, input: CreateOrderInput) {

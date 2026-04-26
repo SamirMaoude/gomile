@@ -206,6 +206,7 @@ describe('Store CRUD (e2e)', () => {
         password: 'Password123!',
         firstName: 'Riku',
         lastName: 'Driver',
+        avatarUrl: 'https://example.test/avatar/riku-driver.jpg',
         phone: `+336${Date.now().toString().slice(-8)}`,
         gender: 'MALE',
         dateOfBirth: '2000-01-02',

@@ -1,5 +1,6 @@
 import type { ApiErrorPayload } from "../../../../shared/api-errors";
 import { createApiError } from "../../../../shared/api-errors";
+import { redirectToHomeWithExpiredSessionAlert } from "./session-expiration";
 
 async function parseApiError(response: Response) {
   const fallbackError = createApiError("REQUEST_FAILED");
@@ -55,7 +56,13 @@ export async function requestWithAutoRefresh<T>(
 
     if (refreshWorked) {
       response = await fetch(path, requestInit);
+    } else {
+      void redirectToHomeWithExpiredSessionAlert();
     }
+  }
+
+  if (response.status === 401) {
+    void redirectToHomeWithExpiredSessionAlert();
   }
 
   if (!response.ok) {

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import OtpInput from "react-otp-input";
 
 import { styles } from "./styles";
 
@@ -84,19 +85,31 @@ export default function ForgotPasswordPage() {
             ) : null}
 
             {step === "otp" ? (
-              <Input
-                id="otp"
-                name="otp"
-                type="text"
-                label="Code OTP"
-                placeholder="Entrez le code OTP a 6 chiffres"
-                value={otp}
-                onChange={handleOtpChange}
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                containerClassName={styles.inputContainer}
-                inputWrapperClassName={styles.inputWrapper}
-              />
+              <div className={styles.otpFieldGroup}>
+                <label htmlFor="otp-0" className={styles.otpLabel}>
+                  Code OTP
+                </label>
+                <OtpInput
+                  value={otp}
+                  onChange={handleOtpChange}
+                  numInputs={6}
+                  inputType="tel"
+                  shouldAutoFocus
+                  containerStyle={styles.otpContainer}
+                  skipDefaultStyles
+                  renderInput={(inputProps, index) => (
+                    <input
+                      {...inputProps}
+                      id={`otp-${index}`}
+                      name={`otp-${index}`}
+                      className={[
+                        inputProps.className,
+                        styles.otpInput,
+                      ].filter(Boolean).join(" ")}
+                    />
+                  )}
+                />
+              </div>
             ) : null}
 
             {step === "reset" ? (

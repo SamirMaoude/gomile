@@ -17,6 +17,11 @@ export const styles = {
   inputWrapper:
     "h-14 rounded-[1.25rem] border-[var(--input-border)] bg-white px-4",
   inputIcon: "h-5 w-5",
+  otpFieldGroup: "grid gap-2",
+  otpLabel: "text-sm font-semibold text-slate-800",
+  otpContainer: "flex w-full justify-between gap-2 sm:gap-3",
+  otpInput:
+    "h-12 w-10 rounded-[1rem] border border-slate-300 bg-white text-center text-lg font-bold text-slate-950 outline-none transition focus:border-primary-light focus:ring-4 focus:ring-emerald-100 sm:h-14 sm:w-12",
 
   message: "w-full",
 

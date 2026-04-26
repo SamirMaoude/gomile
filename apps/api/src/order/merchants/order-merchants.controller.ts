@@ -43,7 +43,7 @@ export class OrderMerchantsController {
   @ApiOperation({
     summary: 'Create an order',
     description:
-      'Accepts JWT bearer token or x-api-key header. Returns pickup code (show to merchant) and delivery code (send to customer).',
+      'Accepts JWT bearer token or x-api-key header. Create an order and notifies nearby drivers. Returns pickup code (show to merchant) and delivery code (send to customer).',
   })
   @ApiHeader({
     name: 'x-api-key',

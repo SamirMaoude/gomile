@@ -12,8 +12,6 @@ import DeadEyeIcon from "@/components/ui/icons/DeadEyeIcon";
 import Button from "@/components/ui/design-system/button/button";
 import SuccessMessage from "@/components/ui/design-system/messages/successMessage";
 import ErrorMessage from "@/components/ui/design-system/messages/errorMessage";
-import GmailIcon from "@/components/ui/icons/GmailIcon";
-import FacebookIcon from "@/components/ui/icons/FacebookIcon";
 import { Logo } from "@/components/Logo/Logo";
 import Background from "@/components/ui/auth/background";
 import { useLogin } from "./use-login";
@@ -42,9 +40,9 @@ export default function ClientLoginPage() {
 
                 <Typography
                   variant="h6"
-                  Component="h6"
+                  Component="span"
                   theme="white"
-                  className={styles.brandTitle}
+                  className={styles.brandTitleBreak}
                 >
                   à GoMile
 
@@ -53,13 +51,12 @@ export default function ClientLoginPage() {
 
               <Typography
                 variant="p"
-                Component="h6"
+                Component="p"
                 theme="white"
                 className={styles.brandDescription}
               >
-                GoMile est une application web qui connecte les marchands et
-                les livreurs pour gerer les commandes, suivre les livraisons et
-                centraliser les operations.
+                GoMile est une application web qui connecte les merchants et
+                les livreurs pour gerer les commandes et suivre les livraisons.
               </Typography>
             </div>
           </div>
@@ -159,32 +156,6 @@ export default function ClientLoginPage() {
                 {isPending ? "Connexion..." : "Se connecter"}
               </Button>
             </Form>
-
-            <div className={styles.divider}>
-              <span className={styles.dividerLine} />
-              <Typography
-                variant="span"
-                Component="span"
-                className={styles.dividerText}
-              >
-                Ou connectez-vous avec
-              </Typography>
-              <span className={styles.dividerLine} />
-            </div>
-
-            <div className={styles.socialGrid}>
-              <ButtonIcon
-                aria-label="Continuer avec Google"
-                className={styles.socialButton}
-                icon={<GmailIcon className={styles.socialIcon} />}
-              />
-
-              <ButtonIcon
-                aria-label="Continuer avec Facebook"
-                className={styles.socialButton}
-                icon={<FacebookIcon className={styles.socialIcon} />}
-              />
-            </div>
 
             <div className={styles.footer}>
               <Typography
