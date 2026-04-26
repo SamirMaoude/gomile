@@ -58,15 +58,4 @@ export class SubscriptionController {
     return this.subscriptionService.createPortalSession(user.id);
   }
 
-
-  // Not to be used ! this is Stripe's webhook
-  @Post('webhook')
-  @HttpCode(HttpStatus.OK)
-  @ApiExcludeEndpoint()
-  webhook(
-    @RawBody() payload: Buffer,
-    @Headers('stripe-signature') signature: string,
-  ): Promise<void> {
-    return this.subscriptionService.handleWebhook(payload, signature);
-  }
 }

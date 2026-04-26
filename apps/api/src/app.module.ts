@@ -18,6 +18,7 @@ import { MerchantModule } from './merchant/merchant.module';
 import { TasksModule } from './tasks/tasks.module';
 import { SubscriptionModule } from './subscription/subscription.module';
 import { WebhookModule } from './webhook/webhook.module';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { WebhookModule } from './webhook/webhook.module';
     TasksModule,
     SubscriptionModule,
     WebhookModule,
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [AppService],

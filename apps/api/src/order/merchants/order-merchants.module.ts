@@ -8,9 +8,10 @@ import { JwtOrApiKeyGuard } from '../../auth/guards/jwt-or-api-key.guard';
 import { ApiKeyGuard } from '../../auth/guards/api-key.guard';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { DeliveryPricingModule } from '../../delivery/delivery-pricing.module';
+import { NotificationModule } from '../../notification/notification.module';
 
 @Module({
-  imports: [DeliveryPricingModule],
+  imports: [DeliveryPricingModule, NotificationModule],
   controllers: [OrderMerchantsController, OrderPluginController],
   providers: [
     OrderService,

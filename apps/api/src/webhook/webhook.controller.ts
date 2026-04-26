@@ -5,13 +5,21 @@ import {
   Body,
   UnauthorizedException,
   Logger,
+  HttpCode,
+  HttpStatus,
+  RawBody
 } from '@nestjs/common';
+import { ApiExcludeEndpoint } from '@nestjs/swagger';
 import { spawn } from 'child_process';
 import { resolve } from 'path';
+import { SubscriptionService } from '../subscription/subscription.service';
 
 @Controller('webhook')
 export class WebhookController {
-  private readonly logger = new Logger(WebhookController.name);
+  constructor (
+    private readonly logger: Logger,
+    private readonly subscriptionService:  SubscriptionService
+  ) {}
 
   // Deploy application, to be called by webhook
   @Post('deploy')
@@ -37,5 +45,16 @@ export class WebhookController {
 
     this.logger.log(`Deploy triggered for ${ref}`);
     return { message: 'deploy started' };
+  }
+    
+  // Not to be used ! this is Stripe's webhook
+  @Post('subscription-events')
+  @HttpCode(HttpStatus.OK)
+  @ApiExcludeEndpoint()
+  webhook(
+    @RawBody() payload: Buffer,
+    @Headers('stripe-signature') signature: string,
+  ): Promise<void> {
+    return this.subscriptionService.handleWebhook(payload, signature);
   }
 }

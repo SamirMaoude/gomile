@@ -266,7 +266,7 @@ model Driver {
   totalTrips Int     @default(0)
   gomileCode String  @unique
   siret      String?
-
+  expoPushToken String?
 
   kycStatus KycStatus @default(NOT_SUBMITTED)
   createdAt DateTime  @default(now())

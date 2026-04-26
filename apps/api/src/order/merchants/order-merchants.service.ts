@@ -1,11 +1,13 @@
 import {
   Injectable,
+  Logger,
   NotFoundException,
   ForbiddenException,
   ConflictException,
   HttpException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { NotificationService } from '../../notification/notification.service';
 import { CreateOrderDto } from '../dto/create-order.dto';
 import { AuthenticatedUser } from '../../auth/auth.types';
 import { createApiError } from '../../common/api-error';
@@ -26,10 +28,13 @@ import { DeliveryPricingService } from '../../delivery/delivery-pricing.service'
 
 @Injectable()
 export class OrderService {
+  private readonly logger = new Logger(OrderService.name);
+
   constructor(
     private prisma: PrismaService,
     private readonly openRouteService: OpenRouteService,
     private readonly deliveryPricingService: DeliveryPricingService,
+    private readonly notificationService: NotificationService,
   ) {}
   private handshakeTTL = 12 * 60 * 60 * 1000; // 12h for short deliveries, or maybe less
 
@@ -161,6 +166,21 @@ export class OrderService {
       },
     });
 
+    // Expo push notification notifies nearby drivers
+    this.findNearbyDriverTokens(store.latitude, store.longitude)
+      .then((tokens) =>
+        this.notificationService.notifyDrivers(
+          tokens,
+          order.id,
+          dto.customerName,
+          dto.type,
+          store.address,
+          reward,
+          distanceKm,
+        ),
+      )
+      .catch((err) => this.logger.error('Failed to notify nearby drivers', err));
+
     return {
       orderId: order.id,
       deliveryCode,
@@ -168,6 +188,24 @@ export class OrderService {
       distanceKm,
       message: ORDER_MESSAGE.ORDER_CREATED,
     };
+  }
+
+  // Given a point, returns all drivers whose positions with deliveryRadius covers that point
+  private async findNearbyDriverTokens(lat: number, lng: number): Promise<string[]> {
+    const rows = await this.prisma.$queryRaw<{ expoPushToken: string }[]>`
+      SELECT d."expoPushToken"
+      FROM "Driver" d
+      WHERE d.status = 'AVAILABLE'
+        AND d."kycStatus" = 'ACCEPTED'
+        AND d."expoPushToken" IS NOT NULL
+        AND d."lastKnownLocation" IS NOT NULL
+        AND ST_DWithin(
+          d."lastKnownLocation"::geography,
+          ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography,
+          d."deliveryRadius" * 1000
+        )
+    `;
+    return rows.map((r) => r.expoPushToken);
   }
 
   async getMerchantOrders(
