@@ -1,19 +1,27 @@
-export const AUTH_API_ERRORS = {
+export const AUTH_ERRORS = {
+  INVALID_EMAIL: {
+    statusCode: 400,
+    message: 'Invalid email address',
+  },
   EMAIL_ALREADY_USED: {
     statusCode: 409,
-    message: 'Email deja utilise',
+    message: 'Email already in use',
+  },
+  PHONE_ALREADY_USED: {
+    statusCode: 409,
+    message: 'Phone number already in use',
   },
   INVALID_CREDENTIALS: {
     statusCode: 401,
-    message: 'Identifiants invalides',
+    message: 'Invalid credentials',
   },
   INVALID_ACCESS_TOKEN: {
     statusCode: 401,
-    message: "Jeton d'acces invalide",
+    message: 'Invalid access token',
   },
   INVALID_REFRESH_TOKEN: {
     statusCode: 401,
-    message: 'Jeton de rafraichissement invalide',
+    message: 'Invalid refresh token',
   },
   INVALID_API_KEY: {
     statusCode: 401,
@@ -67,20 +75,4 @@ export const AUTH_API_ERRORS = {
   },
 } as const;
 
-export type AuthApiErrorCode = keyof typeof AUTH_API_ERRORS;
-
-export interface AuthApiErrorPayload {
-  code: AuthApiErrorCode;
-  message: string;
-  statusCode: number;
-}
-
-export function createApiError(code: AuthApiErrorCode): AuthApiErrorPayload {
-  const definition = AUTH_API_ERRORS[code];
-
-  return {
-    code,
-    message: definition.message,
-    statusCode: definition.statusCode,
-  };
-}
+export type AuthApiErrorCode = keyof typeof AUTH_ERRORS;

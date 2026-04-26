@@ -2,39 +2,50 @@
 
 Backend NestJS du projet GoMile.
 
-## Périmètre
-
-- API REST métier (orders, handshake, kyc, auth)
-- Persistance PostgreSQL via Prisma
-- Intégration Redis (queues/realtime à compléter)
-
-## Structure
-
-```text
-apps/api
-├── src/                 # code Nest (modules, contrôleurs, services)
-│   ├── prisma/          # PrismaModule + PrismaService
-│   └── ...
-├── prisma/              # schema.prisma + migrations SQL
-├── generated/prisma/    # client Prisma généré
-└── test/                # tests e2e
-```
-
 ## Prérequis
 
 - PostgreSQL/PostGIS actif sur `localhost:5432`
 - Redis actif sur `localhost:6379`
 - Fichier `apps/api/.env` configuré
 
-Depuis la racine du dépôt, vous pouvez démarrer l'infra locale :
+## Commandes utiles
+
+Depuis la racine du dépôt.
+
+### Installer les dépendances
+
+```bash
+pnpm install
+```
+
+### Démarrer l'infrastructure locale
 
 ```bash
 docker compose -f infra/docker-compose.yml up -d
 ```
-Parfois, ```docker compose ``` ne démarre pas correctement, dans ce cas, vous pouvez utiliser ```docker-compose``` (il faut l'installer)
+
+Si `docker compose` ne fonctionne pas sur votre machine, vous pouvez essayer docker-compose, si vous avez déjà installée docker
+
+```bash
+docker-compose -f infra/docker-compose.yml up -d
+```
+
+### Démarrer ou redémarrer Redis
+
+```bash
+docker compose -f infra/docker-compose.yml up -d redis
+docker compose -f infra/docker-compose.yml restart redis
+```
+
+Si besoin de vider le cache Redis (test/démo)
+
+```bash
+docker compose -f infra/docker-compose.yml exec redis redis-cli FLUSHALL
+```
+
 ## Environnement
 
-Copier `apps/api/.env.example` vers `apps/api/.env` puis renseigner :
+Copier `apps/api/.env.example` vers `apps/api/.env` puis renseigner au minimum :
 
 ```env
 DATABASE_URL="postgresql://gomile:gomile@localhost:5432/gomile?schema=public"
@@ -42,19 +53,18 @@ REDIS_URL="redis://localhost:6379"
 PORT=3000
 JWT_ACCESS_SECRET="change-me-access-secret"
 JWT_REFRESH_SECRET="change-me-refresh-secret"
+ORS_API_KEY="your-openrouteservice-key"
+ORS_BASE_URL="https://api.openrouteservice.org"
 ```
 
-## Prisma
-
+### Prisma
+Migrate à lancer si un changement de schéma est fait
 ```bash
-# Génère le client Prisma
 pnpm --filter api exec prisma generate
-
-# Crée et applique une migration locale
 pnpm --filter api exec prisma migrate dev --name <nom_migration>
 ```
 
-## Lancer l'API
+### Lancer l'API en dev
 
 ```bash
 pnpm --filter api start:dev
@@ -62,25 +72,34 @@ pnpm --filter api start:dev
 
 URL par défaut : `http://localhost:3000`
 
-## OpenAPI / Swagger
+### Build
 
-Une fois l'API démarrée :
+```bash
+pnpm --filter api build
+```
 
-- Swagger UI : `http://localhost:3000/docs`
-- Spécification OpenAPI JSON : `http://localhost:3000/openapi.json`
+### Tests
 
-## Vérifications
+```bash
+pnpm --filter api test:ci
+pnpm --filter api test:e2e
+```
+
+### Vérifications
 
 ```bash
 pnpm --filter api lint
 pnpm --filter api exec tsc --noEmit -p tsconfig.json
-pnpm --filter api test:ci
-pnpm --filter api build
 ```
 
-## État d'implémentation
+## Swagger
 
-- Schéma Prisma : en place
-- Module/service Prisma Nest : en place
-- Endpoint racine de santé : en place (`GET /`)
-- Endpoints métier (`/order`, `/accept_order`, `/handshake/*`, `/livreurs/:id/kyc-approve`) : à implémenter
+Une fois l'API démarrée :
+
+- Swagger UI : `http://localhost:3000/docs`
+- OpenAPI JSON : `http://localhost:3000/openapi.json`
+
+## Notes
+
+- Le module livraison utilise OpenRouteService.
+- Redis est utilisé pour cacher le géocodage et les routes ORS.

@@ -32,7 +32,7 @@ export default function Navigation({
 
   return (
     <header className={styles.wrapperClassName}>
-      <Container size="full" className={styles.innerClassName}>
+      <Container fullwidth className={styles.innerClassName}>
         {!hideLogo ? (
           <div className={styles.leftClassName}>
             <Link href="/" className={styles.logoLinkClassName} aria-label="Accueil GoMile">

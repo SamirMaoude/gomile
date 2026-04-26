@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createApiError } from "../../../../shared/api-errors";
+import { authCookies} from "@/lib/auth-proxy";
 
 const DEFAULT_API_BASE_URL = "http://localhost:3000";
 
@@ -69,5 +70,60 @@ export async function forwardRequest(request: NextRequest, backendPath: string) 
       error,
       { status: error.statusCode },
     );
+  }
+}
+
+
+export async function forwardAuthenticatedRequest(
+    request: NextRequest,
+    backendPath: string,
+) {
+  // reads cookie from incoming request
+  const accessToken = request.cookies.get(authCookies.accessToken)?.value;
+
+  // if nothing, stop
+  if (!accessToken) {
+    const error = createApiError("AUTH_TOKEN_MISSING");
+    return NextResponse.json(error, {status: error.statusCode});
+  }
+
+  const method = request.method;
+  const targetUrl = buildTargetUrl(request, backendPath);
+  const hasBody = method !== "GET" && method !== "HEAD";
+  const body = hasBody ? await request.text() : undefined;
+  const headers = forwardableHeaders(request);
+  // converts cookie auth into backend auth
+  headers.set("authorization", `Bearer ${accessToken}`);
+
+  // calling backend
+  try {
+    const backendResponse = await fetch(targetUrl, {
+      method,
+      headers,
+      body,
+      cache: "no-store",
+    });
+    // reads response as text
+    const responseText = await backendResponse.text();
+
+    // prepare headers for response sending to browser
+    const responseHeaders = new Headers();
+    const contentType = backendResponse.headers.get("content-type");
+
+    // preserving content type
+    if (contentType) {
+      responseHeaders.set("content-type", contentType);
+    }
+
+    // responding
+    return new NextResponse(responseText || null, {
+      status: backendResponse.status,
+      headers : responseHeaders,
+    });
+  } catch {
+    const error = createApiError("BACKEND_UNREACHABLE");
+    return NextResponse.json(error, {
+      status: error.statusCode
+    });
   }
 }

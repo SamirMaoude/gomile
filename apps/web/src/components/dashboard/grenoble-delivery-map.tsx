@@ -132,6 +132,7 @@ export default function GrenobleDeliveryMap({
       map.attributionControl.setPrefix(false);
 
       const markerLayer = L.layerGroup().addTo(map);
+
       mapRef.current = map;
       markerLayerRef.current = markerLayer;
 
