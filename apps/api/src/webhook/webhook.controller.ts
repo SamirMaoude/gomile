@@ -21,8 +21,9 @@ export class WebhookController {
     private readonly subscriptionService:  SubscriptionService
   ) {}
 
-  // Deploy application, to be called by webhook
+  // Deploy application, to be called by webhook from Gitlab CI on push to dev branch
   @Post('deploy')
+  @ApiExcludeEndpoint()
   deploy(@Headers('x-gitlab-token') token: string, @Body() body: any) {
     const secret = process.env.GITLAB_WEBHOOK_SECRET;
     if (!secret || token !== secret) {

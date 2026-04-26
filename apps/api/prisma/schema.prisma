@@ -170,6 +170,7 @@ model MerchantApiKey {
   createdAt   DateTime  @default(now())
   revokedAt   DateTime?
   expiresAt   DateTime?
+  webhookSecret String?   @unique
 
   merchant Merchant @relation(fields: [merchantId], references: [userId], onDelete: Cascade)
   store    Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)

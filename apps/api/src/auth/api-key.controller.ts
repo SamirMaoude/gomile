@@ -74,6 +74,7 @@ export class ApiKeyController {
       id: newApiKey.apiKeyId,
       name: dto.name,
       apiKey: newApiKey.apiKey,
+      webhookSecret: newApiKey.webhookSecret,
       createdAt: newApiKey.createdAt,
     };
   }

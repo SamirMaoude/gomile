@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsOptional } from 'class-validator';
 
 export class CreateApiKeyResponseDto {
   @ApiProperty({
@@ -16,6 +17,13 @@ export class CreateApiKeyResponseDto {
     example: 'my-api-key-123456',
   })
   apiKey: string;
+
+  @ApiProperty({
+    description: 'Webhook signing secret. Shown once, store it securely. Use it to verify the X-Gomile-Signature header on incoming webhook events. Null if the store has no webhookUrl configured.',
+    example: 'a3f2c1...',
+    nullable: true,
+  })
+  webhookSecret: string | null;
 
   @ApiProperty({
     format: 'date-time',
