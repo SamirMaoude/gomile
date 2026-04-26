@@ -39,6 +39,8 @@ import { UpdateStoreResponseDto } from './dto/update-store.response.dto';
 import { DeleteStoreResponseDto } from './dto/delete-store-response.dto';
 import { GetStoreResponseDto } from './dto/get-store-response.dto';
 import { ListStoresResponseDto } from './dto/list-stores-response.dto';
+import { ConfigureWebhookDto } from './dto/configure-webhook.dto';
+import { ConfigureWebhookResponseDto } from './dto/configure-webhook-response.dto';
 
 @ApiTags('[Web][Store]')
 @ApiBearerAuth('access-token')
@@ -184,6 +186,27 @@ export class StoreController {
   ) {
     const filter = isActive === undefined ? undefined : isActive === 'true';
     return this.storeService.listStore(user, merchantId, filter);
+  }
+
+  @ApiOperation({
+    summary: 'Configure webhook for a store',
+    description: 'Sets the webhook URL and rotates the signing secret. The secret is shown once — store it securely.',
+  })
+  @ApiBody({ type: ConfigureWebhookDto })
+  @ApiOkResponse({ type: ConfigureWebhookResponseDto })
+  @ApiUnauthorizedResponse({ description: 'Invalid or missing JWT' })
+  @ApiForbiddenResponse({ description: 'Authenticated user does not own this store' })
+  @ApiNotFoundResponse({ description: 'Store not found' })
+  @Roles(Role.MERCHANT)
+  @Patch(':storeId/webhook')
+  @HttpCode(HttpStatus.OK)
+  async configureWebhook(
+    @Param('merchantId') merchantId: string,
+    @Param('storeId') storeId: string,
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: ConfigureWebhookDto,
+  ): Promise<ConfigureWebhookResponseDto> {
+    return this.storeService.configureWebhook(user, merchantId, storeId, dto.webhookUrl);
   }
 
   @ApiOperation({ summary: 'Get a specific store' })

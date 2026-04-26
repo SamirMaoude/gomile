@@ -25,7 +25,6 @@ export interface MerchantApiPrincipal {
 export interface ApiKeyCreatePrincipal {
   apiKeyId: string;
   apiKey: string;
-  webhookSecret: string | null;
   createdAt: Date;
 }
 
@@ -77,11 +76,8 @@ export class ApiKeyService {
       );
     }
 
-    // Generate a random API key; webhook secret only if the store has a webhookUrl
-    // Only store the hash of the API key; webhook secret is stored as-is (we need it to sign outgoing requests)
     const apiKey = randomBytes(32).toString('hex');
     const keyHash = this.hash(apiKey);
-    const webhookSecret = store.webhookUrl ? randomBytes(32).toString('hex') : null;
     const newApiKey = await this.prisma.$transaction([
       this.prisma.merchantApiKey.create({
         data: {
@@ -89,14 +85,12 @@ export class ApiKeyService {
           storeId,
           name,
           keyHash,
-          ...(webhookSecret && { webhookSecret }),
           ...(expiresAt && { expiresAt: new Date(expiresAt) }),
         },
       }),
     ]);
     return {
       apiKey,
-      webhookSecret,
       apiKeyId: newApiKey[0].id,
       createdAt: newApiKey[0].createdAt,
     };

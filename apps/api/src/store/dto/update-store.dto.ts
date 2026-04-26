@@ -5,7 +5,6 @@ import {
   IsNumber,
   IsOptional,
   IsString,
-  IsUrl,
 } from 'class-validator';
 import { StoreProvider } from '@prisma/client';
 
@@ -81,13 +80,4 @@ export class UpdateStoreDto {
   @IsOptional()
   provider?: StoreProvider;
 
-  @ApiProperty({
-    description: 'Webhook URL for order status updates',
-    example: 'https://myshop.com/webhooks/gomile',
-    required: false,
-    type: 'string',
-  })
-  @IsUrl()
-  @IsOptional()
-  webhookUrl?: string;
 }

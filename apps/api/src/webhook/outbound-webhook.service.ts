@@ -26,28 +26,14 @@ export class OutboundWebhookService {
         store: {
           select: {
             webhookUrl: true,
-            apiKeys: {
-              where: {
-                revokedAt: null,
-                OR: [{ 
-                  expiresAt: null 
-                }, { 
-                  expiresAt: { 
-                    gt: new Date() 
-                  } 
-                }],
-              },
-              orderBy: { createdAt: 'desc' },
-              select: { webhookSecret: true },
-              take: 1,
-            },
+            webhookSecret: true,
           },
         },
       },
     });
 
     const webhookUrl = order?.store?.webhookUrl;
-    const webhookSecret = order?.store?.apiKeys?.[0]?.webhookSecret;
+    const webhookSecret = order?.store?.webhookSecret;
 
     if (!webhookUrl || !webhookSecret) return;
 

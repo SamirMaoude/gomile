@@ -17,6 +17,7 @@ import { STORE_MESSAGES } from './store-messages';
 import { CreateStoreResponseDto } from './dto/create-store-response.dto';
 import { DeleteStoreResponseDto } from './dto/delete-store-response.dto';
 import { AuthenticatedUser } from '../auth/auth.types';
+import { randomBytes } from 'crypto';
 import { OrderStatus, Role, SubscriptionStatus } from '@prisma/client';
 import { SUBSCRIPTION_ERRORS } from '../subscription/subscription.errors';
 import { TIER_LIMITS } from '../subscription/subscription.config';
@@ -137,7 +138,6 @@ export class StoreService {
         longitude,
         domain: dto.domain,
         provider: dto.provider,
-        webhookUrl: dto.webhookUrl,
       },
     });
 
@@ -180,7 +180,6 @@ export class StoreService {
         longitude: dto.longitude,
         domain: dto.domain,
         provider: dto.provider,
-        webhookUrl: dto.webhookUrl,
       },
     });
     // Update PostGis location only if coordinates were provided
@@ -298,6 +297,26 @@ export class StoreService {
         createdAt: 'desc',
       },
     });
+  }
+
+  // Configure webhook: set URL and rotate signing secret
+  async configureWebhook(
+    user: AuthenticatedUser,
+    merchantId: string,
+    storeId: string,
+    webhookUrl: string,
+  ): Promise<{ webhookUrl: string; webhookSecret: string }> {
+    if (user.id !== merchantId) {
+      throw new ForbiddenException(createApiError('NOT_OWNER', AUTH_ERRORS));
+    }
+    await this.verifyOwnership(merchantId, storeId);
+
+    const webhookSecret = randomBytes(32).toString('hex');
+    await this.prisma.store.update({
+      where: { id: storeId },
+      data: { webhookUrl, webhookSecret },
+    });
+    return { webhookUrl, webhookSecret };
   }
 
   // Get store
