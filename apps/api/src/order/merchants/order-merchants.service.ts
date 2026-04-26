@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { NotificationService } from '../../notification/notification.service';
+import { OutboundWebhookService } from '../../webhook/outbound-webhook.service';
 import { CreateOrderDto } from '../dto/create-order.dto';
 import { AuthenticatedUser } from '../../auth/auth.types';
 import { createApiError } from '../../common/api-error';
@@ -35,6 +36,7 @@ export class OrderService {
     private readonly openRouteService: OpenRouteService,
     private readonly deliveryPricingService: DeliveryPricingService,
     private readonly notificationService: NotificationService,
+    private readonly outboundWebhook: OutboundWebhookService,
   ) {}
   private handshakeTTL = 12 * 60 * 60 * 1000; // 12h for short deliveries, or maybe less
 
@@ -186,6 +188,7 @@ export class OrderService {
       deliveryCode,
       deliveryFee,
       distanceKm,
+      status: order.status,
       message: ORDER_MESSAGE.ORDER_CREATED,
     };
   }
@@ -295,6 +298,7 @@ export class OrderService {
         cancelledAt: new Date(),
       },
     });
+    this.outboundWebhook.fireOrderEvent(orderId, OrderStatus.CANCELLED);
     return { message: ORDER_MESSAGE.ORDER_CANCELLED };
   }
 
@@ -334,7 +338,7 @@ export class OrderService {
       where: { id: order.id },
       data: { status: OrderStatus.CANCELLED, cancelledAt: new Date() },
     });
-
+    this.outboundWebhook.fireOrderEvent(order.id, OrderStatus.CANCELLED);
     return { message: ORDER_MESSAGE.ORDER_CANCELLED };
   }
 

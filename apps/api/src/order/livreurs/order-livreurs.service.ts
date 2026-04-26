@@ -24,12 +24,14 @@ import { ORDER_ERRORS } from '../order-errors';
 import { ListDriverOrdersResponseDto } from '../dto/list-livreurs-orders-response';
 import { ORDER_MESSAGE } from '../order-messages';
 import { SmsService } from '../../sms/sms.service';
+import { OutboundWebhookService } from '../../webhook/outbound-webhook.service';
 
 @Injectable()
 export class OrderLivreursService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly sms: SmsService
+    private readonly sms: SmsService,
+    private readonly outboundWebhook: OutboundWebhookService,
   ) {}
   private async existsDriver(driverId: string) {
     const driver = await this.prisma.driver.findUnique({
@@ -143,6 +145,7 @@ export class OrderLivreursService {
       order!.customerPhone,
       `A driver has accepted your order and is heading to pick it up.`,
     );
+    this.outboundWebhook.fireOrderEvent(orderId, OrderStatus.DRIVER_ACCEPTED);
 
     // Driver should present to the merchant presenting the pickup code
     return {
@@ -317,7 +320,8 @@ export class OrderLivreursService {
       order.customerPhone,
       `${driver.firstName} has picked up your order and is on the way ! \n
       Please show the following code to the driver when he arrives: ${deliveryHandshake.code}`,
-    )
+    );
+    this.outboundWebhook.fireOrderEvent(orderId, OrderStatus.PICKED_UP);
 
     return { orderId: orderId, message: ORDER_MESSAGE.ORDER_PICKED_UP };
   }
@@ -454,6 +458,7 @@ export class OrderLivreursService {
       order.customerPhone,
       `Your GoMile order has been delivered. Thank you!`,
     );
+    this.outboundWebhook.fireOrderEvent(orderId, OrderStatus.DELIVERED);
 
     return { orderId: orderId, message: ORDER_MESSAGE.ORDER_DELIVERED };
   }

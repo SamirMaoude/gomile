@@ -22,6 +22,11 @@ export class CreateOrderResponseDto {
   })
   distanceKm: number;
 
+  @ApiProperty({
+    description: 'Current status of the order',
+  })
+  status: string;
+
   @ApiProperty({ description: 'Message', type: 'string' })
   message: string;
 }
