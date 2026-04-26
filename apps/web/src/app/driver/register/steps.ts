@@ -14,7 +14,6 @@ export type DriverRegisterFormData = {
   deliveryCity: string;
   deliveryRadius: string;
   email: string;
-  equipments: string;
   firstName: string;
   gender: Gender;
   justificatifFile: string;
@@ -122,7 +121,6 @@ export const initialDriverRegisterFormData: DriverRegisterFormData = {
   deliveryCity: "",
   deliveryRadius: "",
   email: "",
-  equipments: "",
   firstName: "",
   gender: "UNDEFINED",
   justificatifFile: "",
@@ -152,7 +150,6 @@ export function normalizeDriverRegisterFormData(
     deliveryCity: formData.deliveryCity.trim(),
     deliveryRadius: formData.deliveryRadius.trim(),
     email: formData.email.trim(),
-    equipments: formData.equipments.trim(),
     firstName: formData.firstName.trim(),
     justificatifFile: formData.justificatifFile.trim(),
     kbisFile: formData.kbisFile.trim(),
@@ -166,23 +163,25 @@ export function normalizeDriverRegisterFormData(
   };
 }
 
-function parseEquipments(value: string): string[] | undefined {
-  const equipments = value
-    .split(",")
-    .map((item) => item.trim())
-    .filter(Boolean);
+export function hasCompleteAddressParts(formData: DriverRegisterFormData) {
+  return Boolean(formData.street && formData.zipCode && formData.city);
+}
 
-  return equipments.length > 0 ? equipments : undefined;
+function buildAddressFromParts(formData: DriverRegisterFormData) {
+  return [formData.street, formData.zipCode, formData.city]
+    .filter(Boolean)
+    .join(", ");
 }
 
 export function buildRegisterDriverInput(
   formData: DriverRegisterFormData,
 ): RegisterDriverInput {
   const normalizedFormData = normalizeDriverRegisterFormData(formData);
-  const equipments = parseEquipments(normalizedFormData.equipments);
+  const address =
+    normalizedFormData.address || buildAddressFromParts(normalizedFormData);
 
   return {
-    address: normalizedFormData.address,
+    address,
     dateOfBirth: normalizedFormData.dateOfBirth,
     deliveryCity: normalizedFormData.deliveryCity,
     deliveryRadius: Number.parseInt(normalizedFormData.deliveryRadius, 10),
@@ -197,7 +196,6 @@ export function buildRegisterDriverInput(
     ...(normalizedFormData.city ? { city: normalizedFormData.city } : {}),
     ...(normalizedFormData.zipCode ? { zipCode: normalizedFormData.zipCode } : {}),
     ...(normalizedFormData.street ? { street: normalizedFormData.street } : {}),
-    ...(equipments ? { equipments } : {}),
     ...(normalizedFormData.cniFile ? { cniFile: normalizedFormData.cniFile } : {}),
     ...(normalizedFormData.justificatifFile
       ? { justificatifFile: normalizedFormData.justificatifFile }

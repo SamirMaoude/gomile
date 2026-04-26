@@ -8,6 +8,7 @@ import { uploadDriverRegistrationAssets, type DriverRegisterFiles } from "./regi
 import {
   buildRegisterDriverInput,
   driverRegisterSteps,
+  hasCompleteAddressParts,
   initialDriverRegisterFormData,
   normalizeDriverRegisterFormData,
   type DriverRegisterDocumentField,
@@ -68,8 +69,22 @@ function buildStepErrors(
     if (normalizedFormData.gender === "UNDEFINED") {
       errors.gender = "Selectionnez votre genre.";
     }
-    if (!normalizedFormData.address) {
-      errors.address = "Renseignez votre adresse.";
+    if (
+      !normalizedFormData.address &&
+      !hasCompleteAddressParts(normalizedFormData)
+    ) {
+      errors.address =
+        "Renseignez l'adresse complete ou les champs rue, code postal et ville.";
+
+      if (!normalizedFormData.street) {
+        errors.street = "Renseignez la rue.";
+      }
+      if (!normalizedFormData.zipCode) {
+        errors.zipCode = "Renseignez le code postal.";
+      }
+      if (!normalizedFormData.city) {
+        errors.city = "Renseignez la ville.";
+      }
     }
   } else if (stepId === 3) {
     if (!normalizedFormData.deliveryCity) {
