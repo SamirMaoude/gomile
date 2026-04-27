@@ -1,4 +1,1 @@
-// Ce classe a pour role de factoriser le type des icones
-export type IconProps = {
-  className?: string;
-};
+export type { LucideProps as IconProps } from "lucide-react";

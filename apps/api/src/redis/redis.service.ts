@@ -18,11 +18,10 @@ export class RedisService implements OnModuleDestroy, OnModuleInit {
   constructor(private readonly configService: ConfigService) {
     this.client = createClient({
       url:
-        this.configService.get<string>('REDIS_URL') ??
-        'redis://localhost:6379', // redis is predefined in env, if not use default
+        this.configService.get<string>('REDIS_URL') ?? 'redis://localhost:6379', // redis is predefined in env, if not use default
     });
 
-    this.client.on('error', (err) => {
+    this.client.on('error', (err: Error) => {
       this.logger.error(`Redis error: ${err.message}`);
     });
   }

@@ -56,8 +56,8 @@ export class OpenRouteService {
 
   private get baseUrl() {
     return (
-        this.configService.get<string>('ORS_BASE_URL') ??
-        'https://api.openrouteservice.org'
+      this.configService.get<string>('ORS_BASE_URL') ??
+      'https://api.openrouteservice.org'
     );
   }
 
@@ -82,7 +82,9 @@ export class OpenRouteService {
     try {
       response = await fetch(url.toString());
     } catch {
-      throw new BadGatewayException('Failed to reach OpenRouteService geocoder');
+      throw new BadGatewayException(
+        'Failed to reach OpenRouteService geocoder',
+      );
     }
 
     if (!response.ok) {
@@ -169,9 +171,7 @@ export class OpenRouteService {
     const summary = data.routes?.[0]?.summary;
 
     if (!summary) {
-      throw new BadGatewayException(
-        'OpenRouteService did not return a route',
-      );
+      throw new BadGatewayException('OpenRouteService did not return a route');
     }
 
     const result = {
@@ -194,10 +194,7 @@ export class OpenRouteService {
     return `ors:geocode:${this.normalizeAddress(address)}`;
   }
 
-  private routeKey(
-    pickup: Coordinates,
-    dropoff: Coordinates,
-  ) {
+  private routeKey(pickup: Coordinates, dropoff: Coordinates) {
     return `ors:route:${pickup.longitude.toFixed(6)},${pickup.latitude.toFixed(6)}:${dropoff.longitude.toFixed(6)},${dropoff.latitude.toFixed(6)}`;
   }
 }

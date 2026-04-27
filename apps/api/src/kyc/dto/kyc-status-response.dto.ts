@@ -8,7 +8,9 @@ class KycDocumentDto {
   @ApiProperty({ enum: DocumentType })
   type: DocumentType;
 
-  @ApiProperty({ example: 'https://bucket.s3.region.amazonaws.com/uploads/uuid.pdf' })
+  @ApiProperty({
+    example: 'https://bucket.s3.region.amazonaws.com/uploads/uuid.pdf',
+  })
   url: string;
 
   @ApiProperty()
@@ -42,6 +44,10 @@ export class KycStatusResponseDto {
   @ApiProperty({ type: [KycDocumentDto] })
   documents: KycDocumentDto[];
 
-  @ApiProperty({ type: () => KycSubmissionSummaryDto, nullable: true, example: null })
+  @ApiProperty({
+    type: () => KycSubmissionSummaryDto,
+    nullable: true,
+    example: null,
+  })
   latestSubmission: KycSubmissionSummaryDto | null;
 }

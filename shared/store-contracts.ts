@@ -4,11 +4,10 @@ export interface CreateStoreInput {
   name: string;
   description?: string;
   address: string;
-  latitude: number;
-  longitude: number;
+  latitude?: number;
+  longitude?: number;
   domain?: string;
   provider?: StoreProvider;
-  webhookUrl?: string;
 }
 
 export interface UpdateStoreInput {
@@ -19,7 +18,15 @@ export interface UpdateStoreInput {
   longitude?: number;
   domain?: string;
   provider?: StoreProvider;
-  webhookUrl?: string;
+}
+
+export interface ConfigureWebhookInput {
+  webhookUrl: string;
+}
+
+export interface ConfigureWebhookResponse {
+  webhookUrl: string;
+  webhookSecret: string;
 }
 
 export interface StoreResponse {
@@ -28,6 +35,7 @@ export interface StoreResponse {
   name: string;
   description: string | null;
   isActive: boolean;
+  isLocked: boolean;
   address: string;
   latitude: number;
   longitude: number;
@@ -36,4 +44,27 @@ export interface StoreResponse {
   webhookUrl: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface StoreOrderCount {
+  orders: number;
+}
+
+export interface ListStoresItem extends StoreResponse {
+  _count: StoreOrderCount;
+}
+
+export interface CreateStoreResponse {
+  id: string;
+  name: string;
+}
+
+export interface UpdateStoreResponse {
+  id: string;
+  name: string;
+  message: string;
+}
+
+export interface DeleteStoreResponse {
+  message: string;
 }

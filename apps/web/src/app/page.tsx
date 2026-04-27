@@ -1,104 +1,32 @@
-import Button from "@/components/ui/design-system/button/button";
-import Footer from "@/components/ui/design-system/header_footer/footer";
+import HeroSection from "@/components/sections/HeroSection/HeroSection";
+import StepSection from "@/components/sections/StepSection/StepSection";
+import Card from "@/components/ui/design-system/cards/card";
+import FooterLP from "@/components/ui/design-system/header_footer/footerlp";
+import Title_ST from "@/components/ui/design-system/titre/title_st";
 import Container from "@/components/ui/elements/container";
-import Typography from "@/components/ui/design-system/typography";
-import NavigationDefault from "@/components/ui/header/navigation-default";
+import { Navigation } from "@/components/ui/navigation/navigation";
+import { Clock, MapPin, Shield, Smartphone, Truck, Headphones } from "lucide-react"
 
-export default function HomePage() {
-  return (
-    <div
-      className="flex h-screen w-full flex-col bg-cover bg-center"
-      style={{ backgroundImage: "url('/images/bg.png')" }}
-    >
-      <NavigationDefault />
-
-      <main className="flex flex-1 flex-col items-center justify-center p-6">
-        <div className="mx-auto flex h-150 w-250 flex-col items-center justify-center gap-3 rounded-card border-2 border-gray-200 bg-bg-card p-2 shadow-lg">
-          <Typography
-            variant="h1"
-            weight="bold"
-            theme="black"
-            className="text-center"
-          >
-            Bienvenue sur GoMile
-          </Typography>
-
-          <div className="flex w-full flex-1 gap-5">
-            <Container
-              className="flex flex-1 flex-col items-center justify-center gap-2 rounded-card border-2 border-gray-200 bg-white shadow"
-              fullwidth={true}
-            >
-              <div className="flex flex-col">
-                <Typography
-                  variant="h4"
-                  weight="bold"
-                  theme="black"
-                  className="text-center"
-                >
-                  Je suis un commerçant
-                </Typography>
-                <Typography
-                  variant="span"
-                  theme="black"
-                  className="text-center"
-                >
-                  Gérez vos livraisons en toute simplicité avec GoMile, votre
-                  partenaire de confiance pour une logistique efficace et sans
-                  stress.
-                </Typography>
-              </div>
-
-              <div
-                className="h-64 w-64 bg-cover bg-center"
-                style={{ backgroundImage: "url('/images/commercant.png')" }}
-              />
-
-              <Button variant="filled" size="md">
-                Je m&apos;inscris
-              </Button>
-              <Button variant="filled" size="md" href="/merchant/login">
-                Je me connecte
-              </Button>
+export default function LandingPage() {
+    return (
+        <main>
+            <Navigation theme="landingpage"/>
+            <HeroSection/>
+            <Container size='full' Component="section" className="section-container" padding={false}>
+                <div className="mx-auto flex w-full max-w-6xl flex-col gap-12">
+                    <Title_ST title="Pourquoi choisir GoMile?" sub_title="Découvrez les avantages de notre service de livraison rapide et fiable."></Title_ST>
+                    <div className="grid-3-cols">
+                        <Card className="h-full" icon={<Clock size={22} />} iconTheme="green" title="Livraison Express" description="Recevez vos colis en moins d'une heure."></Card>
+                        <Card className="h-full" icon={<MapPin size={22} />} iconTheme="blue" title="Dessert toute la région" description="Recevez vos colis en moins d'une heure."></Card>
+                        <Card className="h-full" icon={<Shield size={22} />} iconTheme="green" title="Protection" description="Recevez vos colis en moins d'une heure."></Card>
+                        <Card className="h-full" icon={<Smartphone size={22} />} iconTheme="blue" title="Facilité d'utilisation" description="Recevez vos colis en moins d'une heure."></Card>
+                        <Card className="h-full" icon={<Truck size={22} />} iconTheme="green" title="Livraison Express" description="Recevez vos colis en moins d'une heure."></Card>
+                        <Card className="h-full" icon={<Headphones size={22} />} iconTheme="blue" title="Service d'assistance" description="Recevez vos colis en moins d'une heure."></Card>
+                    </div>
+                </div>
             </Container>
-
-            <Container
-              className="flex flex-1 flex-col items-center justify-center gap-2 rounded-card border-2 border-gray-200 bg-white shadow"
-              fullwidth={true}
-            >
-              <div className="flex flex-col">
-                <Typography
-                  variant="h4"
-                  weight="bold"
-                  theme="black"
-                  className="text-center"
-                >
-                  Je suis un livreur
-                </Typography>
-                <Typography
-                  variant="span"
-                  theme="black"
-                  className="text-center"
-                >
-                  Devenez votre propre patron et livrez quand vous voulez
-                </Typography>
-              </div>
-
-              <div
-                className="h-64 w-64 bg-cover bg-center"
-                style={{ backgroundImage: "url('/images/livreur.png')" }}
-              />
-
-              <div className="flex w-full justify-center">
-                <Button variant="filled" size="md">
-                  Je m&apos;inscris
-                </Button>
-              </div>
-            </Container>
-          </div>
-        </div>
-      </main>
-
-      <Footer />
-    </div>
-  );
+            <StepSection/>
+            <FooterLP/>
+        </main>
+    )
 }

@@ -1,19 +1,4 @@
-export const backgroundImageStyle = {
-  backgroundImage: "url('/images/bg.png')",
-};
-
 export const styles = {
-  page: "relative isolate min-h-screen overflow-hidden bg-cover bg-center",
-  overlay:
-    "absolute inset-0 bg-[linear-gradient(135deg,rgba(191,217,229,0.14),rgba(255,255,255,0.16))]",
-
-  container:
-    "relative z-10 flex min-h-screen items-center justify-center py-4 !px-4 sm:!px-6 lg:!px-10",
-
-  backLink:
-    "absolute left-4 top-4 inline-flex items-center rounded-full border border-white/70 bg-white/45 px-4 py-2 shadow-[0_10px_30px_rgba(15,23,42,0.08)] backdrop-blur transition hover:bg-white/60 sm:left-6 sm:top-6",
-  backLinkText: "text-sm !text-slate-800",
-
   card:
     "w-full max-w-[22rem] overflow-hidden rounded-[1.8rem] shadow-[0_26px_90px_rgba(24,58,92,0.18)] sm:max-w-[34rem] lg:max-w-[72rem]",
   splitCard: "grid lg:grid-cols-[0.92fr_1.08fr]",
@@ -39,7 +24,14 @@ export const styles = {
 
   form: "mt-6 space-y-4 lg:mt-7 lg:space-y-5",
 
-  fieldContainer: "",
+  fieldContainer: "w-full",
+  phoneInputRoot:
+    "!flex !w-full [--react-international-phone-height:3.75rem] lg:[--react-international-phone-height:4.35rem] [--react-international-phone-border-radius:1.4rem] [--react-international-phone-border-color:rgba(15,23,42,0.85)] [--react-international-phone-background-color:#fff] [--react-international-phone-text-color:#020617] [--react-international-phone-dropdown-item-text-color:#0f172a] [--react-international-phone-dropdown-item-background-color:#fff] [--react-international-phone-dropdown-item-hover-background-color:#f1f5f9] [--react-international-phone-dropdown-item-dial-code-color:#475569] [--react-international-phone-country-selector-background-color:#fff] [--react-international-phone-country-selector-background-color-hover:#f8fafc] [--react-international-phone-country-selector-border-color:rgba(15,23,42,0.85)] [--react-international-phone-country-selector-border-radius:1.4rem_0_0_1.4rem] [--react-international-phone-input-border-color:rgba(15,23,42,0.85)] [--react-international-phone-input-border-radius:0_1.4rem_1.4rem_0] [--react-international-phone-dropdown-shadow:0_18px_50px_rgba(15,23,42,0.16)]",
+  phoneInputField:
+    "!h-[3.75rem] !min-h-[3.75rem] !w-full !flex-1 !text-[1.05rem] !text-slate-950 placeholder:!text-slate-700 lg:!h-[4.35rem] lg:!min-h-[4.35rem] lg:!text-[1.2rem]",
+  phoneCountryButton:
+    "!h-[3.75rem] !min-h-[3.75rem] !shrink-0 !border-2 !border-slate-700/85 focus:!border-primary-light lg:!h-[4.35rem] lg:!min-h-[4.35rem]",
+  phoneCountryArrow: "!text-slate-700",
   fieldWrapper:
     "h-[3.75rem] rounded-[1.4rem] border-2 border-slate-700/85 bg-white px-4 focus-within:!border-primary-light focus-within:ring-4 focus-within:ring-emerald-100 lg:h-[4.35rem]",
   fieldInput:

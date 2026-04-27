@@ -9,7 +9,7 @@ default:
     - corepack enable
     - corepack prepare pnpm@10.30.3 --activate
     - pnpm config set store-dir .pnpm-store
-    - pnpm install --frozen-lockfile=false
+    - pnpm install --frozen-lockfile=false --network-concurrency=1 --child-concurrency=1
   cache:
     key: "${CI_COMMIT_REF_SLUG}"
     paths:
@@ -65,9 +65,14 @@ build_api:
 
 mobile_check:
   stage: build
+  before_script:
+    - corepack enable
+    - corepack prepare pnpm@10.30.3 --activate
+    - pnpm config set store-dir .pnpm-store
+    - pnpm install --filter gomileapp... --frozen-lockfile=false --network-concurrency=1 --child-concurrency=1
   script:
-    - EXPO_NO_TELEMETRY=1 pnpm --filter mobile lint || true
-    - pnpm --filter mobile typecheck
+    - EXPO_NO_TELEMETRY=1 pnpm --filter gomileapp lint
+    - pnpm --filter gomileapp typecheck
 
 audit:
   stage: security

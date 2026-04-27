@@ -1,11 +1,17 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { StoreProvider } from "@prisma/client";
+import { ApiProperty } from '@nestjs/swagger';
+import { StoreProvider } from '@prisma/client';
 
 export class GetStoreResponseDto {
-  @ApiProperty({ format: 'uuid', example: '0f7b36cf-b12a-4d2b-9cb5-6d4d7f934112' })
+  @ApiProperty({
+    format: 'uuid',
+    example: '0f7b36cf-b12a-4d2b-9cb5-6d4d7f934112',
+  })
   id: string;
 
-  @ApiProperty({ format: 'uuid', example: '0f7b36cf-b12a-4d2b-9cb5-6d4d7f934112' })
+  @ApiProperty({
+    format: 'uuid',
+    example: '0f7b36cf-b12a-4d2b-9cb5-6d4d7f934112',
+  })
   merchantId: string;
 
   @ApiProperty({ example: "Riku's pet shop" })
@@ -16,6 +22,9 @@ export class GetStoreResponseDto {
 
   @ApiProperty({ example: true })
   isActive: boolean;
+
+  @ApiProperty({ example: false, description: 'Locked by system due to subscription downgrade' })
+  isLocked: boolean;
 
   @ApiProperty({ example: '25 boulevard Clemenceau, 38100 Grenoble' })
   address: string;
@@ -32,7 +41,10 @@ export class GetStoreResponseDto {
   @ApiProperty({ enum: StoreProvider, nullable: true, example: null })
   provider: StoreProvider | null;
 
-  @ApiProperty({ nullable: true, example: 'https://myshop.com/webhooks/gomile' })
+  @ApiProperty({
+    nullable: true,
+    example: 'https://myshop.com/webhooks/gomile',
+  })
   webhookUrl: string | null;
 
   @ApiProperty({ type: 'string', format: 'date-time' })

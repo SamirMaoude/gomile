@@ -83,7 +83,6 @@ describe('KycController (e2e)', () => {
     const submission = await prisma.kycSubmission.create({
       data: {
         driverId: auth.user.id,
-        documentUrl: 'https://example.test/kyc/kyc-driver-id.jpg',
       },
     });
     await prisma.driver.update({
@@ -108,8 +107,16 @@ describe('KycController (e2e)', () => {
       .set('Authorization', `Bearer ${auth.accessToken}`)
       .expect(HttpStatus.OK);
 
-    expect(response.body.status).toBe('PENDING');
-    expect(response.body.latestSubmission).toMatchObject({
+    const body = response.body as {
+      status: string;
+      latestSubmission: {
+        id: string;
+        status: string;
+        rejectionReason: string | null;
+      };
+    };
+    expect(body.status).toBe('PENDING');
+    expect(body.latestSubmission).toMatchObject({
       id: submission.id,
       status: 'PENDING',
       documentUrl: 'https://example.test/kyc/kyc-driver-id.jpg',

@@ -9,7 +9,6 @@ import {
   IsInt,
   Min,
   IsPhoneNumber,
-  IsArray,
   IsUrl,
 } from 'class-validator';
 import { Gender, VehicleType } from '@prisma/client';
@@ -44,10 +43,9 @@ export class RegisterDriverDto {
   @IsEnum(Gender)
   gender: Gender;
 
-  @ApiProperty({ example: 'https://example.com/avatar.jpg', required: false })
+  @ApiProperty({ example: 'https://example.com/avatar.jpg' })
   @IsUrl()
-  @IsOptional()
-  avatarUrl?: string;
+  avatarUrl: string;
 
   // Address
   @ApiProperty({ example: '22 boulevard Clemenceau, 38000 Grenoble' })
@@ -83,29 +81,37 @@ export class RegisterDriverDto {
   @IsEnum(VehicleType)
   transportType: VehicleType;
 
-  @ApiProperty({ example: ['isotherme', 'casque'], type: [String], required: false })
-  @IsArray()
-  @IsString({ each: true })
-  @IsOptional()
-  equipments?: string[];
-
   // Documents (URLs — files must be uploaded first)
-  @ApiProperty({ example: 'https://storage.example.com/cni.jpg', required: false })
+  @ApiProperty({
+    example: 'https://storage.example.com/cni.jpg',
+    required: false,
+  })
   @IsUrl()
   @IsOptional()
   cniFile?: string;
 
-  @ApiProperty({ example: 'https://storage.example.com/justif.jpg', required: false })
+  @ApiProperty({
+    example: 'https://storage.example.com/justif.jpg',
+    required: false,
+  })
   @IsUrl()
   @IsOptional()
   justificatifFile?: string;
 
-  @ApiProperty({ example: 'https://storage.example.com/permis.jpg', required: false, description: 'Required if transportType is not BIKE' })
+  @ApiProperty({
+    example: 'https://storage.example.com/permis.jpg',
+    required: false,
+    description: 'Required if transportType is not BIKE',
+  })
   @IsUrl()
   @IsOptional()
   permisFile?: string;
 
-  @ApiProperty({ example: 'https://storage.example.com/cartegrise.jpg', required: false, description: 'Required if transportType is not BIKE' })
+  @ApiProperty({
+    example: 'https://storage.example.com/cartegrise.jpg',
+    required: false,
+    description: 'Required if transportType is not BIKE',
+  })
   @IsUrl()
   @IsOptional()
   carteGriseFile?: string;
@@ -116,12 +122,18 @@ export class RegisterDriverDto {
   @IsOptional()
   siret?: string;
 
-  @ApiProperty({ example: 'https://storage.example.com/kbis.pdf', required: false })
+  @ApiProperty({
+    example: 'https://storage.example.com/kbis.pdf',
+    required: false,
+  })
   @IsUrl()
   @IsOptional()
   kbisFile?: string;
 
-  @ApiProperty({ example: 'https://storage.example.com/rib.pdf', required: false })
+  @ApiProperty({
+    example: 'https://storage.example.com/rib.pdf',
+    required: false,
+  })
   @IsUrl()
   @IsOptional()
   ribFile?: string;

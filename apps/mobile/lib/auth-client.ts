@@ -9,10 +9,10 @@ import type {
   RegisterDriverInput,
   RegisterMerchantInput,
   Role,
-} from "../../../shared/auth-contracts";
-import { AUTH_MESSAGES } from "../../../shared/auth-messages";
-import type { ApiErrorPayload } from "../../../shared/api-errors";
-import { createApiError } from "../../../shared/api-errors";
+} from "./auth-contracts";
+import { AUTH_MESSAGES } from "./auth-messages";
+import type { ApiErrorPayload } from "./api-errors";
+import { createApiError } from "./api-errors";
 import { getAuthTokenStore } from "./auth-storage";
 
 const DEFAULT_API_BASE_URL = "http://localhost:3000";
@@ -41,7 +41,14 @@ async function parseError(response: Response) {
 
   if (contentType?.includes("application/json")) {
     const payload = (await response.json()) as Partial<ApiErrorPayload>;
-    return payload.message ?? payload.code ?? fallbackError.message;
+    const message = payload.message;
+    if (Array.isArray(message)) {
+      return message.join("\n");
+    }
+    if (typeof message === "string") {
+      return message;
+    }
+    return payload.code ?? `Erreur ${response.status}`;
   }
 
   const text = await response.text();

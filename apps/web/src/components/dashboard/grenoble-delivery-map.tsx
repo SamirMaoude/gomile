@@ -1,15 +1,11 @@
 "use client";
 
-import { MapMarkerData, mapMarkers } from "@/dummiesData/mapMarkers";
+import type { MerchantMapMarker } from "@/components/dashboard/dashboard-overview.model";
 import { useEffect, useRef, useState } from "react";
 
 type LeafletModule = typeof import("leaflet");
 
 const GRENOBLE_CENTER: [number, number] = [45.1885, 5.7245];
-const GRENOBLE_BOUNDS = {
-  southWest: [45.153, 5.673] as [number, number],
-  northEast: [45.214, 5.781] as [number, number],
-};
 
 function escapeHtml(value: string) {
   return value
@@ -33,19 +29,19 @@ function getThemeColor(variableName: string, fallback: string) {
   return value || fallback;
 }
 
-function popupToneLabel(tone: MapMarkerData["tone"]) {
+function popupToneLabel(tone: MerchantMapMarker["tone"]) {
   if (tone === "green") return "En route";
   if (tone === "amber") return "Attention";
   return "Incident";
 }
 
-function popupToneClass(tone: MapMarkerData["tone"]) {
+function popupToneClass(tone: MerchantMapMarker["tone"]) {
   if (tone === "green") return "gomile-map-popup__pill--green";
   if (tone === "amber") return "gomile-map-popup__pill--amber";
   return "gomile-map-popup__pill--red";
 }
 
-function markerColors(tone: MapMarkerData["tone"]) {
+function markerColors(tone: MerchantMapMarker["tone"]) {
   const border = getThemeColor("--color-bg-card", "#FFFFCC");
 
   if (tone === "green") {
@@ -68,11 +64,12 @@ function markerColors(tone: MapMarkerData["tone"]) {
   };
 }
 
-function buildPopupContent(marker: MapMarkerData) {
+function buildPopupContent(marker: MerchantMapMarker) {
   const status = marker.status ?? popupToneLabel(marker.tone);
   const destination = marker.destination ?? "Point de livraison";
-  const eta = marker.eta
-    ? `<div class="gomile-map-popup__eta">${escapeHtml(marker.eta)}</div>`
+  const metaLabel = marker.metaLabel ?? "Mise a jour";
+  const metaValue = marker.metaValue
+    ? `<div class="gomile-map-popup__eta">${escapeHtml(marker.metaValue)}</div>`
     : "";
 
   return `
@@ -84,16 +81,16 @@ function buildPopupContent(marker: MapMarkerData) {
         </span>
       </div>
       <div class="gomile-map-popup__destination">${escapeHtml(destination)}</div>
-      <div class="gomile-map-popup__caption">Heure prévue</div>
-      ${eta}
+      <div class="gomile-map-popup__caption">${escapeHtml(metaLabel)}</div>
+      ${metaValue}
     </div>
   `;
 }
 
 export default function GrenobleDeliveryMap({
-  markers = mapMarkers,
+  markers = [],
 }: {
-  markers?: MapMarkerData[];
+  markers?: MerchantMapMarker[];
 }) {
   const [isMapReady, setIsMapReady] = useState(false);
 
@@ -123,8 +120,8 @@ export default function GrenobleDeliveryMap({
         zoom: 13,
         zoomControl: true,
         scrollWheelZoom: true,
-        minZoom: 12,
-        maxZoom: 18,
+        minZoom: 2,
+        maxZoom: 19,
       });
 
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -133,11 +130,6 @@ export default function GrenobleDeliveryMap({
       }).addTo(map);
 
       map.attributionControl.setPrefix(false);
-      map.setMaxBounds([
-        GRENOBLE_BOUNDS.southWest,
-        GRENOBLE_BOUNDS.northEast,
-      ]);
-      map.options.maxBoundsViscosity = 0.8;
 
       const markerLayer = L.layerGroup().addTo(map);
 
@@ -179,8 +171,6 @@ export default function GrenobleDeliveryMap({
 
     markerLayer.clearLayers();
 
-    const bounds = L.latLngBounds([]);
-
     markers.forEach((marker) => {
       const colors = markerColors(marker.tone);
 
@@ -200,20 +190,10 @@ export default function GrenobleDeliveryMap({
       });
 
       leafletMarker.addTo(markerLayer);
-      bounds.extend([marker.lat, marker.lng]);
     });
-
-    if (markers.length > 0 && bounds.isValid()) {
-      map.fitBounds(bounds, {
-        padding: [36, 36],
-        maxZoom: 14,
-      });
-    } else {
-      map.setView(GRENOBLE_CENTER, 13);
-    }
   }, [markers, isMapReady]);
 
   return <div ref={containerRef} className="gomile-leaflet-map h-full w-full" />;
 }
 
-export type { MapMarkerData };
+export type { MerchantMapMarker as MapMarkerData };

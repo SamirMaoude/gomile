@@ -67,8 +67,9 @@ describe('Store CRUD (e2e)', () => {
       .send(storePayload)
       .expect(HttpStatus.CREATED);
 
-    expect(response.body.id).toBeDefined();
-    expect(response.body.name).toBe(storePayload.name);
+    const body = response.body as { id: string; name: string };
+    expect(body.id).toBeDefined();
+    expect(body.name).toBe(storePayload.name);
   });
 
   it('forbids a merchant from creating a store for another merchant', async () => {
@@ -91,10 +92,10 @@ describe('Store CRUD (e2e)', () => {
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(HttpStatus.OK);
 
-    expect(Array.isArray(response.body)).toBe(true);
-    expect(response.body.length).toBe(1);
-    // should have the first store created by the function
-    expect(response.body[0].name).toBe(storePayload.name);
+    const stores = response.body as { id: string; name: string }[];
+    expect(Array.isArray(stores)).toBe(true);
+    expect(stores.length).toBe(1);
+    expect(stores[0].name).toBe(storePayload.name);
   });
 
   it('filters stores by isActive', async () => {
@@ -112,14 +113,14 @@ describe('Store CRUD (e2e)', () => {
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(HttpStatus.OK);
 
-    expect(activeRes.body.length).toBe(0);
+    expect((activeRes.body as unknown[]).length).toBe(0);
 
     const inactiveRes = await request(app.getHttpServer())
       .get(`/merchants/${merchantId}/stores?isActive=false`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(HttpStatus.OK);
 
-    expect(inactiveRes.body.length).toBe(1);
+    expect((inactiveRes.body as unknown[]).length).toBe(1);
   });
 
   it('allows a merchant to get a specific store', async () => {
@@ -131,15 +132,18 @@ describe('Store CRUD (e2e)', () => {
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(HttpStatus.OK);
 
-    expect(response.body.id).toBe(store.id);
-    expect(response.body.name).toBe(storePayload.name);
+    const storeBody = response.body as { id: string; name: string };
+    expect(storeBody.id).toBe(store.id);
+    expect(storeBody.name).toBe(storePayload.name);
   });
 
   it('returns 404 for unknown store', async () => {
     const { accessToken, merchantId } = await registerMerchant();
 
     await request(app.getHttpServer())
-      .get(`/merchants/${merchantId}/stores/00000000-0000-0000-0000-000000000000`)
+      .get(
+        `/merchants/${merchantId}/stores/00000000-0000-0000-0000-000000000000`,
+      )
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(HttpStatus.NOT_FOUND);
   });
@@ -154,7 +158,7 @@ describe('Store CRUD (e2e)', () => {
       .send({ name: 'Updated Store Name' })
       .expect(HttpStatus.OK);
 
-    expect(response.body.name).toBe('Updated Store Name');
+    expect((response.body as { name: string }).name).toBe('Updated Store Name');
   });
 
   it('allows a merchant to disable and re-enable a store', async () => {
@@ -202,6 +206,7 @@ describe('Store CRUD (e2e)', () => {
         password: 'Password123!',
         firstName: 'Riku',
         lastName: 'Driver',
+        avatarUrl: 'https://example.test/avatar/riku-driver.jpg',
         phone: `+336${Date.now().toString().slice(-8)}`,
         gender: 'MALE',
         dateOfBirth: '2000-01-02',
@@ -220,4 +225,3 @@ describe('Store CRUD (e2e)', () => {
       .expect(HttpStatus.FORBIDDEN);
   });
 });
-

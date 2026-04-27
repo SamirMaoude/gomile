@@ -1,9 +1,9 @@
-import type { ApiErrorPayload } from "../../../../shared/api-errors";
 import type {
   DriverKycStatus,
   KycActionResponse,
   RejectKycInput,
 } from "../../../../shared/kyc-contracts";
+import { requestWithAutoRefresh } from "./protected-request";
 
 export type {
   DriverKycStatus,
@@ -11,45 +11,15 @@ export type {
   RejectKycInput,
 };
 
-async function parseError(response: Response) {
-  const contentType = response.headers.get("content-type");
-
-  if (contentType?.includes("application/json")) {
-    const payload = (await response.json()) as Partial<ApiErrorPayload>;
-    return payload.message ?? payload.code ?? "Request failed";
-  }
-
-  const text = await response.text();
-  return text || "Request failed";
-}
-
 async function requestKyc<T>(
   path: string,
   init?: RequestInit,
 ): Promise<T> {
-  const response = await fetch(path, {
-    ...init,
-    headers: {
-      "content-type": "application/json",
-      ...(init?.headers ?? {}),
-    },
-    credentials: "include",
-    cache: "no-store",
-  });
-
-  if (!response.ok) {
-    throw new Error(await parseError(response));
-  }
-
-  if (response.status === 204) {
-    return undefined as T;
-  }
-
-  return (await response.json()) as T;
+  return requestWithAutoRefresh<T>(path, init);
 }
 
 export function getMyKycStatus() {
-  return requestKyc<DriverKycStatus>("/api/livreurs/me/kyc", {
+  return requestKyc<DriverKycStatus>("/api/driver/me/kyc", {
     method: "GET",
   });
 }

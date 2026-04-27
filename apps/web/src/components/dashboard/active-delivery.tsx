@@ -1,35 +1,42 @@
 import { cn, styles } from "@/app/merchant/dashboard/style";
+import type {
+  DeliveryStatusTone,
+  MerchantDeliveryItem,
+} from "@/components/dashboard/dashboard-overview.model";
 import Typography from "@/components/ui/design-system/typography";
-import { DeliveryItem, DeliveryStatus } from "@/dummiesData/activeDeliveries";
 import ClockIcon from "../ui/icons/ClockIcon";
 import CheckIcon from "../ui/icons/CheckIcon";
 import DynamicTable, { DynamicTableColumn } from "../ui/design-system/table/dynamic-table";
 
-
-
 type StatusBadgeProps = {
-  status: DeliveryStatus;
+  label: string;
+  tone: DeliveryStatusTone;
   isDarkMode: boolean;
 };
 
-function StatusBadge({ status, isDarkMode }: StatusBadgeProps) {
-  const isLate = status === "En retard";
+function StatusBadge({ label, tone, isDarkMode }: StatusBadgeProps) {
+  const isWarning = tone === "warning";
+  const isSuccess = tone === "success";
 
   return (
     <span
       className={cn(
         styles.statusBadge,
-        isLate
+        isWarning
           ? isDarkMode
             ? styles.statusLateDark
             : styles.statusLateLight
-          : isDarkMode
+          : isSuccess
+            ? isDarkMode
+              ? styles.statusOnTimeDark
+              : styles.statusOnTimeLight
+            : isDarkMode
             ? styles.statusOnTimeDark
             : styles.statusOnTimeLight,
       )}
     >
-      <span className={isLate ? styles.statusLateIcon : styles.statusOnTimeIcon}>
-        {isLate ? (
+      <span className={isWarning ? styles.statusLateIcon : styles.statusOnTimeIcon}>
+        {isWarning ? (
           <ClockIcon className={styles.iconMedium} />
         ) : (
           <CheckIcon className={styles.iconMedium} />
@@ -42,22 +49,26 @@ function StatusBadge({ status, isDarkMode }: StatusBadgeProps) {
         weight="semibold"
         className="!text-inherit"
       >
-        {status}
+        {label}
       </Typography>
     </span>
   );
 }
 
 type ActiveDeliveriesProps = {
-  deliveries: DeliveryItem[];
+  deliveries: MerchantDeliveryItem[];
+  error?: string | null;
   isDarkMode: boolean;
+  isLoading?: boolean;
 };
 
 export default function ActiveDeliveries({
   deliveries,
+  error = null,
   isDarkMode,
+  isLoading = false,
 }: ActiveDeliveriesProps) {
-  const columns: DynamicTableColumn<DeliveryItem>[] = [
+  const columns: DynamicTableColumn<MerchantDeliveryItem>[] = [
     {
       key: "id",
       header: "ID",
@@ -109,14 +120,15 @@ export default function ActiveDeliveries({
       cellClassName: styles.deliveryStatusWrap,
       render: (delivery) => (
         <StatusBadge
-          status={delivery.status}
+          label={delivery.statusLabel}
+          tone={delivery.statusTone}
           isDarkMode={isDarkMode}
         />
       ),
     },
     {
-      key: "eta",
-      header: "Heure prevue",
+      key: "time",
+      header: "Creee le",
       cellClassName: styles.deliveryEtaWrap,
       render: (delivery) => (
         <div>
@@ -127,7 +139,7 @@ export default function ActiveDeliveries({
             theme={isDarkMode ? "white" : "black"}
             className="!text-inherit"
           >
-            {delivery.eta}
+            {delivery.time}
           </Typography>
 
           {delivery.note ? (
@@ -177,25 +189,57 @@ export default function ActiveDeliveries({
       </div>
 
       <div className={styles.tableOverflow}>
-        <div className={styles.deliveriesTableMin}>
-          <DynamicTable
-            columns={columns}
-            rows={deliveries}
-            gridTemplateColumns="8rem 1.4fr 1.1fr 1fr"
-            headerRowClassName={cn(
-              styles.deliveriesTableHead,
-              isDarkMode
-                ? styles.deliveriesTableHeadDark
-                : styles.deliveriesTableHeadLight,
-            )}
-            bodyClassName={
-              isDarkMode
-                ? styles.deliveriesDividerDark
-                : styles.deliveriesDividerLight
-            }
-            rowClassName={styles.deliveryRow}
-          />
-        </div>
+        {isLoading ? (
+          <div className="px-5 py-8">
+            <Typography
+              variant="p"
+              Component="p"
+              className={cn(isDarkMode ? "!text-slate-300" : "!text-slate-600")}
+            >
+              Chargement des livraisons actives...
+            </Typography>
+          </div>
+        ) : error ? (
+          <div className="px-5 py-8">
+            <Typography
+              variant="p"
+              Component="p"
+              className={cn(isDarkMode ? "!text-rose-300" : "!text-rose-600")}
+            >
+              {error}
+            </Typography>
+          </div>
+        ) : deliveries.length === 0 ? (
+          <div className="px-5 py-8">
+            <Typography
+              variant="p"
+              Component="p"
+              className={cn(isDarkMode ? "!text-slate-300" : "!text-slate-600")}
+            >
+              Aucune livraison active n&apos;est en cours pour ce merchant.
+            </Typography>
+          </div>
+        ) : (
+          <div className={styles.deliveriesTableMin}>
+            <DynamicTable
+              columns={columns}
+              rows={deliveries}
+              gridTemplateColumns="9.5rem 1.4fr 1.25fr 1fr"
+              headerRowClassName={cn(
+                styles.deliveriesTableHead,
+                isDarkMode
+                  ? styles.deliveriesTableHeadDark
+                  : styles.deliveriesTableHeadLight,
+              )}
+              bodyClassName={
+                isDarkMode
+                  ? styles.deliveriesDividerDark
+                  : styles.deliveriesDividerLight
+              }
+              rowClassName={styles.deliveryRow}
+            />
+          </div>
+        )}
       </div>
     </section>
   );
