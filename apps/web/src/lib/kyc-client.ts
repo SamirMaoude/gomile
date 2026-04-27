@@ -19,7 +19,7 @@ async function requestKyc<T>(
 }
 
 export function getMyKycStatus() {
-  return requestKyc<DriverKycStatus>("/api/livreurs/me/kyc", {
+  return requestKyc<DriverKycStatus>("/api/driver/me/kyc", {
     method: "GET",
   });
 }
