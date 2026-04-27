@@ -36,7 +36,7 @@ const plans: Plan[] = [
     annualPrice: "0EUR",
     suffix: "Gratuit",
     cta: "Commencer",
-    href: "/pageprincipale",
+    href: "/auth",
     icon: Zap,
     accent: "slate",
     features: [
@@ -54,7 +54,7 @@ const plans: Plan[] = [
     annualPrice: "15.90EUR",
     suffix: "/mois",
     cta: "Commencer",
-    href: "/pageprincipale",
+    href: "/auth",
     icon: Sparkles,
     accent: "green",
     featured: true,
@@ -73,7 +73,7 @@ const plans: Plan[] = [
     annualPrice: "Sur mesure",
     suffix: "",
     cta: "Nous contacter",
-    href: "#contact",
+    href: "/auth",
     icon: Crown,
     accent: "pink",
     features: [

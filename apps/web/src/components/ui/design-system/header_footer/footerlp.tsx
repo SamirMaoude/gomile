@@ -7,13 +7,13 @@ import { Logo } from '@/components/Logo/Logo'
 /* ─── Données des colonnes ───────────────────────────── */
 const links = {
   Produit: [
-    { label: 'Tarifs',          href: '#' },
+    { label: 'Tarifs',          href: '/tarifs' },
     { label: 'API',             href: '#' },
     { label: 'Application',     href: '#' },
   ],
   Support: [
     { label: "Centre d'aide", href: '#' },
-    { label: 'FAQ',           href: '#' }
+    { label: 'FAQ',           href: '/faq' }
   ],
 }
 
