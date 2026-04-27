@@ -1,3 +1,4 @@
+"use client";
 import {Navigation} from "@/components/ui/navigation/navigation";
 import DynamicTable, { DynamicTableColumn } from "@/components/ui/design-system/table/dynamic-table";
 import React from "react";
@@ -84,7 +85,7 @@ const columns: DynamicTableColumn<Driver>[] = [
    return (
     <>
     <Navigation/>
-     <DynamicTable columns={[columns]} rows={[]} rowKey={(driver) => driver.id}
+     <DynamicTable columns={columns} rows={[]} rowKey={(driver) => driver.id}
           gridTemplateColumns="2fr 1.8fr 1.2fr 0.5fr"
           headerRowClassName="grid border-b border-slate-200 px-6 py-4 text-sm font-semibold text-slate-950"
           bodyClassName="divide-y divide-slate-200"

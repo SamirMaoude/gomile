@@ -11,6 +11,8 @@ import ErrorMessage from "@/components/ui/design-system/messages/errorMessage";
 import { CircleQuestionMark, KeyRound } from "lucide-react";
 import { Logo } from "@/components/Logo/Logo";
 import Background from "@/components/ui/auth/background";
+import { Navigation } from "@/components/ui/navigation/navigation";
+import Footerlp from "@/components/ui/design-system/header_footer/footerlp";
 import { useLogin } from "./use-login";
 import SocialIcon from "@/components/ui/design-system/socialIcons";
 
@@ -18,7 +20,9 @@ export default function AdminLoginPage() {
   const { error, handleSubmit, isPending, showPassword, success, toggleShowPassword } = useLogin();
 
   return (
-    <Background backHref="/">
+    <main>
+      <Navigation theme="landingpage" />
+      <Background as="div" backHref="/">
       <div className={styles.card}>
         <div className={styles.splitCard}>
           <div className={styles.brandPanel}>
@@ -165,6 +169,8 @@ export default function AdminLoginPage() {
           </div>
         </div>
       </div>
-    </Background>
+      </Background>
+      <Footerlp />
+    </main>
   );
 }

@@ -14,6 +14,8 @@ import SuccessMessage from "@/components/ui/design-system/messages/successMessag
 import ErrorMessage from "@/components/ui/design-system/messages/errorMessage";
 import { Logo } from "@/components/Logo/Logo";
 import Background from "@/components/ui/auth/background";
+import { Navigation } from "@/components/ui/navigation/navigation";
+import Footerlp from "@/components/ui/design-system/header_footer/footerlp";
 import { useLogin } from "./use-login";
 
 export default function ClientLoginPage() {
@@ -21,7 +23,9 @@ export default function ClientLoginPage() {
     useLogin();
 
   return (
-    <Background backHref="/">
+    <main>
+      <Navigation theme="landingpage" />
+      <Background as="div" backHref="/">
       <div className={styles.card}>
         <div className={styles.splitCard}>
           <div className={styles.brandPanel}>
@@ -175,6 +179,8 @@ export default function ClientLoginPage() {
           </div>
         </div>
       </div>
-    </Background>
+      </Background>
+      <Footerlp />
+    </main>
   );
 }

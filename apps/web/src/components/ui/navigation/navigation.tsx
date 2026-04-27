@@ -2,7 +2,6 @@ import clsx from "clsx"
 import Typography from "../design-system/typography"
 import Container from "../elements/container"
 import { Logo } from "@/components/Logo/Logo"
-import Link from "next/link"
 
 interface Props {
   text_theme?: "white" | "black" | "grey" | "primaryG" | "primaryB"
@@ -31,17 +30,18 @@ export const Navigation = ({
     <Container
       Component="div"
       size="full"
+      padding={false}
       className={clsx(
-        "w-full px-6 py-4",
+        "w-full px-6 py-4 sm:px-8 lg:px-10",
         headerThemeClasses[theme]
       )}
     >
-      <div className="flex items-center justify-evenly">
+      <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-6">
         <div>
           <Logo size="sm" />
         </div>
 
-        <div className={clsx("flex items-center gap-10", textThemeClasses[text_theme])}>
+        <div className={clsx("hidden md:flex items-center gap-8 lg:gap-10", textThemeClasses[text_theme])}>
           <Typography theme={text_theme} weight="medium" variant="h6" className={style1}>
             <a href="#contact">Contact</a>
           </Typography>
@@ -52,13 +52,13 @@ export const Navigation = ({
             <a href="/enSavoirPlus">En savoir plus</a>
           </Typography>
         </div>
-        
-        <div className={clsx("flex items-center gap-10", textThemeClasses[text_theme])}>
+
+        <div className={clsx("hidden md:flex items-center gap-6 lg:gap-8", textThemeClasses[text_theme])}>
           <Typography theme={text_theme} weight="medium" variant="h6" className={style1}>
-            <a href="/pageprincipale">S'inscrire</a>
+            <a href="/auth">S&apos;inscrire</a>
           </Typography>
           <Typography theme={text_theme} weight="medium" variant="h6" className={style1}>
-            <a href="/pageprincipale">Se connecter</a>
+            <a href="/merchant/login">Se connecter</a>
           </Typography>
         </div>
       </div>

@@ -1,10 +1,7 @@
-import {
-  getDrivers as fetchDrivers,
-  type AdminDriverListItem,
-} from "@/lib/api-client";
+import { getDriversList, type Driver } from "./admin";
 
-export type AdminDashboardDriver = AdminDriverListItem;
+export type AdminDashboardDriver = Driver;
 
 export function getDrivers() {
-  return fetchDrivers();
+  return getDriversList();
 }
