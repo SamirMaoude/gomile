@@ -43,7 +43,9 @@ export async function proxySessionRefresh(request: NextRequest) {
   const refreshToken = request.cookies.get(authCookies.refreshToken)?.value;
 
   if (!refreshToken) {
-    return buildMissingAuthTokenResponse("refresh");
+    const response = buildMissingAuthTokenResponse("refresh");
+    clearAuthCookies(response);
+    return response;
   }
 
   try {

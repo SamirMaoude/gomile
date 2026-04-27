@@ -69,7 +69,7 @@ export class AuthService {
         merchant: {
           create: {
             name: dto.name,
-            trialEndsAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), 
+            trialEndsAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
           },
         },
       },
@@ -374,6 +374,7 @@ export class AuthService {
       where: { id: user.id },
       data: {
         password: hashedPassword,
+        refreshToken: null,
         passwordResetToken: null,
         passwordResetExpiry: null,
       },
@@ -445,7 +446,7 @@ export class AuthService {
 
     await this.prisma.user.update({
       where: { id: userId },
-      data: { refreshToken },
+      data: { refreshToken: this.hashToken(refreshToken) },
     });
 
     return {
