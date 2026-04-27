@@ -4,19 +4,10 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition, type FormEvent } from "react";
 
 import { login, logout } from "@/lib/auth-client";
-
-function buildUsername(email: string) {
-  const base = email.split("@")[0]?.trim() ?? "";
-
-  const formatted = base
-    .replace(/[._-]+/g, " ")
-    .split(" ")
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
-
-  return formatted || email;
-}
+import {
+  getCurrentMerchantProfile,
+  primeMerchantSession,
+} from "@/lib/merchant-session";
 
 export function useLogin() {
   const router = useRouter();
@@ -44,7 +35,7 @@ export function useLogin() {
     }
 
     try {
-      const session = await login({ email, password });
+      const session = await login({ identifier: email, password });
 
       if (session.user.role !== "MERCHANT" && session.user.role !== "ADMIN") {
         await logout();
@@ -52,11 +43,18 @@ export function useLogin() {
         return;
       }
 
-      window.localStorage.setItem("username", buildUsername(email));
+      primeMerchantSession(session);
+
+      try {
+        await getCurrentMerchantProfile();
+      } catch {
+        // Best-effort preload so the dashboard can show merchant.name immediately.
+      }
+
       setSuccess("Connexion reussie. Redirection vers votre dashboard...");
 
       startTransition(() => {
-        router.replace("/merchant/dashboard");
+        router.replace("/admin/dashboard");
         router.refresh();
       });
     } catch (submissionError) {

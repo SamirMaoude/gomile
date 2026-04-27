@@ -15,8 +15,7 @@ import { useLogin } from "./use-login";
 import SocialIcon from "@/components/ui/design-system/socialIcons";
 
 export default function AdminLoginPage() {
-  const { error, handleSubmit, isPending, showPassword, success, toggleShowPassword } =
-    useLogin();
+  const { error, handleSubmit, isPending, showPassword, success, toggleShowPassword } = useLogin();
 
   return (
     <Background backHref="/">

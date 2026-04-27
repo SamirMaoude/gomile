@@ -36,6 +36,8 @@ export interface UpdateMerchantProfileInput {
   phone?: string;
 }
 
+
+
 export interface VerifyMerchantHandshakeInput {
   code: string;
 }
@@ -198,3 +200,5 @@ export function updateMerchantProfile(
     body: JSON.stringify(input),
   });
 }
+
+

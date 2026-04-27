@@ -24,7 +24,7 @@ const headerThemeClasses = {
 
 export const Navigation = ({
   text_theme = "white",
-  theme = "header",
+  theme = "landingpage",
 }: Props) => {
     const style1 = "hover:text-primary-green-dark transition-colors duration-200"
   return (
