@@ -1,7 +1,3 @@
-import { NextRequest } from "next/server";
+import { makeSessionCreationRoute } from "@/lib/bff/route-factories";
 
-import { proxySessionCreation } from "@/lib/auth-proxy";
-
-export async function POST(request: NextRequest) {
-  return proxySessionCreation(request, "/auth/login");
-}
+export const POST = makeSessionCreationRoute("/auth/login");

@@ -1,6 +1,3 @@
-import { NextRequest } from "next/server";
-import { proxyApiRequest } from "@/lib/api-proxy";
+import { makeProtectedRoute } from "@/lib/bff/route-factories";
 
-export async function GET(request: NextRequest) {
-  return proxyApiRequest(request, "/admin/drivers");
-}
+export const GET = makeProtectedRoute("/admin/drivers");
