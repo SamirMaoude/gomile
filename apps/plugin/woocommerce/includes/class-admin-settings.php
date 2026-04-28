@@ -23,6 +23,7 @@ if (!defined('ABSPATH')) {
 class Gomile_Shipment_Admin_Settings {
     const OPTION_NAME = 'gomile_shipment_settings';
     const PAGE_SLUG = 'gomile-shipment';
+    const PRODUCTION_API_BASE_URL = 'https://api.gomile.delivery';
 
     /**
      * @brief Branche la page de reglages et le lien direct depuis la liste des plugins.
@@ -136,8 +137,13 @@ class Gomile_Shipment_Admin_Settings {
      */
     public static function get_settings() {
         $settings = wp_parse_args((array) get_option(self::OPTION_NAME, array()), self::get_defaults());
+        $settings = array_merge($settings, self::get_constant_overrides());
 
-        return array_merge($settings, self::get_constant_overrides());
+        if (getenv('DEBUG') === 'false') {
+            $settings['api_base_url'] = self::PRODUCTION_API_BASE_URL;
+        }
+
+        return $settings;
     }
 
     /**
