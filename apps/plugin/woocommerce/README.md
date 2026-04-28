@@ -1,276 +1,403 @@
-# Gomile Shipment
+# Gomile Shipment pour WooCommerce
 
-## Presentation
+`Gomile Shipment` ajoute une méthode de livraison WooCommerce connectée à l'API Gomile.
 
-`Gomile Shipment` est un plugin WooCommerce qui ajoute une methode de livraison dediee a Gomile.
+Le plugin permet de :
 
-Son objectif est double :
+- afficher une livraison `Gomile Delivery` au panier et au paiement ;
+- demander un devis de livraison à l'API Gomile ;
+- créer automatiquement une commande de livraison Gomile quand une commande WooCommerce est créée ;
+- annuler une livraison Gomile quand une commande WooCommerce est annulée ;
+- recevoir les mises à jour de statut via webhook ;
+- mettre à jour les métadonnées et notes de commande WooCommerce.
 
-- afficher une option de livraison Gomile pendant le panier et le checkout ;
-- communiquer avec une API de livraison pour estimer le prix, creer une mission, suivre son statut et recevoir des mises a jour.
+## Prérequis
 
-Aujourd'hui, le plugin est deja structure pour fonctionner meme si l'API n'est pas encore developpee :
+### Côté WordPress
 
-- il peut afficher un tarif fixe en secours ;
-- il sait deja preparer les appels API ;
-- il expose un webhook pour les futures remontees de statut.
+- WordPress installé et fonctionnel.
+- WooCommerce installé et actif.
+- PHP compatible avec WordPress/WooCommerce.
+- Extensions PHP usuelles activées :
+  - `curl`, ou un transport HTTP WordPress équivalent, pour les appels sortants ;
+  - `json` pour encoder/décoder les payloads ;
+  - `hash` pour vérifier les signatures HMAC des webhooks ;
+  - `mbstring` recommandé.
+- Les permaliens WordPress doivent être actifs pour l'API REST.
 
-## Objectif fonctionnel
+### Côté Gomile
 
-Le flux vise est le suivant :
+- API Gomile accessible depuis WordPress.
+- Compte marchand avec un store Gomile créé pour la boutique WooCommerce.
+- Accès à l'espace client Gomile.
+- Clé API Gomile générée depuis l'espace client, rattachée au store WooCommerce.
+- Webhook configuré depuis l'espace client Gomile avec l'URL fournie par le plugin.
+- Secret webhook affiché par l'espace client Gomile et copié dans les réglages du plugin.
 
-1. Le client choisit `Gomile Delivery` au checkout.
-2. WooCommerce calcule un prix de livraison.
-3. Le plugin peut demander un devis a l'API Gomile.
-4. Quand la commande est creee, le plugin peut creer une livraison dans l'API.
-5. L'API Gomile renvoie un identifiant de livraison et un statut.
-6. Plus tard, l'API peut notifier WooCommerce via un webhook.
+### Outils de développement utiles
 
-## Architecture du plugin
+Ces outils ne sont pas nécessaires pour un marchand final, mais utiles pour construire l'archive du plugin ou maintenir ses traductions :
 
-Le plugin est organise par responsabilite.
+- `zip` pour construire une archive installable du plugin ;
+- `wp-cli` pour générer le catalogue de traduction ;
+- `gettext` / `msgfmt` pour compiler les fichiers `.mo`.
 
-### 1. Point d'entree
+## Installation
 
-Fichier : [gomile-shipment.php](./gomile-shipment.php)
+### Installation manuelle
 
-Role :
+1. Copier le dossier `apps/plugin/woocommerce` dans le dossier WordPress :
 
-- declare le plugin a WordPress ;
-- charge les traductions ;
-- initialise les reglages admin ;
-- charge les modules WooCommerce si WooCommerce est actif ;
-- affiche une alerte admin si WooCommerce manque.
+   ```bash
+   wp-content/plugins/gomile-shipment
+   ```
 
-### 2. Reglages du plugin
+2. Vérifier que le fichier principal existe :
 
-Fichier : [includes/class-admin-settings.php](./includes/class-admin-settings.php)
+   ```txt
+   wp-content/plugins/gomile-shipment/gomile-shipment.php
+   ```
 
-Role :
+3. Dans l'admin WordPress, aller dans `Extensions`.
+4. Activer `Gomile Shipment`.
+5. Vérifier que WooCommerce est actif. Sinon, le plugin affichera une alerte admin.
 
-- cree la page de configuration du plugin ;
-- enregistre les options WordPress ;
-- centralise la lecture des reglages ;
-- expose des methodes utilitaires comme :
-  - `get_option()`
-  - `is_auto_create_enabled()`
-  - `is_live_rates_enabled()`
-  - `get_webhook_url()`
+### Installation par archive ZIP
 
-Reglages principaux :
+L'archive installée dans WordPress doit contenir un dossier racine nommé `gomile-shipment`. Depuis le dépôt, le dossier source du plugin est `apps/plugin/woocommerce`, il faut donc le copier sous ce nom avant de l'archiver :
 
-- `api_base_url`
-- `api_key`
-- `auth_header`
-- `auth_scheme`
-- `enable_live_rates`
-- `quote_endpoint`
-- `quote_method`
-- `quote_cache_minutes`
-- `create_endpoint`
-- `status_endpoint`
-- `cancel_endpoint`
-- `webhook_secret`
+```bash
+cd apps/plugin
+rm -rf /tmp/gomile-shipment-build
+mkdir -p /tmp/gomile-shipment-build
+cp -R woocommerce /tmp/gomile-shipment-build/gomile-shipment
+cd /tmp/gomile-shipment-build
+zip -r /tmp/gomile-shipment.zip gomile-shipment
+```
 
-### 3. Methode de livraison WooCommerce
+Ensuite dans WordPress :
 
-Fichier : [includes/class-shipping-method.php](./includes/class-shipping-method.php)
+1. `Extensions` -> `Ajouter`.
+2. `Téléverser une extension`.
+3. Choisir l'archive `/tmp/gomile-shipment.zip`.
+4. Installer puis activer.
 
-Role :
+## Configuration WordPress
 
-- declare une methode WooCommerce nommee `gomile_shipment` ;
-- affiche cette methode dans les zones de livraison ;
-- permet de configurer son titre, son cout et sa taxation ;
-- calcule le prix affiche au client.
+### 1. Configurer les réglages Gomile
 
-Point cle :
+Dans l'admin WordPress :
 
-- `calculate_shipping()` commence avec un tarif fixe ;
-- si les devis API sont actifs, la methode essaie de recuperer un prix distant ;
-- si l'API echoue ou n'est pas prete, le tarif fixe reste utilise.
+```txt
+WooCommerce -> Gomile Shipment
+```
 
-### 4. Client API
+ou :
 
-Fichier : [includes/class-delivery-api.php](./includes/class-delivery-api.php)
+```txt
+Réglages -> Gomile Shipment
+```
 
-Role :
+Renseigner les champs principaux :
 
-- preparer les payloads ;
-- executer les requetes HTTP avec `wp_remote_request()` ;
-- gerer l'authentification ;
-- parser les reponses JSON ;
-- gerer les erreurs ;
-- mettre en cache les devis de livraison.
+- `API Key` : clé API Gomile du store. Elle est masquée à la lecture et conservée si le champ reste vide lors de l'enregistrement.
+- `Sender Name` : nom du contact de retrait.
+- `Sender Phone` : téléphone du contact de retrait.
+- `Sender Address Street Number` : numéro de rue de l'adresse de retrait.
+- `Sender Address Street Name` : nom de rue de l'adresse de retrait.
+- `Sender Address Postal Code` : code postal de retrait.
+- `Sender Address City` : ville de retrait.
+- `Sender Address Country` : pays de retrait.
+- `Webhook Secret` : secret renvoyé par l'API Gomile lors de la configuration du webhook. Il est masqué à la lecture et conservé si le champ reste vide.
 
-Fonctions principales :
+Le plugin affiche aussi l'URL webhook à configurer côté Gomile :
 
-- `get_delivery_quote($package, $shipping_method = null)`
-- `create_delivery($order)`
-- `get_delivery_status($delivery_id)`
-- `cancel_delivery($delivery_id)`
+```txt
+https://votre-site.test/wp-json/gomile-shipment/v1/webhook
+```
 
-Methodes importantes :
+Un bouton de copie est disponible à côté de l'URL.
 
-- `build_quote_payload()`
-- `build_delivery_payload()`
-- `request()`
-- `extract_quote_price()`
+### 2. Activer la méthode de livraison
 
-### 5. Traitement des commandes
+Dans WooCommerce :
 
-Fichier : [includes/class-order-handler.php](./includes/class-order-handler.php)
+```txt
+WooCommerce -> Réglages -> Expédition -> Zones d'expédition
+```
 
-Role :
+1. Choisir une zone d'expédition.
+2. Ajouter une méthode de livraison.
+3. Sélectionner `Gomile Shipment`.
+4. Activer la méthode.
+5. Ajuster le titre affiché au client si nécessaire.
 
-- ecouter la creation ou l'evolution d'une commande WooCommerce ;
-- verifier si la methode choisie est `gomile_shipment` ;
-- initialiser les metadonnees de suivi ;
-- creer la livraison automatiquement si l'option est active.
+Le titre par défaut est :
 
-Metadonnees utilisees sur la commande :
+```txt
+Gomile Delivery
+```
+
+## Configuration depuis l'espace client Gomile
+
+La clé API et le secret webhook sont fournis au marchand depuis son espace client Gomile. Ces informations sont ensuite renseignées dans les réglages du plugin WordPress afin de connecter la boutique WooCommerce au store Gomile correspondant.
+
+### Récupérer la clé API du store
+
+Dans l'espace client Gomile :
+
+1. Se connecter au compte marchand.
+2. Ouvrir la section des magasins.
+3. Sélectionner le store WooCommerce concerné.
+4. Ouvrir la section API ou intégrations.
+5. Créer ou afficher la clé API du store.
+6. Copier la clé API affichée.
+7. Coller cette valeur dans le champ `API Key` du plugin WordPress.
+
+La clé API est un secret. Elle est affichée une seule fois ou masquée selon le fonctionnement de l'espace client. La conserver dans un endroit sûr, puis l'enregistrer dans le plugin.
+
+### Configurer le webhook du store
+
+Dans l'admin WordPress, copier l'URL affichée dans la section `Webhook` du plugin :
+
+```txt
+https://votre-site.test/wp-json/gomile-shipment/v1/webhook
+```
+
+Dans l'espace client Gomile :
+
+1. Ouvrir le store concerné.
+2. Ouvrir la section webhooks ou intégrations.
+3. Coller l'URL webhook WordPress.
+4. Enregistrer la configuration.
+5. Copier le `webhookSecret` affiché par Gomile.
+6. Coller ce secret dans le champ `Webhook Secret` du plugin WordPress.
+
+Le secret webhook peut ressembler à ceci :
+
+```txt
+4b7f...
+```
+
+Ne pas hasher ce secret avant stockage : le plugin utilise le secret original pour vérifier la signature HMAC.
+
+## Endpoints utilisés par le plugin
+
+Par défaut, le plugin appelle l'API Gomile avec le header :
+
+```http
+x-api-key: VOTRE_CLE_API
+```
+
+Endpoints par défaut :
+
+| Usage | Méthode | Endpoint |
+| --- | --- | --- |
+| Devis de livraison | `POST` | `/delivery-estimates` |
+| Création de commande Gomile | `POST` | `/plugin/orders` |
+| Annulation de commande Gomile | `POST` | `/plugin/orders/cancel?orderReference=...` |
+
+L'URL de base par défaut en développement est :
+
+```txt
+http://localhost:3000
+```
+
+Sur une installation de production, l'intégrateur peut fixer l'URL de l'API Gomile dans `wp-config.php` :
+
+```php
+define('GOMILE_API_BASE_URL', 'https://api.gomile.delivery');
+```
+
+## Payloads envoyés
+
+### Devis de livraison
+
+Le plugin envoie notamment :
+
+```json
+{
+  "pickupAddress": {
+    "streetNumber": "12",
+    "streetName": "Rue Exemple",
+    "postalCode": "38000",
+    "city": "Grenoble",
+    "country": "France",
+    "fullAddress": "12, Rue Exemple, 38000, Grenoble, France"
+  },
+  "dropoffAddress": {
+    "streetName": "Adresse client",
+    "postalCode": "38000",
+    "city": "Grenoble",
+    "country": "FR",
+    "fullAddress": "Adresse client, 38000, Grenoble, FR"
+  },
+  "weightKg": 2.5
+}
+```
+
+### Création d'une commande Gomile
+
+Le plugin envoie notamment :
+
+```json
+{
+  "customerName": "Client Exemple",
+  "customerPhone": "0600000000",
+  "dropOffAddress": "Adresse de livraison",
+  "type": "OTHER",
+  "weight": 2.5,
+  "orderReference": "123"
+}
+```
+
+`orderReference` correspond à l'ID de commande WooCommerce. Le webhook Gomile doit renvoyer cette même référence pour que le plugin retrouve la commande.
+
+## Webhook entrant
+
+Route exposée par WordPress :
+
+```http
+POST /wp-json/gomile-shipment/v1/webhook
+```
+
+Le plugin accepte deux événements :
+
+- `delivery.status_changed`
+- `delivery.status_completed`
+
+Payload attendu :
+
+```json
+{
+  "event": "delivery.status_changed",
+  "orderId": "gomile-order-id",
+  "orderReference": "123",
+  "status": "PICKED_UP",
+  "timestamp": "2026-04-28T12:00:00.000Z"
+}
+```
+
+### Vérification de signature
+
+L'API Gomile signe le body brut avec le secret webhook :
+
+```txt
+HMAC-SHA256(body, webhookSecret)
+```
+
+Le header envoyé est actuellement :
+
+```http
+X-Gomile-Webhook-Secret: sha256=<signature>
+```
+
+Le plugin recalcule la signature avec le body brut WordPress :
+
+```php
+hash_hmac('sha256', $request->get_body(), $secret)
+```
+
+## Effets dans WooCommerce
+
+Quand une commande utilise la méthode `gomile_shipment`, le plugin stocke des métadonnées :
 
 - `_gomile_shipment_status`
 - `_gomile_shipment_delivery_id`
 - `_gomile_shipment_tracking_url`
 - `_gomile_shipment_delivery_created`
 - `_gomile_shipment_last_error`
+- `_gomile_shipment_last_status_update`
 
-### 6. Webhook de retour API
+Le webhook ajoute une note visible dans la commande WooCommerce. Pour `delivery.status_completed`, le plugin marque aussi la commande WooCommerce comme terminée.
 
-Fichier : [includes/class-rest-endpoints.php](./includes/class-rest-endpoints.php)
+## Traductions
 
-Role :
+Les fichiers de traduction sont dans :
 
-- expose une route REST WordPress ;
-- verifie un secret de webhook ;
-- retrouve la commande par `order_id` ou `delivery_id` ;
-- met a jour le statut et les metadonnees de livraison.
+```txt
+languages/
+```
 
-Route actuelle :
+Fichiers principaux :
 
-- `POST /wp-json/gomile-shipment/v1/webhook`
+- `gomile-shipment.pot` : catalogue source ;
+- `gomile-shipment-fr_FR.po` : traduction française éditable ;
+- `gomile-shipment-fr_FR.mo` : fichier compilé chargé par WordPress.
 
-## Cycle de vie du plugin
+Régénérer le catalogue :
 
-### Au chargement du plugin
+```bash
+wp i18n make-pot apps/plugin/woocommerce apps/plugin/woocommerce/languages/gomile-shipment.pot --domain=gomile-shipment --exclude=node_modules,vendor
+```
 
-1. WordPress charge `gomile-shipment.php`.
-2. Les reglages admin sont initialises.
-3. Si WooCommerce est actif, les modules metier sont charges.
+Fusionner le catalogue dans le fichier français :
 
-### Au panier / checkout
+```bash
+msgmerge --update apps/plugin/woocommerce/languages/gomile-shipment-fr_FR.po apps/plugin/woocommerce/languages/gomile-shipment.pot
+```
 
-1. WooCommerce appelle `calculate_shipping()`.
-2. Le plugin lit le cout fixe configure.
-3. Si `enable_live_rates = yes`, il tente un devis API.
-4. Si un prix valide est retourne, il remplace le cout fixe.
-5. Sinon, le plugin garde le fallback local.
+Compiler la traduction :
 
-### A la creation de commande
+```bash
+msgfmt --check apps/plugin/woocommerce/languages/gomile-shipment-fr_FR.po -o apps/plugin/woocommerce/languages/gomile-shipment-fr_FR.mo
+```
 
-1. Le plugin ecoute les hooks de creation de commande.
-2. Il verifie que la commande utilise `gomile_shipment`.
-3. Il initialise les metadonnees Gomile.
-4. Si `auto_create = yes`, il appelle `create_delivery()`.
-5. Il enregistre ensuite le statut, l'identifiant de livraison et le tracking.
+Vérifier qu'il ne reste aucune chaîne non traduite :
 
-### Lors d'un webhook
+```bash
+msgattrib --untranslated apps/plugin/woocommerce/languages/gomile-shipment-fr_FR.po
+```
 
-1. L'API Gomile appelle la route REST du plugin.
-2. Le secret est verifie.
-3. Le plugin retrouve la commande.
-4. Il met a jour le statut local.
-5. Il ajoute une note a la commande.
+## Diagnostic
 
-## Comment le prix de livraison fonctionne
+### Le plugin n'apparaît pas
 
-Le systeme de prix suit une logique de degradation propre :
+- Vérifier que le dossier est bien dans `wp-content/plugins/gomile-shipment`.
+- Vérifier que `gomile-shipment.php` est à la racine du dossier.
+- Vérifier les logs PHP de WordPress.
 
-### Cas 1 : l'API de devis n'est pas prete
+### La méthode de livraison n'apparaît pas au checkout
 
-Le plugin utilise simplement le cout configure dans la methode WooCommerce.
+- Vérifier que WooCommerce est actif.
+- Vérifier que la méthode `Gomile Shipment` est ajoutée dans la zone d'expédition correspondante.
+- Vérifier que l'adresse client correspond à cette zone.
 
-### Cas 2 : l'API de devis est active
+### La création de livraison échoue
 
-Le plugin :
+- Vérifier la clé API dans les réglages du plugin.
+- Vérifier que l'API Gomile est accessible depuis le serveur WordPress.
+- Vérifier que le store a une clé API active.
+- Vérifier les notes de commande WooCommerce.
 
-- construit un payload de devis a partir du panier ;
-- envoie la requete a `quote_endpoint` ;
-- cherche une valeur de prix dans la reponse (`price`, `amount`, `cost`, `shipping_cost`, etc.) ;
-- stocke la reponse en cache pendant quelques minutes.
+### Le webhook ne met rien à jour
 
-### Cas 3 : l'API repond mal
+- Vérifier que `orderReference` est un vrai ID de commande WooCommerce.
+- Vérifier que le `Webhook Secret` du plugin est le secret original renvoyé par l'API.
+- Vérifier la signature HMAC.
+- Vérifier que les permaliens et l'API REST WordPress fonctionnent.
 
-Le plugin ne bloque pas le checkout.
-Il revient au tarif fixe.
+## Structure du plugin
 
-## Payloads prepares par le plugin
+```txt
+gomile-shipment.php
+includes/
+  class-admin-settings.php
+  class-shipping-method.php
+  class-delivery-api.php
+  class-order-handler.php
+  class-rest-endpoints.php
+languages/
+  gomile-shipment.pot
+  gomile-shipment-fr_FR.po
+  gomile-shipment-fr_FR.mo
+```
 
-### Payload de devis
+Responsabilités :
 
-Le plugin prepare notamment :
-
-- la methode de livraison ;
-- l'adresse de pickup ;
-- l'adresse de destination ;
-- les lignes panier ;
-- le poids total ;
-- le sous-total ;
-- le nombre d'articles.
-
-### Payload de creation de livraison
-
-Le plugin prepare notamment :
-
-- l'identifiant de commande ;
-- le numero de commande ;
-- la devise ;
-- le total ;
-- le mode de paiement ;
-- la note client ;
-- les informations de pickup ;
-- les informations de dropoff ;
-- les articles de la commande.
-
-## Points d'extension
-
-Le code a ete prepare pour rester souple.
-
-Filtres disponibles :
-
-- `gomile_shipment_shipping_rate`
-- `gomile_shipment_quote_payload`
-- `gomile_shipment_delivery_payload`
-- `gomile_shipment_delivery_headers`
-- `gomile_shipment_delivery_request_args`
-
-Ces filtres permettent d'adapter le plugin sans reecrire toute la logique.
-
-## Limites actuelles
-
-- l'API Gomile n'est pas encore finalisee ;
-- le format exact des endpoints reste a definir ;
-- la structure reelle des reponses n'est pas encore contractuelle ;
-- les traductions ne couvrent pas encore tous les textes recents ajoutes.
-
-## Ce qu'il faudra faire quand l'API sera disponible
-
-1. Definir les endpoints exacts.
-2. Definir le schema du devis.
-3. Definir le schema de creation de livraison.
-4. Definir le schema des webhooks.
-5. Adapter `build_quote_payload()` et `build_delivery_payload()`.
-6. Ajuster le parsing des reponses dans `extract_quote_price()` et `create_delivery()`.
-
-## Resume technique
-
-Le plugin repose sur une separation simple :
-
-- `gomile-shipment.php` : chargement et initialisation ;
-- `class-admin-settings.php` : configuration ;
-- `class-shipping-method.php` : integration WooCommerce ;
-- `class-delivery-api.php` : communication avec l'API ;
-- `class-order-handler.php` : logique de commande ;
-- `class-rest-endpoints.php` : retours webhook.
-
-Cette structure est saine pour faire evoluer le projet sans melanger interface admin, logique WooCommerce et logique API.
+- `gomile-shipment.php` : chargement du plugin et des modules ;
+- `class-admin-settings.php` : page de configuration et options ;
+- `class-shipping-method.php` : méthode de livraison WooCommerce ;
+- `class-delivery-api.php` : appels HTTP vers Gomile ;
+- `class-order-handler.php` : création/annulation des livraisons depuis les commandes WooCommerce ;
+- `class-rest-endpoints.php` : webhook de retour statut.
