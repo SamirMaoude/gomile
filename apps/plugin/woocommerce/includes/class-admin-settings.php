@@ -435,6 +435,7 @@ class Gomile_Shipment_Admin_Settings {
             'gomile_shipment_webhook_section',
             array(
                 'key'         => 'webhook_secret',
+                'type'        => 'password',
                 'description' => __('Secret expected in the X-Gomile-Webhook-Secret header for incoming status updates.', 'gomile-shipment'),
             )
         );
@@ -472,7 +473,13 @@ class Gomile_Shipment_Admin_Settings {
         $sanitized['cancel_endpoint'] = isset($input['cancel_endpoint']) ? self::sanitize_endpoint_template($input['cancel_endpoint']) : $defaults['cancel_endpoint'];
         $sanitized['timeout'] = isset($input['timeout']) ? max(1, absint($input['timeout'])) : absint($defaults['timeout']);
         $sanitized['auto_create'] = !empty($input['auto_create']) ? 'yes' : 'no';
-        $sanitized['webhook_secret'] = isset($input['webhook_secret']) ? trim(wp_unslash($input['webhook_secret'])) : '';
+        $submitted_webhook_secret = isset($input['webhook_secret']) ? trim(wp_unslash($input['webhook_secret'])) : '';
+
+        if ('' !== $submitted_webhook_secret) {
+            $sanitized['webhook_secret'] = $submitted_webhook_secret;
+        } else {
+            $sanitized['webhook_secret'] = isset($existing_settings['webhook_secret']) ? (string) $existing_settings['webhook_secret'] : '';
+        }
         $sanitized['sender_name'] = isset($input['sender_name']) ? sanitize_text_field(wp_unslash($input['sender_name'])) : $defaults['sender_name'];
         $sanitized['sender_phone'] = isset($input['sender_phone']) ? sanitize_text_field(wp_unslash($input['sender_phone'])) : '';
         $sanitized['sender_address_street_number'] = isset($input['sender_address_street_number']) ? sanitize_text_field(wp_unslash($input['sender_address_street_number'])) : '';
@@ -519,6 +526,20 @@ class Gomile_Shipment_Admin_Settings {
         <div class="wrap">
             <h1><?php echo esc_html__('Gomile Shipment', 'gomile-shipment'); ?></h1>
             <p><?php echo esc_html__('Configure the WooCommerce shipping method and map it to your delivery API.', 'gomile-shipment'); ?></p>
+            <style>
+                .gomile-webhook-url {
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                }
+
+                .gomile-copy-webhook-url .dashicons {
+                    font-size: 16px;
+                    line-height: 1.4;
+                    width: 16px;
+                    height: 16px;
+                }
+            </style>
 
             <form method="post" action="options.php">
                 <?php
@@ -527,6 +548,36 @@ class Gomile_Shipment_Admin_Settings {
                 submit_button();
                 ?>
             </form>
+            <script>
+                (function () {
+                    const button = document.querySelector('.gomile-copy-webhook-url');
+
+                    if (!button || !navigator.clipboard) {
+                        return;
+                    }
+
+                    button.addEventListener('click', function () {
+                        const target = document.getElementById(button.dataset.copyTarget);
+
+                        if (!target) {
+                            return;
+                        }
+
+                        navigator.clipboard.writeText(target.textContent.trim()).then(function () {
+                            const originalTitle = button.getAttribute('title');
+                            button.setAttribute('title', '<?php echo esc_js(__('Copied!', 'gomile-shipment')); ?>');
+                            button.setAttribute('aria-label', '<?php echo esc_js(__('Copied!', 'gomile-shipment')); ?>');
+                            button.classList.add('button-primary');
+
+                            window.setTimeout(function () {
+                                button.setAttribute('title', originalTitle);
+                                button.setAttribute('aria-label', originalTitle);
+                                button.classList.remove('button-primary');
+                            }, 1200);
+                        });
+                    });
+                })();
+            </script>
         </div>
         <?php
     }
@@ -558,7 +609,12 @@ class Gomile_Shipment_Admin_Settings {
         $webhook_url = self::get_webhook_url();
 
         echo '<p>' . esc_html__('Paste this URL in your Gomile panel to push delivery status updates back into WooCommerce.', 'gomile-shipment') . '</p>';
-        echo '<p><code>' . esc_html($webhook_url) . '</code></p>';
+        echo '<p class="gomile-webhook-url">';
+        echo '<code id="gomile-webhook-url">' . esc_html($webhook_url) . '</code> ';
+        echo '<button type="button" class="button button-small gomile-copy-webhook-url" data-copy-target="gomile-webhook-url" aria-label="' . esc_attr__('Copy webhook URL', 'gomile-shipment') . '" title="' . esc_attr__('Copy webhook URL', 'gomile-shipment') . '">';
+        echo '<span class="dashicons dashicons-admin-page" aria-hidden="true"></span>';
+        echo '</button>';
+        echo '</p>';
     }
 
     /**
@@ -594,6 +650,10 @@ class Gomile_Shipment_Admin_Settings {
 
         if ('api_key' === $key && self::has_api_key()) {
             echo '<p class="description">' . esc_html__('A key is already saved for the API.', 'gomile-shipment') . '</p>';
+        }
+
+        if ($key === 'webhook_secret' && trim((string) self::get_webhook_secret()) !== '') {
+            echo '<p class="description">' . esc_html__('A webhook secret is already saved.', 'gomile-shipment') . '</p>';
         }
     }
 
