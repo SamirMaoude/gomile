@@ -7,6 +7,8 @@ export const useRegistrationStore = create((set) => ({
   email: '',
   phone: '',
   password : '',
+  confirmPassword: '',
+  avatarUrl: null,
   birthDate: '',
   gender: '',
 
@@ -32,7 +34,7 @@ export const useRegistrationStore = create((set) => ({
 
   // Fonction pour tout réinitialiser 
   resetForm: () => set({
-    firstName: '', lastName: '', email: '', phone: '', birthDate: '', gender: '',
+    firstName: '', lastName: '', email: '', phone: '', password: '', confirmPassword: '', avatarUrl: null, birthDate: '', gender: '',
     address: '', city: '', zipCode: '', street: '', deliveryCity: '', deliveryRadius: '', transportType: '',
     cniFile: null, justificatifFile: null, permisFile: null, carteGriseFile: null,
     siret: '', kbisFile: null, ribFile: null

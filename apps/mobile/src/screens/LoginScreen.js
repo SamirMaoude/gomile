@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, Alert, Keyboard } from 'react-native';
+import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, Alert, Keyboard, TouchableOpacity } from 'react-native';
 import { login } from '../../lib/auth-client';
 import Header from '../components/Header';
 import GoMileInput from '../components/GoMileInput';
@@ -42,6 +42,10 @@ export default function LoginScreen({ navigation }) {
     navigation.navigate('RegisterStep1');
   };
 
+  const handleGoToForgotPassword = () => {
+    navigation.navigate('ForgotPassword');
+  };
+
   return (
     <ScreenWrapper>
       <Header title="BIENVENUE" />
@@ -50,6 +54,10 @@ export default function LoginScreen({ navigation }) {
         <View style={styles.card}>
           <GoMileInput label="Email ou Téléphone" value={identifier} onChangeText={setIdentifier} placeholder="votre@email.com" />
           <GoMileInput label="Mot de passe" value={password} onChangeText={setPassword} secureTextEntry placeholder="••••••••" />
+
+          <TouchableOpacity onPress={handleGoToForgotPassword} style={styles.forgotPasswordContainer}>
+            <Text style={styles.forgotPasswordText}>Mot de passe oublié?</Text>
+          </TouchableOpacity>
 
           <GoMileButton title="SE CONNECTER" type="secondary" onPress={handleLogin} loading={isLoading} />
 
@@ -68,4 +76,14 @@ const styles = StyleSheet.create({
   dividerContainer: { ...COMMON_STYLE_VALUES.rowCenter, marginVertical: 20 },
   dividerLine: {flex: 1, height: 1,backgroundColor: COLORS.border,},
   dividerText: {paddingHorizontal: 10, color: COLORS.textLight || '#888', fontSize: 14, fontWeight: '600',},
+  forgotPasswordContainer: {
+    alignItems: 'flex-end',
+    marginBottom: 15,
+    marginTop: -10,
+  },
+  forgotPasswordText: {
+    color: COLORS.secondary || '#1E88E5',
+    fontSize: 13,
+    fontWeight: '600',
+  },
 });

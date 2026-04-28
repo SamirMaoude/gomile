@@ -6,7 +6,9 @@ import { Asset } from 'expo-asset';
 
 // les diverses pages utilisé dans le cadre du projet
 import LoginScreen from './src/screens/LoginScreen';
+import ForgotPasswordScreen from './src/screens/ForgotPasswordScreen';
 import RegisterStep1 from './src/screens/RegisterStep1';
+import { EmailVerificationScreen } from './src/screens/EmailVerificationScreen';
 import RegisterStep2 from './src/screens/RegisterStep2';
 import RegisterStep3 from './src/screens/RegisterStep3';
 import RegisterStep4 from './src/screens/RegisterStep4';
@@ -34,7 +36,9 @@ export default function App() {
           screenOptions={{ headerShown: false }}
         >
           <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
           <Stack.Screen name="RegisterStep1" component={RegisterStep1} />
+          <Stack.Screen name="EmailVerification" component={EmailVerificationScreen} />
           <Stack.Screen name="RegisterStep2" component={RegisterStep2} />
           <Stack.Screen name="RegisterStep3" component={RegisterStep3} />
           <Stack.Screen name="RegisterStep4" component={RegisterStep4} />

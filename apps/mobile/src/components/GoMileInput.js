@@ -3,13 +3,15 @@ import { View, Text, TextInput, StyleSheet } from 'react-native';
 import { COLORS } from '../constants/theme';
 
 export default function GoMileInput({ label, ...props }) {
+  const { containerStyle, inputStyle, ...textInputProps } = props;
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, containerStyle]}>
       {label && <Text style={styles.label}>{label}</Text>}
       <TextInput 
-        style={styles.input} 
+        style={[styles.input, inputStyle]} 
         placeholderTextColor={COLORS.placeholder}
-        {...props} 
+        {...textInputProps} 
       />
     </View>
   );

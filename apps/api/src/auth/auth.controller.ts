@@ -22,6 +22,8 @@ import {
 import { AuthService } from './auth.service';
 import { RegisterMerchantDto } from './dto/register-merchant.dto';
 import { RegisterDriverDto } from './dto/register-driver.dto';
+import { StartDriverRegistrationDto } from './dto/start-driver-registration.dto';
+import { CompleteDriverRegistrationDto } from './dto/complete-driver-registration.dto';
 import { LoginDto } from './dto/login.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
@@ -48,6 +50,18 @@ export class AuthController {
   @Post('register/merchant')
   registerMerchant(@Body() dto: RegisterMerchantDto): Promise<AuthResponse> {
     return this.authService.registerMerchant(dto);
+  }
+
+  @ApiOperation({
+    summary:
+      'Start driver registration - first step with basic info only. Email verification will be sent.',
+  })
+  @ApiBody({ type: StartDriverRegistrationDto })
+  @ApiCreatedResponse({ type: AuthResponseDto })
+  @ApiConflictResponse({ description: 'Email ou téléphone déjà utilisé' })
+  @Post('register/driver/start')
+  startDriverRegistration(@Body() dto: StartDriverRegistrationDto): Promise<AuthResponse> {
+    return this.authService.startDriverRegistration(dto);
   }
 
   @ApiOperation({
@@ -131,6 +145,44 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   resetPassword(@Body() dto: ResetPasswordDto) {
     return this.authService.resetPassword(dto);
+  }
+
+  @ApiOperation({
+    summary: 'Check email verification status',
+    description:
+      'Returns the current email verification status for the authenticated user. Used by mobile app to poll during email verification process.',
+  })
+  @ApiBearerAuth('access-token')
+  @ApiOkResponse({
+    schema: { properties: { emailVerified: { type: 'boolean' } } },
+  })
+  @ApiUnauthorizedResponse({ description: 'Access token invalide' })
+  @UseGuards(JwtAuthGuard)
+  @Get('email-status')
+  @HttpCode(HttpStatus.OK)
+  emailStatus(@CurrentUser() user: AuthenticatedUser) {
+    return this.authService.getEmailStatus(user.id);
+  }
+
+  @ApiOperation({
+    summary: 'Complete driver registration with full information',
+    description:
+      'Updates the driver profile with complete information (address, delivery info, documents, etc). Only for authenticated users who have started registration.',
+  })
+  @ApiBearerAuth('access-token')
+  @ApiBody({ type: CompleteDriverRegistrationDto })
+  @ApiOkResponse({
+    schema: { properties: { message: { type: 'string' } } },
+  })
+  @ApiUnauthorizedResponse({ description: 'Access token invalide' })
+  @UseGuards(JwtAuthGuard)
+  @Post('complete-registration')
+  @HttpCode(HttpStatus.OK)
+  completeRegistration(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: CompleteDriverRegistrationDto,
+  ) {
+    return this.authService.completeDriverRegistration(user.id, dto);
   }
 
   @ApiOperation({

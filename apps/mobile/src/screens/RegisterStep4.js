@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Alert } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
 
 import FormLayout from '../components/FormLayout';
 import SectionTitle from '../components/SectionTitle';
@@ -12,8 +11,9 @@ import DocPicker from '../components/DocPicker'; // Réutilisation du picker de 
 import { useRegistrationStore } from '../store/useRegistrationStore';
 import { COLORS } from '../constants/theme';
 import { COMMON_STYLE_VALUES } from '../styles/commonStyles';
-import { registerDriver } from '../../lib/auth-client';
+import { completeDriverRegistration } from '../../lib/auth-client';
 import { uploadLocalFile } from '../../lib/upload-client';
+import { pickImageSource } from '../lib/media-picker';
 
 export default function RegisterStep4({ navigation }) {
   const [isLoading, setIsLoading] = useState(false);
@@ -21,7 +21,7 @@ export default function RegisterStep4({ navigation }) {
   // Extraction des données du store
   const { 
     updateField, siret, kbisFile, ribFile,
-    firstName, lastName, email, phone, 
+    firstName, lastName, email, phone, avatarUrl,
     birthDate, gender, address, city, zipCode, street, deliveryCity, deliveryRadius, transportType,
     cniFile, justificatifFile, password,
     permisFile, carteGriseFile,
@@ -29,11 +29,14 @@ export default function RegisterStep4({ navigation }) {
   } = useRegistrationStore();
 
   const pickDoc = async (field) => {
-    const result = await ImagePicker.launchImageLibraryAsync({ 
-      mediaTypes: ImagePicker.MediaType.Images,
-      quality: 0.7 
-    });
-    if (!result.canceled) updateField(field, result.assets[0].uri);
+    try {
+      const uri = await pickImageSource();
+      if (uri) {
+        updateField(field, uri);
+      }
+    } catch (error) {
+      Alert.alert('Erreur', error.message || 'Impossible d’ouvrir le sélecteur.');
+    }
   };
 
   
@@ -79,6 +82,7 @@ export default function RegisterStep4({ navigation }) {
       const justificatifUrl = justificatifFile
         ? await uploadLocalFile(justificatifFile, 'justificatif.jpg')
         : undefined;
+      const avatarUrlUploaded = avatarUrl ? await uploadLocalFile(avatarUrl, 'avatar.jpg') : undefined;
       const permisUrl = permisFile ? await uploadLocalFile(permisFile, 'permis.jpg') : undefined;
       const carteGriseUrl = carteGriseFile
         ? await uploadLocalFile(carteGriseFile, 'carte-grise.jpg')
@@ -94,6 +98,7 @@ export default function RegisterStep4({ navigation }) {
         gender: genderMap[gender] || 'UNDEFINED',
         phone: normalizePhone(phone),
         dateOfBirth: birthDate,
+        avatarUrl: avatarUrlUploaded,
         address: String(address).trim(),
         city: city ? String(city).trim() : undefined,
         zipCode: zipCode ? String(zipCode).trim() : undefined,
@@ -110,7 +115,7 @@ export default function RegisterStep4({ navigation }) {
         ribFile: ribUrl,
       };
 
-      await registerDriver(signupData);
+      await completeDriverRegistration(signupData);
       resetForm();
 
       Alert.alert(

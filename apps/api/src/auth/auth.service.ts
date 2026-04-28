@@ -12,6 +12,8 @@ import * as bcrypt from 'bcrypt';
 import { randomUUID, randomBytes, createHash, randomInt } from 'crypto';
 import { RegisterMerchantDto } from './dto/register-merchant.dto';
 import { RegisterDriverDto } from './dto/register-driver.dto';
+import { StartDriverRegistrationDto } from './dto/start-driver-registration.dto';
+import { CompleteDriverRegistrationDto } from './dto/complete-driver-registration.dto';
 import { LoginDto } from './dto/login.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
@@ -422,6 +424,132 @@ export class AuthService {
       });
       if (!existing) return code;
     }
+  }
+
+  async getEmailStatus(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { emailVerified: true },
+    });
+
+    if (!user) {
+      throw new BadRequestException(
+        createApiError('USER_NOT_FOUND', AUTH_ERRORS),
+      );
+    }
+
+    return { emailVerified: user.emailVerified };
+  }
+
+  // First step of driver registration - only basic info required
+  async startDriverRegistration(dto: StartDriverRegistrationDto): Promise<AuthResponse> {
+    await this.checkEmailAvailable(dto.email);
+    await this.checkPhoneAvailable(dto.phone);
+    const hashedPassword = await this.hashPassword(dto.password);
+    const gomileCode = await this.generateUniqueGomileCode();
+    const { token, hash, expiry } = this.generateVerificationToken();
+
+    const user = await this.prisma.user.create({
+      data: {
+        email: dto.email.toLowerCase(),
+        phone: dto.phone,
+        password: hashedPassword,
+        role: Role.DRIVER,
+        emailVerificationToken: hash,
+        emailVerificationExpiry: expiry,
+        driver: {
+          create: {
+            firstName: dto.firstName,
+            lastName: dto.lastName,
+            avatarUrl: dto.avatarUrl || '',
+            // Default values for required fields - will be updated later
+            dateOfBirth: new Date(), // Temporary, will be updated in RegisterStep2
+            gender: 'UNDEFINED',
+            address: 'Temporary',
+            deliveryCity: 'Temporary',
+            deliveryRadius: 1,
+            transportType: 'BIKE',
+            gomileCode,
+            wallet: { create: { balance: 0 } },
+          },
+        },
+      },
+    });
+
+    // Send verification email
+    const verifyUrl = `${process.env.APP_URL ?? DEFAULT_APP_URL}/verify-email?token=${token}`;
+    await this.emailService.sendVerificationEmail(
+      user.email,
+      dto.firstName,
+      verifyUrl,
+    );
+
+    return this.generateAndSaveTokens(user.id, user.email, user.role);
+  }
+
+  // Complete driver registration - update with all information
+  async completeDriverRegistration(
+    userId: string,
+    dto: CompleteDriverRegistrationDto,
+  ) {
+    const driver = await this.prisma.driver.findUnique({
+      where: { userId },
+    });
+
+    if (!driver) {
+      throw new BadRequestException(
+        createApiError('DRIVER_NOT_FOUND', AUTH_ERRORS),
+      );
+    }
+
+    // Update driver with complete information
+    await this.prisma.driver.update({
+      where: { userId },
+      data: {
+        dateOfBirth: new Date(dto.dateOfBirth),
+        gender: dto.gender,
+        address: dto.address,
+        city: dto.city,
+        zipCode: dto.zipCode,
+        street: dto.street,
+        deliveryCity: dto.deliveryCity,
+        deliveryRadius: dto.deliveryRadius,
+        transportType: dto.transportType,
+        avatarUrl: dto.avatarUrl || driver.avatarUrl,
+        siret: dto.siret,
+      },
+    });
+
+    // Create DriverDocument records for any provided file URLs
+    const documents: { type: DocumentType; url: string }[] = [];
+    if (dto.cniFile)
+      documents.push({ type: DocumentType.CNI, url: dto.cniFile });
+    if (dto.justificatifFile)
+      documents.push({ type: DocumentType.OTHER, url: dto.justificatifFile });
+    if (dto.permisFile)
+      documents.push({
+        type: DocumentType.DRIVING_LICENSE,
+        url: dto.permisFile,
+      });
+    if (dto.carteGriseFile)
+      documents.push({
+        type: DocumentType.REGISTRATION_CARD,
+        url: dto.carteGriseFile,
+      });
+    if (dto.kbisFile)
+      documents.push({ type: DocumentType.OTHER, url: dto.kbisFile });
+    if (dto.ribFile)
+      documents.push({ type: DocumentType.RIB, url: dto.ribFile });
+
+    // Remove old documents and create new ones
+    await this.prisma.driverDocument.deleteMany({ where: { driverId: userId } });
+    if (documents.length > 0) {
+      await this.prisma.driverDocument.createMany({
+        data: documents.map((doc) => ({ ...doc, driverId: userId })),
+      });
+    }
+
+    return { message: 'Inscription complétée avec succès' };
   }
 
   private async generateAndSaveTokens(

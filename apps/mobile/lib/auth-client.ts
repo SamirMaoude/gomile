@@ -9,6 +9,7 @@ import type {
   RegisterDriverInput,
   RegisterMerchantInput,
   Role,
+  ForgotPasswordInput,
 } from "./auth-contracts";
 import { AUTH_MESSAGES } from "./auth-messages";
 import type { ApiErrorPayload } from "./api-errors";
@@ -102,6 +103,7 @@ export type {
   RegisterDriverInput,
   RegisterMerchantInput,
   Role,
+  ForgotPasswordInput,
 };
 
 // Registers a merchant account, stores issued tokens, and returns the authenticated user.
@@ -127,6 +129,35 @@ export async function registerDriver(input: RegisterDriverInput) {
 
   await persistTokens(response);
   return toSession(response);
+}
+
+// Starts driver registration - first step with basic info only
+export async function startDriverRegistration(input: Partial<RegisterDriverInput>) {
+  const response = await requestApi<AuthTokensResponse>("/auth/register/driver/start", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+
+  await persistTokens(response);
+  return toSession(response);
+}
+
+// Completes driver registration with full information (for authenticated users)
+export async function completeDriverRegistration(input: Partial<RegisterDriverInput>) {
+  const tokens = await getAuthTokenStore().getTokens();
+
+  if (!tokens?.accessToken) {
+    throw new Error(createApiError("AUTH_TOKEN_MISSING").message);
+  }
+
+  return requestApi<{ message: string }>(
+    "/auth/complete-registration",
+    {
+      method: "POST",
+      body: JSON.stringify(input),
+    },
+    tokens.accessToken,
+  );
 }
 
 // Logs in an existing user, stores issued tokens, and returns the authenticated user.
@@ -179,6 +210,34 @@ export async function logout(): Promise<LogoutResponse> {
 
   await getAuthTokenStore().clearTokens();
   return response;
+}
+
+// Requests a password reset code to be sent to the provided email.
+export async function forgotPassword(input: ForgotPasswordInput) {
+  return requestApi<{ message: string }>(
+    "/auth/forgot-password",
+    {
+      method: "POST",
+      body: JSON.stringify(input),
+    },
+  );
+}
+
+// Checks the email verification status of the current user.
+export async function getEmailStatus() {
+  const tokens = await getAuthTokenStore().getTokens();
+
+  if (!tokens?.accessToken) {
+    throw new Error(createApiError("AUTH_TOKEN_MISSING").message);
+  }
+
+  return requestApi<{ emailVerified: boolean }>(
+    "/auth/email-status",
+    {
+      method: "GET",
+    },
+    tokens.accessToken,
+  );
 }
 
 // Exposes the current stored token pair for integration/debugging purposes.

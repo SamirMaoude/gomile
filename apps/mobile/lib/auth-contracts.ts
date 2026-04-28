@@ -79,3 +79,7 @@ export interface LoginInput {
   identifier: string;
   password: string;
 }
+
+export interface ForgotPasswordInput {
+  email: string;
+}
