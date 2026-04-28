@@ -140,8 +140,8 @@ const otpEyebrow: React.CSSProperties = {
 }
 
 const otpRow: React.CSSProperties = {
-  display: 'flex',
-  justifyContent: 'center',
+  textAlign: 'center',
+  fontSize: '0',
   marginBottom: '14px',
 }
 
@@ -155,9 +155,8 @@ const otpDigit: React.CSSProperties = {
   backgroundColor: 'rgba(255,255,255,0.05)',
   border: '1px solid rgba(255,255,255,0.09)',
   borderRadius: '10px',
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
+  display: 'inline-block',
+  verticalAlign: 'top',
   textAlign: 'center',
   lineHeight: '58px',
 }
