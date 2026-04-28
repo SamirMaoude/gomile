@@ -44,11 +44,23 @@ export function ResetPasswordEmail(dto: ResetPasswordEmailProps) {
         {/* OTP block */}
         <div style={otpWrap}>
           <Text style={otpEyebrow}>Verification code</Text>
-          <div style={otpRow}>
-            {digits.map((d, i) => (
-              <span key={i} style={{ ...otpDigit, marginRight: i === 2 ? '16px' : '7px' }}>{d}</span>
-            ))}
-          </div>
+          <table role="presentation" cellPadding="0" cellSpacing="0" style={otpTable}>
+            <tbody>
+              <tr>
+                {digits.map((d, i) => (
+                  <td
+                    key={i}
+                    style={{
+                      ...otpCell,
+                      paddingRight: i === digits.length - 1 ? '0' : i === 2 ? '12px' : '6px',
+                    }}
+                  >
+                    <span style={otpDigit}>{d}</span>
+                  </td>
+                ))}
+              </tr>
+            </tbody>
+          </table>
           <div style={timerPill}>
             <span style={timerDot} />
             Expires in 1 hour
@@ -139,33 +151,34 @@ const otpEyebrow: React.CSSProperties = {
   margin: '0 0 18px',
 }
 
-const otpRow: React.CSSProperties = {
-  display: 'flex',
-  justifyContent: 'center',
-  marginBottom: '14px',
+const otpTable: React.CSSProperties = {
+  margin: '0 auto 14px',
+}
+
+const otpCell: React.CSSProperties = {
+  padding: '0',
+  margin: '0',
 }
 
 const otpDigit: React.CSSProperties = {
   fontFamily: font.mono,
-  fontSize: '26px',
+  fontSize: '22px',
   fontWeight: 500,
   color: colors.white,
-  width: '48px',
-  height: '58px',
+  width: '38px',
+  height: '48px',
   backgroundColor: 'rgba(255,255,255,0.05)',
   border: '1px solid rgba(255,255,255,0.09)',
-  borderRadius: '10px',
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
+  borderRadius: '9px',
+  display: 'inline-block',
+  verticalAlign: 'top',
   textAlign: 'center',
-  lineHeight: '58px',
+  lineHeight: '48px',
+  whiteSpace: 'nowrap',
 }
 
 const timerPill: React.CSSProperties = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: '5px',
+  display: 'inline-block',
   backgroundColor: 'rgba(144,196,64,0.12)',
   border: '1px solid rgba(144,196,64,0.22)',
   borderRadius: '20px',
@@ -173,6 +186,7 @@ const timerPill: React.CSSProperties = {
   color: colors.green,
   fontSize: '11px',
   fontWeight: 500,
+  lineHeight: '1',
 }
 
 const timerDot: React.CSSProperties = {
@@ -181,6 +195,8 @@ const timerDot: React.CSSProperties = {
   borderRadius: '50%',
   backgroundColor: colors.green,
   display: 'inline-block',
+  verticalAlign: 'middle',
+  marginRight: '5px',
 }
 
 const secBanner: React.CSSProperties = {

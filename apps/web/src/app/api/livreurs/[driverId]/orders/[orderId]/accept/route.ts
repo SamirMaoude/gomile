@@ -1,9 +1,6 @@
-import { NextRequest } from "next/server";
-import { proxyApiRequest } from "@/lib/api-proxy";
+import { makeProtectedParamRoute } from "@/lib/bff/route-factories";
 
-type Params = { params: Promise<{ driverId: string; orderId: string }> };
-
-export async function POST(request: NextRequest, { params }: Params) {
-  const { driverId, orderId } = await params;
-  return proxyApiRequest(request, `/livreurs/${driverId}/orders/${orderId}/accept`);
-}
+export const POST = makeProtectedParamRoute<{
+  driverId: string;
+  orderId: string;
+}>(({ driverId, orderId }) => `/livreurs/${driverId}/orders/${orderId}/accept`);

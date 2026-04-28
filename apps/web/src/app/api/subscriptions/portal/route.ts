@@ -1,6 +1,3 @@
-import { NextRequest } from "next/server";
-import { proxyApiRequest } from "@/lib/api-proxy";
+import { makeProtectedRoute } from "@/lib/bff/route-factories";
 
-export async function POST(request: NextRequest) {
-  return proxyApiRequest(request, "/subscriptions/portal");
-}
+export const POST = makeProtectedRoute("/subscriptions/portal");

@@ -28,6 +28,27 @@ export const styles = {
   mobileLogoLink: "inline-flex items-center rounded-[1.2rem] px-2 py-1",
 
   toolbar: "ml-auto flex items-center gap-3",
+  headerActions: "ml-auto flex items-center gap-3",
+  upgradeLink:
+    "inline-flex items-center gap-3 rounded-[1.35rem] border px-3 py-2.5 transition focus:outline-none focus:ring-2 focus:ring-offset-2",
+  subscriptionPill:
+    "inline-flex items-center gap-3 rounded-[1.35rem] border px-3 py-2.5",
+  upgradeLinkLight:
+    "border-[#d6e7b9] bg-[linear-gradient(135deg,#f6fbeb_0%,#ebf6d4_100%)] text-slate-900 shadow-[0_12px_30px_rgba(112,146,47,0.12)] hover:border-[#bfd98f] hover:shadow-[0_16px_34px_rgba(112,146,47,0.18)] focus:ring-[#86ba2f]/30",
+  upgradeLinkDark:
+    "border-emerald-700 bg-[linear-gradient(135deg,#0f2b22_0%,#12382b_100%)] text-emerald-50 shadow-[0_12px_30px_rgba(0,0,0,0.26)] hover:border-emerald-500 hover:shadow-[0_16px_34px_rgba(16,185,129,0.14)] focus:ring-emerald-500/30",
+  subscriptionPillLight:
+    "border-[#d6e7b9] bg-white text-slate-900 shadow-[0_12px_30px_rgba(112,146,47,0.1)]",
+  subscriptionPillDark:
+    "border-emerald-800 bg-slate-900 text-emerald-50 shadow-[0_12px_30px_rgba(0,0,0,0.22)]",
+  upgradeIconWrap:
+    "inline-flex h-11 w-11 items-center justify-center rounded-[1rem] border shrink-0",
+  upgradeIconWrapLight: "border-[#cfe4a8] bg-white text-[#6a9722]",
+  upgradeIconWrapDark: "border-emerald-600/70 bg-emerald-500/10 text-emerald-300",
+  upgradeIcon: "h-5 w-5",
+  upgradeCopy: "flex min-w-0 flex-col items-start justify-center",
+  upgradeTitle: "font-display text-[0.95rem] font-bold leading-none",
+  upgradeArrow: "h-4 w-4 shrink-0 opacity-75",
 
   modeToggle: "inline-flex items-center rounded-full border p-1 shadow-sm",
   modeToggleLight: "border-slate-200 bg-white",

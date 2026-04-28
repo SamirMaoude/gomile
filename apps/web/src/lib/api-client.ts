@@ -30,6 +30,7 @@ export interface MerchantProfileResponse {
   name: string;
   email: string;
   phone: string | null;
+  subscription: "FREE" | "PRO" | "BUSINESS";
   createdAt: string;
 }
 
@@ -37,6 +38,8 @@ export interface UpdateMerchantProfileInput {
   name?: string;
   phone?: string;
 }
+
+
 
 export interface VerifyMerchantHandshakeInput {
   code: string;
@@ -212,3 +215,4 @@ export function updateMerchantProfile(
     body: JSON.stringify(input),
   });
 }
+

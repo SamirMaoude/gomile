@@ -1,4 +1,5 @@
 import {
+  configureWebhook as configureWebhookRequest,
   createStore as createStoreRequest,
   deleteStore as deleteStoreRequest,
   disableStore as disableStoreRequest,
@@ -11,6 +12,8 @@ import { getCurrentMerchantSession } from "@/lib/merchant-session";
 import type {
   CreateStoreInput,
   CreateStoreResult,
+  ConfigureWebhookInput,
+  ConfigureWebhookResult,
   DeleteStoreResult,
   Store,
   StoreListItem,
@@ -47,6 +50,18 @@ export function createMerchantStore(
   // Create/update/enable/disable use dedicated response DTOs on the backend.
   // We narrow the generic client return type here to match the actual route.
   return createStoreRequest(merchantId, input) as Promise<CreateStoreResult>;
+}
+
+export function configureMerchantStoreWebhook(
+  merchantId: string,
+  storeId: string,
+  input: ConfigureWebhookInput,
+): Promise<ConfigureWebhookResult> {
+  return configureWebhookRequest(
+    merchantId,
+    storeId,
+    input,
+  ) as Promise<ConfigureWebhookResult>;
 }
 
 export function updateMerchantStore(
@@ -95,6 +110,14 @@ export async function createCurrentMerchantStore(
 ): Promise<CreateStoreResult> {
   const merchantId = await resolveCurrentMerchantId();
   return createMerchantStore(merchantId, input);
+}
+
+export async function configureCurrentMerchantStoreWebhook(
+  storeId: string,
+  input: ConfigureWebhookInput,
+): Promise<ConfigureWebhookResult> {
+  const merchantId = await resolveCurrentMerchantId();
+  return configureMerchantStoreWebhook(merchantId, storeId, input);
 }
 
 export async function updateCurrentMerchantStore(

@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import Link from "next/link";
 import OtpInput from "react-otp-input";
 
@@ -99,7 +100,7 @@ export default function ForgotPasswordPage() {
                   skipDefaultStyles
                   renderInput={(inputProps, index) => (
                     <input
-                      {...inputProps}
+                      {...(inputProps as React.InputHTMLAttributes<HTMLInputElement>)}
                       id={`otp-${index}`}
                       name={`otp-${index}`}
                       className={[

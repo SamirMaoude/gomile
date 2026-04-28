@@ -1,14 +1,8 @@
-import { NextRequest } from "next/server";
-import { proxyApiRequest } from "@/lib/api-proxy";
+import { makeProtectedParamRoute } from "@/lib/bff/route-factories";
 
-type Params = { params: Promise<{ merchantId: string }> };
+const merchantRoute = makeProtectedParamRoute<{ merchantId: string }>(
+  ({ merchantId }) => `/merchants/${merchantId}`,
+);
 
-export async function GET(request: NextRequest, { params }: Params) {
-  const { merchantId } = await params;
-  return proxyApiRequest(request, `/merchants/${merchantId}`);
-}
-
-export async function PATCH(request: NextRequest, { params }: Params) {
-  const { merchantId } = await params;
-  return proxyApiRequest(request, `/merchants/${merchantId}`);
-}
+export const GET = merchantRoute;
+export const PATCH = merchantRoute;

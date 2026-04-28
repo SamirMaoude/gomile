@@ -6,7 +6,7 @@ interface Props {
   variant?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "p" | "span";
   weight?: "light" | "normal" | "medium" | "semibold" | "bold";
   theme?: "black" | "white" | "grey" | "primary" | "secondary" | "tertiary" | "heading" | "body" | "bodyStrong" | "link"
-    | "danger" | "success";
+    | "danger" | "success" | "primaryG" | "primaryB";
   Component?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "p" | "span";
   children: React.ReactNode;
   className?: string;
@@ -44,6 +44,8 @@ const themeClasses: Record<NonNullable<Props['theme']>, string> = {
   link:      'text-link',
   danger:    'text-danger',
   success:   'text-success',
+  primaryG:  'text-primary-green',
+  primaryB:  'text-primary-blue',
 }
 
 export function Typography({
