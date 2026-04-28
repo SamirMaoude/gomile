@@ -2,60 +2,309 @@
 # This file is distributed under the same license as the Gomile Shipment plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: Gomile Shipment 1.0.0\n"
-"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/gomile-shipment\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"Project-Id-Version: Gomile Shipment 1.1.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/woocommerce\n"
+"POT-Creation-Date: 2026-04-28T00:50:49+00:00\n"
+"PO-Revision-Date: 2026-04-28 02:44+0200\n"
+"Last-Translator: Gomile <support@gomile.delivery>\n"
+"Language-Team: Français <fr@li.org>\n"
+"Language: fr_FR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-03-23T12:11:57+00:00\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: gomile-shipment\n"
 
 #. Plugin Name of the plugin
-#: gomile-shipment.php
-#: includes/class-shipping-method.php:18
+#: gomile-shipment.php includes/class-admin-settings.php:246
+#: includes/class-admin-settings.php:247 includes/class-admin-settings.php:254
+#: includes/class-admin-settings.php:255 includes/class-admin-settings.php:527
+#: includes/class-shipping-method.php:47
 msgid "Gomile Shipment"
-msgstr ""
+msgstr "Gomile Shipment"
 
 #. Plugin URI of the plugin
 #: gomile-shipment.php
 msgid "https://gomile.com"
-msgstr ""
+msgstr "https://gomile.com"
 
 #. Description of the plugin
 #: gomile-shipment.php
-msgid "Méthode de livraison WooCommerce pour attribuer un livreur via Gomile."
-msgstr ""
+msgid "WooCommerce shipping method to assign a delivery driver via Gomile."
+msgstr "Méthode de livraison WooCommerce pour attribuer un livreur via Gomile."
 
 #. Author of the plugin
 #: gomile-shipment.php
 msgid "Gomile"
-msgstr ""
+msgstr "Gomile"
 
-#: includes/class-shipping-method.php:19
-msgid "Delivery through the Gomile driver network."
-msgstr ""
+#: gomile-shipment.php:77
+msgid "Gomile Shipment requires WooCommerce to be installed and active."
+msgstr "Gomile Shipment nécessite que WooCommerce soit installé et actif."
 
-#: includes/class-shipping-method.php:34
-#: includes/class-shipping-method.php:54
+#: includes/class-admin-settings.php:272
+msgid "Settings"
+msgstr "Réglages"
+
+#: includes/class-admin-settings.php:297
+msgid "API Configuration"
+msgstr "Configuration de l’API"
+
+#: includes/class-admin-settings.php:304
+msgid "API Key"
+msgstr "Clé API"
+
+#: includes/class-admin-settings.php:311
+msgid ""
+"Shared secret or token sent with each request. Leave empty when saving to "
+"keep the current key."
+msgstr ""
+"Secret partagé ou jeton envoyé avec chaque requête. Laissez ce champ vide "
+"lors de l’enregistrement pour conserver la clé actuelle."
+
+#: includes/class-admin-settings.php:317
+msgid "Delivery Defaults"
+msgstr "Valeurs par défaut de livraison"
+
+#: includes/class-admin-settings.php:324
+msgid "Sender Name"
+msgstr "Nom de l’expéditeur"
+
+#: includes/class-admin-settings.php:330
+msgid "Default pickup contact name sent to the API."
+msgstr "Nom du contact de retrait envoyé par défaut à l’API."
+
+#: includes/class-admin-settings.php:336
+msgid "Sender Phone"
+msgstr "Téléphone de l’expéditeur"
+
+#: includes/class-admin-settings.php:342
+msgid "Default pickup contact phone sent to the API."
+msgstr "Téléphone du contact de retrait envoyé par défaut à l’API."
+
+#: includes/class-admin-settings.php:348
+msgid "Sender Address Street Number"
+msgstr "Numéro de rue de l’expéditeur"
+
+#: includes/class-admin-settings.php:354
+msgid "Primary street number for your pickup address."
+msgstr "Numéro de rue principal de votre adresse de retrait."
+
+#: includes/class-admin-settings.php:360
+msgid "Sender Address Street Name"
+msgstr "Nom de rue de l’expéditeur"
+
+#: includes/class-admin-settings.php:366
+msgid "Primary street name for your pickup address."
+msgstr "Nom de rue principal de votre adresse de retrait."
+
+#: includes/class-admin-settings.php:372
+msgid "Sender Address Postal Code"
+msgstr "Code postal de l’expéditeur"
+
+#: includes/class-admin-settings.php:378
+msgid "Primary postal code for your pickup address."
+msgstr "Code postal principal de votre adresse de retrait."
+
+#: includes/class-admin-settings.php:384
+msgid "Sender Address City"
+msgstr "Ville de l’expéditeur"
+
+#: includes/class-admin-settings.php:390
+msgid "Primary city for your pickup address."
+msgstr "Ville principale de votre adresse de retrait."
+
+#: includes/class-admin-settings.php:396
+msgid "Sender Address Country"
+msgstr "Pays de l’expéditeur"
+
+#: includes/class-admin-settings.php:402
+msgid "Primary country for your pickup address."
+msgstr "Pays principal de votre adresse de retrait."
+
+#: includes/class-admin-settings.php:425
+msgid "Webhook"
+msgstr "Webhook"
+
+#: includes/class-admin-settings.php:432
+msgid "Webhook Secret"
+msgstr "Secret du webhook"
+
+#: includes/class-admin-settings.php:439
+msgid ""
+"Secret expected in the X-Gomile-Webhook-Secret header for incoming status "
+"updates."
+msgstr ""
+"Secret utilisé pour vérifier la signature du header X-Gomile-Webhook-Secret "
+"lors des mises à jour de statut entrantes."
+
+#: includes/class-admin-settings.php:528
+msgid ""
+"Configure the WooCommerce shipping method and map it to your delivery API."
+msgstr ""
+"Configurez la méthode de livraison WooCommerce et reliez-la à votre API de "
+"livraison."
+
+#: includes/class-admin-settings.php:568 includes/class-admin-settings.php:569
+msgid "Copied!"
+msgstr "Copié !"
+
+#: includes/class-admin-settings.php:591
+msgid ""
+"These settings define how the plugin authenticates and communicates with "
+"your delivery API, including optional live shipping quotes at cart and "
+"checkout."
+msgstr ""
+"Ces réglages définissent l’authentification et la communication du plugin "
+"avec votre API de livraison, y compris les devis de livraison en temps réel "
+"dans le panier et au paiement."
+
+#: includes/class-admin-settings.php:600
+msgid ""
+"These values are merged into the delivery payload when the customer selects "
+"Gomile at checkout."
+msgstr ""
+"Ces valeurs sont ajoutées au payload de livraison lorsque le client choisit "
+"Gomile lors du paiement."
+
+#: includes/class-admin-settings.php:611
+msgid ""
+"Paste this URL in your Gomile panel to push delivery status updates back "
+"into WooCommerce."
+msgstr ""
+"Collez cette URL dans votre espace Gomile pour renvoyer les mises à jour de "
+"statut de livraison vers WooCommerce."
+
+#: includes/class-admin-settings.php:614
+msgid "Copy webhook URL"
+msgstr "Copier l’URL du webhook"
+
+#: includes/class-admin-settings.php:652
+msgid "A key is already saved for the API."
+msgstr "Une clé est déjà enregistrée pour l’API."
+
+#: includes/class-admin-settings.php:656
+msgid "A webhook secret is already saved."
+msgstr "Un secret de webhook est déjà enregistré."
+
+#: includes/class-delivery-api.php:89
+msgid "The quote response does not contain a valid price."
+msgstr "La réponse du devis ne contient pas de prix valide."
+
+#: includes/class-delivery-api.php:113 includes/class-delivery-api.php:203
+msgid "The provided order is invalid."
+msgstr "La commande fournie est invalide."
+
+#: includes/class-delivery-api.php:144
+msgid "The create order response does not contain an orderId."
+msgstr "La réponse de création de commande ne contient pas d’orderId."
+
+#: includes/class-delivery-api.php:212
+msgid "The order does not contain a customer name."
+msgstr "La commande ne contient pas de nom client."
+
+#: includes/class-delivery-api.php:216
+msgid "The order does not contain a customer phone number."
+msgstr "La commande ne contient pas de numéro de téléphone client."
+
+#: includes/class-delivery-api.php:220
+msgid "The order does not contain a dropoff address."
+msgstr "La commande ne contient pas d’adresse de livraison."
+
+#: includes/class-delivery-api.php:302
+msgid "The Gomile API URL is not configured."
+msgstr "L’URL de l’API Gomile n’est pas configurée."
+
+#: includes/class-delivery-api.php:379
+#, php-format
+msgid "Gomile API request failed with HTTP %1$d: %2$s"
+msgstr "La requête vers l’API Gomile a échoué avec le code HTTP %1$d : %2$s"
+
+#: includes/class-order-handler.php:113
+msgid "Gomile order was not created because the API is not configured yet."
+msgstr ""
+"La commande Gomile n’a pas été créée car l’API n’est pas encore configurée."
+
+#: includes/class-order-handler.php:131
+#, php-format
+msgid "Gomile order creation failed during %1$s: %2$s"
+msgstr "La création de la commande Gomile a échoué pendant %1$s : %2$s"
+
+#: includes/class-order-handler.php:160
+#, php-format
+msgid "Gomile order created during %1$s. API order ID: %2$s. Status: %3$s"
+msgstr ""
+"Commande Gomile créée pendant %1$s. ID de commande API : %2$s. Statut : %3$s"
+
+#: includes/class-order-handler.php:162
+msgid "not returned by API"
+msgstr "non renvoyé par l’API"
+
+#: includes/class-order-handler.php:167
+#, php-format
+msgid "Delivery code: %s"
+msgstr "Code de livraison : %s"
+
+#: includes/class-order-handler.php:171
+#, php-format
+msgid "Delivery fee: %s EUR"
+msgstr "Frais de livraison : %s EUR"
+
+#: includes/class-order-handler.php:175
+#, php-format
+msgid "Distance: %s km"
+msgstr "Distance : %s km"
+
+#: includes/class-rest-endpoints.php:114
+#, php-format
+msgid "Gomile delivery status updated by webhook: %s"
+msgstr "Statut de livraison Gomile mis à jour par webhook : %s"
+
+#: includes/class-rest-endpoints.php:140
+msgid "Order marked as completed by Gomile webhook"
+msgstr "Commande marquée comme terminée par le webhook Gomile"
+
+#: includes/class-shipping-method.php:48
+msgid ""
+"Create a delivery mission in your Gomile API when the customer selects this "
+"shipping method."
+msgstr ""
+"Crée une mission de livraison dans votre API Gomile lorsque le client "
+"choisit cette méthode de livraison."
+
+#: includes/class-shipping-method.php:68 includes/class-shipping-method.php:94
 msgid "Gomile Delivery"
-msgstr ""
+msgstr "Livraison Gomile"
 
-#: includes/class-shipping-method.php:45
+#: includes/class-shipping-method.php:85
 msgid "Enable"
-msgstr ""
+msgstr "Activer"
 
-#: includes/class-shipping-method.php:47
+#: includes/class-shipping-method.php:87
 msgid "Enable Gomile Shipment"
-msgstr ""
+msgstr "Activer Gomile Shipment"
 
-#: includes/class-shipping-method.php:51
+#: includes/class-shipping-method.php:91
 msgid "Title"
-msgstr ""
+msgstr "Titre"
 
-#: includes/class-shipping-method.php:53
+#: includes/class-shipping-method.php:93
 msgid "Title shown to customers during checkout."
-msgstr ""
+msgstr "Titre affiché aux clients lors du paiement."
+
+#: includes/class-shipping-method.php:97
+msgid "Tax Status"
+msgstr "Statut fiscal"
+
+#: includes/class-shipping-method.php:99
+msgid "Define whether the shipping cost is taxable."
+msgstr "Définit si les frais de livraison sont taxables."
+
+#: includes/class-shipping-method.php:102
+msgid "Taxable"
+msgstr "Taxable"
+
+#: includes/class-shipping-method.php:103
+msgctxt "Tax status"
+msgid "None"
+msgstr "Aucun"
