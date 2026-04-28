@@ -42,16 +42,22 @@ class Gomile_Shipment_REST_Endpoints {
     }
 
     /**
-     * @brief Vérifie le secret du webhook.
+     * @brief Verifie la signature HMAC du webhook.
      *
      * @param $request Requête REST.
      * @return bool
      */
     public static function check_webhook_secret($request) {
-        $secret = Gomile_Shipment_Admin_Settings::get_webhook_secret();
-        $provided_secret = $request->get_header('X-Gomile-Webhook-Secret');
+        $secret = trim((string) Gomile_Shipment_Admin_Settings::get_webhook_secret());
+        $provided_signature = trim((string) $request->get_header('X-Gomile-Webhook-Secret'));
 
-        return hash_equals($secret, $provided_secret);
+        if ('' === $secret || '' === $provided_signature) {
+            return false;
+        }
+
+        $expected_signature = 'sha256=' . hash_hmac('sha256', $request->get_body(), $secret);
+
+        return hash_equals($expected_signature, $provided_signature);
     }
 
     /**
@@ -67,62 +73,73 @@ class Gomile_Shipment_REST_Endpoints {
 
         switch ($event_type) {
             case 'delivery.status_changed':
-                self::handle_delivery_status_changed($payload);
-                break;
+                return self::handle_delivery_status_changed($payload);
             
                 case 'delivery.status_completed':
                 // Livraison terminée, on peut clôturer la commande
-                self::handle_delivery_completed($payload);
-                break;
+                return self::handle_delivery_completed($payload);
             
             default:
                 // Event non géré
                 return new WP_REST_Response(array('success' => false, 'message' => 'Event type not handled'), 400);
         }
-
-        return new WP_REST_Response(array('success' => true), 200);
     }
     
     /**
      * @brief Traite le changement de statut de livraison.
      *
      * @param $payload Données du webhook.
-     * @return void
+     * @return WP_REST_Response
      */
     protected static function handle_delivery_status_changed($payload) {
-        
-        $reference = $payload['orderReference'];
+        $reference = isset($payload['orderReference']) ? (string) $payload['orderReference'] : '';
 
         $order = wc_get_order($reference);
 
         if (!$order) {
-            return;
+            return new WP_REST_Response(array('success' => false, 'message' => 'WooCommerce order not found'), 404);
         }
 
         $new_status = $payload['status'] ?? null;
 
-        if ($new_status) {
-            $order->update_meta_data('_gomile_shipment_status', $new_status);
-            $order->update_meta_data('gomile_shipment_last_status_update', current_time('Y-m-d H:i:s'));
-            $order->save();
+        if (!$new_status) {
+            return new WP_REST_Response(array('success' => false, 'message' => 'Missing delivery status'), 400);
         }
+
+        $order->update_meta_data('_gomile_shipment_status', sanitize_key($new_status));
+        $order->update_meta_data('_gomile_shipment_last_status_update', current_time('Y-m-d H:i:s'));
+        $order->save();
+        $order->add_order_note(
+            sprintf(
+                __('Gomile delivery status updated by webhook: %s', 'gomile-shipment'),
+                sanitize_text_field((string) $new_status)
+            )
+        );
+
+        return new WP_REST_Response(array('success' => true), 200);
     }
 
     protected static function handle_delivery_completed($payload) {
 
-        self::handle_delivery_status_changed($payload); // Met à jour le statut de livraison gomile
+        $status_response = self::handle_delivery_status_changed($payload); // Met à jour le statut de livraison gomile
 
-        $reference = $payload['orderReference'];
+        if ($status_response->get_status() >= 400) {
+            return $status_response;
+        }
+
+        $reference = isset($payload['orderReference']) ? (string) $payload['orderReference'] : '';
 
         $order = wc_get_order($reference);
 
         if (!$order) {
-            return;
+            return new WP_REST_Response(array('success' => false, 'message' => 'WooCommerce order not found'), 404);
         }
 
         // Marquer la commande comme terminée au niveau de WooCommerce
         if ($order->get_status() !== 'completed') {
             $order->update_status('completed', __('Order marked as completed by Gomile webhook', 'gomile-shipment'));
         }
+
+        return new WP_REST_Response(array('success' => true), 200);
     }
 }
