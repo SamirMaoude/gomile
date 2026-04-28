@@ -71,7 +71,7 @@ export const AUTH_ERRORS = {
   },
   EMAIL_NOT_VERIFIED: {
     statusCode: 403,
-    message: 'Please verify your email before login',
+    message: 'Please verify your email before continuing',
   },
 } as const;
 

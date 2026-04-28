@@ -19,6 +19,7 @@ import {
 } from '@nestjs/swagger';
 import { Tier } from '@prisma/client';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { EmailVerifiedGuard } from '../auth/guards/email-verified.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '../auth/auth.types';
 import { SubscriptionService } from './subscription.service';
@@ -30,7 +31,7 @@ export class SubscriptionController {
 
   @Post('checkout')
   @ApiBearerAuth('access-token')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, EmailVerifiedGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Start a plan upgrade checkout',
@@ -47,7 +48,7 @@ export class SubscriptionController {
 
   @Post('portal')
   @ApiBearerAuth('access-token')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, EmailVerifiedGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Open the billing management portal',

@@ -3,6 +3,7 @@ import { OrderService } from './order-merchants.service';
 import { OrderMerchantsController } from './order-merchants.controller';
 import { OrderPluginController } from '../plugin/order-plugin.controller';
 import { ApiKeyService } from '../../auth/api-key.service';
+import { EmailVerifiedGuard } from '../../auth/guards/email-verified.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { JwtOrApiKeyGuard } from '../../auth/guards/jwt-or-api-key.guard';
 import { ApiKeyGuard } from '../../auth/guards/api-key.guard';
@@ -21,6 +22,7 @@ import { WebhookModule } from '../../webhook/webhook.module';
     JwtOrApiKeyGuard,
     ApiKeyGuard,
     JwtAuthGuard,
+    EmailVerifiedGuard,
   ],
 })
 export class OrderMerchantsModule {}

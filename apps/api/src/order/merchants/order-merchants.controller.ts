@@ -22,6 +22,7 @@ import {
 import { ApiBearerAuth, ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { EmailVerifiedGuard } from '../../auth/guards/email-verified.guard';
 import { CancelOrderResponseDto } from '../dto/cancel-order-response';
 import { CreateOrderDto } from '../dto/create-order.dto';
 import { CreateOrderResponseDto } from '../dto/create-order-response';
@@ -37,6 +38,8 @@ import { HandshakeDto } from '../dto/handshake.dto';
 
 @ApiTags('[Web][Merchant]')
 @Controller('/merchants/:merchantId')
+@UseGuards(JwtOrApiKeyGuard, EmailVerifiedGuard, RolesGuard)
+
 export class OrderMerchantsController {
   constructor(private readonly orderService: OrderService) {}
 
@@ -58,7 +61,6 @@ export class OrderMerchantsController {
     description: 'Authenticated user does not own this merchant account',
   })
   @ApiNotFoundResponse({ description: 'Merchant or store not found' })
-  @UseGuards(JwtOrApiKeyGuard, RolesGuard)
   @Roles(Role.MERCHANT)
   @Post('/stores/:storeId/orders')
   @HttpCode(HttpStatus.CREATED)
@@ -84,7 +86,6 @@ export class OrderMerchantsController {
     description: 'Authenticated user does not own this merchant account',
   })
   @ApiNotFoundResponse({ description: 'Merchant not found' })
-  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.MERCHANT, Role.ADMIN)
   @Get('/orders')
   @HttpCode(HttpStatus.OK)
@@ -111,7 +112,6 @@ export class OrderMerchantsController {
     description: 'Authenticated user does not own this order',
   })
   @ApiNotFoundResponse({ description: 'Merchant or order not found' })
-  @UseGuards(JwtOrApiKeyGuard, RolesGuard)
   @Roles(Role.MERCHANT)
   @Get('/orders/:orderId')
   @HttpCode(HttpStatus.OK)
@@ -140,7 +140,6 @@ export class OrderMerchantsController {
   @ApiInternalServerErrorResponse({
     description: 'Handshake not found, suggesting a deeper backend issue',
   })
-  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.MERCHANT)
   @Post('/stores/:storeId/orders/handshake/verify')
   @HttpCode(HttpStatus.OK)
@@ -173,7 +172,6 @@ export class OrderMerchantsController {
   @ApiConflictResponse({
     description: 'Order is already picked up, delivered, or cancelled',
   })
-  @UseGuards(JwtOrApiKeyGuard, RolesGuard)
   @Roles(Role.MERCHANT)
   @Post('/orders/:orderId/cancel')
   @HttpCode(HttpStatus.OK)

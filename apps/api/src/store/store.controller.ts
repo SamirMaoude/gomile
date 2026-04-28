@@ -27,6 +27,7 @@ import {
 
 import { StoreService } from './store.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { EmailVerifiedGuard } from '../auth/guards/email-verified.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '../auth/auth.types';
@@ -44,7 +45,7 @@ import { ConfigureWebhookResponseDto } from './dto/configure-webhook-response.dt
 
 @ApiTags('[Web][Store]')
 @ApiBearerAuth('access-token')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, EmailVerifiedGuard, RolesGuard)
 @Controller('merchants/:merchantId/stores')
 export class StoreController {
   constructor(private readonly storeService: StoreService) {}

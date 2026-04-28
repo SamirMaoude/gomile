@@ -216,3 +216,12 @@ export function updateMerchantProfile(
   });
 }
 
+export function getUserEmailVerified(
+  email: string,
+) {
+  return request<{ isVerified: boolean }>(`/api/auth/email-verified`, {
+    method: "GET",
+    body: JSON.stringify({ email }),
+  });
+}
+

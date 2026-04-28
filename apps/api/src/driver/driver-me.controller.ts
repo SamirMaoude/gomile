@@ -24,6 +24,7 @@ import {
 import { Role, VehicleType } from '@prisma/client';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { EmailVerifiedGuard } from '../auth/guards/email-verified.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { OrderLivreursService } from '../order/livreurs/order-livreurs.service';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
@@ -42,7 +43,7 @@ import { CreateDriverDocumentDto } from './dto/create-driver-document.dto';
 
 @ApiTags('[Mobile] Driver')
 @ApiBearerAuth('access-token')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, EmailVerifiedGuard, RolesGuard)
 @Roles(Role.DRIVER)
 @Controller('driver/me')
 export class DriverMeController {

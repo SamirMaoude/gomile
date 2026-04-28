@@ -11,6 +11,7 @@ import { ApiKeyService } from './api-key.service';
 import { ApiKeyController } from './api-key.controller';
 import { JwtOrApiKeyGuard } from './guards/jwt-or-api-key.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { EmailVerifiedGuard } from './guards/email-verified.guard';
 
 @Module({
   imports: [JwtModule.register({}), EmailsModule],
@@ -23,8 +24,9 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
     ApiKeyService,
     JwtOrApiKeyGuard,
     JwtAuthGuard,
+    EmailVerifiedGuard,
   ], // adding guard provider for nest
   controllers: [AuthController, ApiKeyController],
-  exports: [AuthService, ApiKeyGuard, ApiKeyService, JwtOrApiKeyGuard],
+  exports: [AuthService, ApiKeyGuard, ApiKeyService, JwtOrApiKeyGuard, EmailVerifiedGuard],
 })
 export class AuthModule {}

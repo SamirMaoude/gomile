@@ -22,6 +22,7 @@ import {
 import { MerchantService } from './merchant.service';
 import { UpdateMerchantDto } from './dto/update-merchant.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { EmailVerifiedGuard } from '../auth/guards/email-verified.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '@prisma/client';
@@ -32,7 +33,7 @@ import { MERCHANT_ERRORS } from './merchant-errors';
 
 @ApiTags('[Web][Merchant]')
 @ApiBearerAuth('access-token')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, EmailVerifiedGuard, RolesGuard)
 @Roles(Role.MERCHANT)
 @Controller('merchants/:merchantId')
 export class MerchantController {
