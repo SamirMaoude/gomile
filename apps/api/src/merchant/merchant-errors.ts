@@ -1,11 +1,11 @@
 export const MERCHANT_ERRORS = {
-  MERCHANT_NOT_FOUND: {
-    statusCode: 404,
-    message: 'Merchant not found',
-  },
   PHONE_ALREADY_USED: {
     statusCode: 409,
     message: 'Phone number already in use',
+  },
+  MERCHANT_STILL_HAS_ORDERS: {
+    statusCode: 409,
+    message: 'Merchant still has ongoing orders',
   },
 } as const;
 
