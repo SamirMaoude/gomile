@@ -22,8 +22,8 @@ import {
 import { AuthService } from './auth.service';
 import { RegisterMerchantDto } from './dto/register-merchant.dto';
 import { RegisterDriverDto } from './dto/register-driver.dto';
-import { StartDriverRegistrationDto } from './dto/start-driver-registration.dto';
-import { CompleteDriverRegistrationDto } from './dto/complete-driver-registration.dto';
+// import { StartDriverRegistrationDto } from './dto/start-driver-registration.dto';
+// import { CompleteDriverRegistrationDto } from './dto/complete-driver-registration.dto';
 import { LoginDto } from './dto/login.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
@@ -38,7 +38,7 @@ import type { AuthenticatedUser, AuthResponse } from './auth.types';
 @ApiTags('[auth]')
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService) { }
 
   @ApiOperation({
     summary:
@@ -52,17 +52,16 @@ export class AuthController {
     return this.authService.registerMerchant(dto);
   }
 
-  @ApiOperation({
-    summary:
-      'Start driver registration - first step with basic info only. Email verification will be sent.',
-  })
-  @ApiBody({ type: StartDriverRegistrationDto })
-  @ApiCreatedResponse({ type: AuthResponseDto })
-  @ApiConflictResponse({ description: 'Email ou téléphone déjà utilisé' })
-  @Post('register/driver/start')
-  startDriverRegistration(@Body() dto: StartDriverRegistrationDto): Promise<AuthResponse> {
-    return this.authService.startDriverRegistration(dto);
-  }
+  // @ApiOperation({
+  //   summary: 'Start driver registration - first step with basic info only. Email verification will be sent.',
+  // })
+  // @ApiBody({ type: StartDriverRegistrationDto })
+  // @ApiCreatedResponse({ type: AuthResponseDto })
+  // @ApiConflictResponse({ description: 'Email ou téléphone déjà utilisé' })
+  // @Post('register/driver/start')
+  // startDriverRegistration(@Body() dto: StartDriverRegistrationDto): Promise<AuthResponse> {
+  //   return this.authService.startDriverRegistration(dto);
+  // }
 
   @ApiOperation({
     summary:
@@ -164,26 +163,23 @@ export class AuthController {
     return this.authService.getEmailStatus(user.id);
   }
 
-  @ApiOperation({
-    summary: 'Complete driver registration with full information',
-    description:
-      'Updates the driver profile with complete information (address, delivery info, documents, etc). Only for authenticated users who have started registration.',
-  })
-  @ApiBearerAuth('access-token')
-  @ApiBody({ type: CompleteDriverRegistrationDto })
-  @ApiOkResponse({
-    schema: { properties: { message: { type: 'string' } } },
-  })
-  @ApiUnauthorizedResponse({ description: 'Access token invalide' })
-  @UseGuards(JwtAuthGuard)
-  @Post('complete-registration')
-  @HttpCode(HttpStatus.OK)
-  completeRegistration(
-    @CurrentUser() user: AuthenticatedUser,
-    @Body() dto: CompleteDriverRegistrationDto,
-  ) {
-    return this.authService.completeDriverRegistration(user.id, dto);
-  }
+  // @ApiOperation({
+  //   summary: 'Complete driver registration with full information',
+  //   description: 'Updates the driver profile with complete information. Only for authenticated users who have started registration.',
+  // })
+  // @ApiBearerAuth('access-token')
+  // @ApiBody({ type: CompleteDriverRegistrationDto })
+  // @ApiOkResponse({ schema: { properties: { message: { type: 'string' } } } })
+  // @ApiUnauthorizedResponse({ description: 'Access token invalide' })
+  // @UseGuards(JwtAuthGuard)
+  // @Post('complete-registration')
+  // @HttpCode(HttpStatus.OK)
+  // completeRegistration(
+  //   @CurrentUser() user: AuthenticatedUser,
+  //   @Body() dto: CompleteDriverRegistrationDto,
+  // ) {
+  //   return this.authService.completeDriverRegistration(user.id, dto);
+  // }
 
   @ApiOperation({
     summary: 'Log out the current user',
