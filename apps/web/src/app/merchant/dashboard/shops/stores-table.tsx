@@ -8,6 +8,7 @@ import DeleteIcon from "@/components/ui/icons/DeleteIcon";
 import DisableIcon from "@/components/ui/icons/DisableIcon";
 import EditIcon from "@/components/ui/icons/EditIcon";
 import EnableIcon from "@/components/ui/icons/EnableIcon";
+import KeyIcon from "@/components/ui/icons/KeyIcon";
 import PlusIcon from "@/components/ui/icons/PlusIcon";
 import { cn, styles } from "../style";
 import {
@@ -29,6 +30,7 @@ export default function StoresTable({ isDarkMode }: StoresTableProps) {
     isLoading,
     processingStoreId,
     handleCreateStore,
+    handleConfigureWebhook,
     handleDeleteStore,
     handleEditStore,
     handleStatusFilterChange,
@@ -232,6 +234,22 @@ export default function StoresTable({ isDarkMode }: StoresTableProps) {
 
         return (
           <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              iconOnly
+              icon={<KeyIcon className="h-4 w-4" />}
+              aria-label={
+                store.webhookUrl
+                  ? "Modifier le webhook"
+                  : "Ajouter un webhook"
+              }
+              disabled={isProcessing}
+              className={getActionButtonClassName("info")}
+              onClick={() => void handleConfigureWebhook(store)}
+            />
+
             <Button
               type="button"
               variant="outline"

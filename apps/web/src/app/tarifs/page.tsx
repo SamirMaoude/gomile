@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Check, Crown, Sparkles, Zap } from "lucide-react";
 
 import Button from "@/components/ui/design-system/button/button";
@@ -13,6 +14,7 @@ import { Navigation } from "@/components/ui/navigation/navigation";
 import styles from "./tarifs.module.css";
 
 type BillingMode = "monthly" | "annual";
+type SubscriptionPlan = "PRO" | "BUSINESS";
 
 type Plan = {
   name: string;
@@ -21,31 +23,30 @@ type Plan = {
   annualPrice: string;
   suffix: string;
   cta: string;
-  href: string;
   icon: typeof Zap;
   accent: "slate" | "green" | "pink";
   featured?: boolean;
+  checkoutPlan?: SubscriptionPlan;
   features: string[];
 };
 
 const plans: Plan[] = [
   {
-    name: "Occasionnel",
-    description: "Parfait pour une utilisation ponctuelle",
+    name: "Gratuit",
+    description: "Parfait pour découvrir notre service",
     monthlyPrice: "0EUR",
     annualPrice: "0EUR",
     suffix: "Gratuit",
     cta: "Commencer",
-    href: "/auth",
     icon: Zap,
     accent: "slate",
     features: [
+      "1 boutique",
       "Paiement a la livraison",
       "Tracking GPS en temps reel",
       "Support 7j/7",
       "Livraison standard (30-120 min)",
-      "Assurance jusqu'a 100EUR",
-    ],
+      ],
   },
   {
     name: "Premium",
@@ -54,33 +55,32 @@ const plans: Plan[] = [
     annualPrice: "15.90EUR",
     suffix: "/mois",
     cta: "Commencer",
-    href: "/auth",
     icon: Sparkles,
     accent: "green",
     featured: true,
+    checkoutPlan: "PRO",
     features: [
-      "Livraisons illimitees incluses",
-      "Tracking GPS en temps reel",
+      "Toutes les fonctionnalités du plan Gratuit",
+      "5 boutiques",
       "Livraison express (sous 30 min)",
-      "Programmation de livraison",
       "Support prioritaire",
     ],
   },
   {
     name: "Business",
     description: "Solution personnalisee pour entreprises",
-    monthlyPrice: "Sur mesure",
-    annualPrice: "Sur mesure",
+    monthlyPrice: "49.90EUR",
+    annualPrice: "39.90EUR",
     suffix: "",
-    cta: "Nous contacter",
-    href: "/auth",
+    cta: "Commencer",
     icon: Crown,
     accent: "pink",
+    checkoutPlan: "BUSINESS",
     features: [
-      "Volume de livraisons personnalise",
+      "Toutes les fonctionnalités du plan Premium",
+      "Boutiques illimitees",
       "Gestionnaire de compte dedie",
       "API complete pour integration",
-      "Facturation mensuelle centralisee",
       "Reporting et analytics avances",
     ],
   },
@@ -100,6 +100,8 @@ const iconClassNames: Record<Plan["accent"], string> = {
 
 export default function TarifsPage() {
   const [billingMode, setBillingMode] = useState<BillingMode>("monthly");
+  const [pendingPlan, setPendingPlan] = useState<Plan["name"] | null>(null);
+  const router = useRouter();
 
   const displayedPlans = useMemo(
     () =>
@@ -110,6 +112,69 @@ export default function TarifsPage() {
       })),
     [billingMode],
   );
+
+  async function tryRefreshSession() {
+    const response = await fetch("/api/auth/refresh", {
+      method: "POST",
+      credentials: "include",
+      cache: "no-store",
+    });
+
+    return response.ok;
+  }
+
+  async function handlePlanClick(plan: Plan) {
+    setPendingPlan(plan.name);
+
+    try {
+      if (!plan.checkoutPlan) {
+        const refreshWorked = await tryRefreshSession();
+        router.push(refreshWorked ? "/merchant/dashboard" : "/auth");
+        return;
+      }
+
+      let checkoutResponse = await fetch(
+        `/api/subscriptions/checkout?plan=${plan.checkoutPlan}`,
+        {
+          method: "POST",
+          credentials: "include",
+          cache: "no-store",
+        },
+      );
+
+      if (!checkoutResponse) {
+        const refreshWorked = await tryRefreshSession();
+
+        if (!refreshWorked) {
+          router.push("/auth");
+          return;
+        }
+
+        checkoutResponse = await fetch(
+          `/api/subscriptions/checkout?plan=${plan.checkoutPlan}`,
+          {
+            method: "POST",
+            credentials: "include",
+            cache: "no-store",
+          },
+        );
+      }
+
+      if (!checkoutResponse.status) {
+        router.push("/auth");
+        return;
+      }
+
+      if (!checkoutResponse.ok) {
+        throw new Error("Failed to create checkout session");
+      }
+
+      const data = (await checkoutResponse.json()) as { checkoutUrl: string };
+      window.location.assign(data.checkoutUrl);
+    } finally {
+      setPendingPlan(null);
+    }
+  }
 
   return (
     <main className={`${styles.page} flex flex-col`}>
@@ -207,8 +272,10 @@ export default function TarifsPage() {
                 </div>
 
                 <Button
-                  href={plan.href}
+                  type="button"
                   fullWidth
+                  disabled={pendingPlan === plan.name}
+                  onClick={() => void handlePlanClick(plan)}
                   variant={plan.accent === "green" ? "filled" : "outline"}
                   className={`${styles.planButton} ${plan.accent === "slate" ? styles.buttonSlate : ""} ${plan.accent === "pink" ? styles.buttonPink : ""}`}
                 >

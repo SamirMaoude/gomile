@@ -1,6 +1,8 @@
 import type {
   CreateStoreInput as SharedCreateStoreInput,
   CreateStoreResponse as SharedCreateStoreResponse,
+  ConfigureWebhookInput as SharedConfigureWebhookInput,
+  ConfigureWebhookResponse as SharedConfigureWebhookResponse,
   DeleteStoreResponse as SharedDeleteStoreResponse,
   ListStoresItem as SharedListStoresItem,
   StoreProvider as SharedStoreProvider,
@@ -15,6 +17,8 @@ export type StoreListItem = SharedListStoresItem;
 export type CreateStoreInput = SharedCreateStoreInput;
 export type UpdateStoreInput = SharedUpdateStoreInput;
 export type CreateStoreResult = SharedCreateStoreResponse;
+export type ConfigureWebhookInput = SharedConfigureWebhookInput;
+export type ConfigureWebhookResult = SharedConfigureWebhookResponse;
 export type UpdateStoreResult = SharedUpdateStoreResponse;
 export type DeleteStoreResult = SharedDeleteStoreResponse;
 

@@ -6,8 +6,8 @@ import { PrismaService } from '../prisma/prisma.service';
 const EVENT_NAME: Partial<Record<OrderStatus, string>> = {
   [OrderStatus.DRIVER_ACCEPTED]: 'delivery.status_changed',
   [OrderStatus.PICKED_UP]: 'delivery.status_changed',
-  [OrderStatus.DELIVERED]: 'delivery.status_changed',
-  [OrderStatus.CANCELLED]: 'delivery.status_completed',
+  [OrderStatus.DELIVERED]: 'delivery.status_completed',
+  [OrderStatus.CANCELLED]: 'delivery.status_changed',
 };
 
 @Injectable()
