@@ -11,6 +11,8 @@ Le plugin permet de :
 - recevoir les mises à jour de statut via webhook ;
 - mettre à jour les métadonnées et notes de commande WooCommerce.
 
+Les principaux flux du plugin sont détaillés dans les [diagrammes de séquence PlantUML](./DIAGRAMMES-SEQUENCE.md).
+
 ## Prérequis
 
 ### Côté WordPress
