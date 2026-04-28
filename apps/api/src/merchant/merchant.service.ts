@@ -19,7 +19,7 @@ export class MerchantService {
   async getMerchant(user: AuthenticatedUser, merchantId: string) {
     if (user.id !== merchantId) {
       throw new ForbiddenException(
-        createApiError('MERCHANT_NOT_FOUND', AUTH_ERRORS),
+        createApiError('NOT_OWNER', AUTH_ERRORS),
       );
     }
     const result = await this.prisma.merchant.findUnique({

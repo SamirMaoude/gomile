@@ -7,7 +7,6 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
-  ForbiddenException,
   Delete
 } from '@nestjs/common';
 import {
@@ -70,7 +69,7 @@ export class MerchantController {
   @ApiOkResponse({ description: 'Merchant deleted' })
   @ApiNotFoundResponse({ description: 'Merchant not found' })
   @ApiForbiddenResponse({ description: 'Not your account' })
-  @Delete('/delete')
+  @Delete()
   @HttpCode(HttpStatus.OK)
   delete(@Param('merchantId') merchantId: string, @CurrentUser() user: AuthenticatedUser) {
     return this.merchantService.deleteMerchant(user, merchantId);

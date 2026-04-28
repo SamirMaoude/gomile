@@ -6,3 +6,4 @@ const merchantRoute = makeProtectedParamRoute<{ merchantId: string }>(
 
 export const GET = merchantRoute;
 export const PATCH = merchantRoute;
+export const DELETE = merchantRoute;

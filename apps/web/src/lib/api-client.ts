@@ -225,3 +225,9 @@ export function getUserEmailVerified(
   });
 }
 
+export function deleteMerchant(merchantId: string) {
+  return request<void>(`/api/merchants/${merchantId}`, {
+    method: "DELETE",
+  });
+}
+
