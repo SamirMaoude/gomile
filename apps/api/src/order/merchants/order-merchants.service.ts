@@ -402,6 +402,7 @@ export class OrderService {
     });
     return {
       orderId: handshake.orderId,
+      orderReference: handshake.order.orderReference,
       message: ORDER_MESSAGE.ORDER_PICKED_UP,
     };
   }
