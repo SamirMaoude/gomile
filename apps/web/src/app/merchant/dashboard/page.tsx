@@ -1,15 +1,14 @@
 "use client";
 
-import Link from "next/link";
 import { type ReactNode } from "react";
 
-import Navbar from "@/components/dashboard/navbar";
+import DashboardSidebar from "@/components/dashboard/dashboard-sidebar";
+import SidebarToggle from "@/components/dashboard/sidebar-toggle";
 import ActiveDeliveries from "@/components/dashboard/active-delivery";
 import MerchantHandshakeCard from "@/components/dashboard/merchant-handshake-card";
-import Footer from "@/components/ui/design-system/header_footer/footer";
-import Navigation from "@/components/ui/header/navigation";
+import Footerlp from "@/components/ui/design-system/header_footer/footerlp";
+import { Navigation } from "@/components/ui/navigation/navigation";
 import GrenobleDeliveryMap from "@/components/dashboard/grenoble-delivery-map";
-import { Logo } from "@/components/Logo/Logo";
 import Typography from "@/components/ui/design-system/typography";
 import { getDashboardMenuItems } from "./dashboard-menu";
 import HeaderActions from "./header-actions";
@@ -46,11 +45,15 @@ export default function MerchantDashboardPage() {
     handleLogout,
     isDarkMode,
     isLoggingOut,
+    isSidebarCollapsed,
     menuRef,
+    openSidebar,
+    closeSidebar,
     profileMenuOpen,
     setTheme,
     theme,
     toggleProfileMenu,
+    toggleSidebar,
     username,
   } = useDashboard();
   const {
@@ -68,48 +71,48 @@ export default function MerchantDashboardPage() {
         isDarkMode ? styles.pageDark : styles.pageLight,
       )}
     >
-      <div className={styles.layout}>
-        <aside
-          className={cn(
-            styles.sidebar,
-            isDarkMode ? styles.sidebarDark : styles.sidebarLight,
-          )}
-        >
-          <div
-            className={cn(
-              styles.sidebarHeader,
-              isDarkMode ? styles.sidebarHeaderDark : styles.sidebarHeaderLight,
-            )}
-          >
-            <Link href="/" className={styles.sidebarLogoLink}>
-              <Logo size="lg" />
-            </Link>
-          </div>
+      <Navigation
+        theme="landingpage"
+        mode={theme}
+        onModeChange={setTheme}
+        isDarkMode={isDarkMode}
+        isAuthenticated
+        username={username}
+        contentClassName="max-w-none"
+        showLogo={false}
+        leftSlot={
+          <SidebarToggle
+            isCollapsed={isSidebarCollapsed}
+            isDarkMode={isDarkMode}
+            onToggle={toggleSidebar}
+          />
+        }
+        rightSlot={
+          <HeaderActions
+            avatarLabel={avatarLabel}
+            isDarkMode={isDarkMode}
+            isLoggingOut={isLoggingOut}
+            menuItems={overviewMenuItems}
+            menuRef={menuRef}
+            onClose={closeProfileMenu}
+            onLogout={handleLogout}
+            onToggle={toggleProfileMenu}
+            profileMenuOpen={profileMenuOpen}
+            username={username}
+          />
+        }
+      />
 
-          <Navbar items={overviewMenuItems} isDarkMode={isDarkMode} />
-        </aside>
+      <div className={styles.layout}>
+        <DashboardSidebar
+          items={overviewMenuItems}
+          isCollapsed={isSidebarCollapsed}
+          isDarkMode={isDarkMode}
+          onClose={closeSidebar}
+          onOpen={openSidebar}
+        />
 
         <div className={styles.mainPanel}>
-          <Navigation
-            theme={theme}
-            onChange={setTheme}
-            isDarkMode={isDarkMode}
-            rightSlot={
-              <HeaderActions
-                avatarLabel={avatarLabel}
-                isDarkMode={isDarkMode}
-                isLoggingOut={isLoggingOut}
-                menuItems={overviewMenuItems}
-                menuRef={menuRef}
-                onClose={closeProfileMenu}
-                onLogout={handleLogout}
-                onToggle={toggleProfileMenu}
-                profileMenuOpen={profileMenuOpen}
-                username={username}
-              />
-            }
-          />
-
           <main className={styles.main}>
             <SurfaceCard isDarkMode={isDarkMode}>
               <div className={styles.mapGrid}>
@@ -155,7 +158,7 @@ export default function MerchantDashboardPage() {
         </div>
       </div>
 
-      <Footer />
+      <Footerlp />
     </div>
   );
 }

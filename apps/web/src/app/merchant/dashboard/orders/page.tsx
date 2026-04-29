@@ -1,11 +1,9 @@
 "use client";
 
-import Link from "next/link";
-
-import { Logo } from "@/components/Logo/Logo";
-import Navbar from "@/components/dashboard/navbar";
-import Footer from "@/components/ui/design-system/header_footer/footer";
-import Navigation from "@/components/ui/header/navigation";
+import DashboardSidebar from "@/components/dashboard/dashboard-sidebar";
+import SidebarToggle from "@/components/dashboard/sidebar-toggle";
+import Footerlp from "@/components/ui/design-system/header_footer/footerlp";
+import { Navigation } from "@/components/ui/navigation/navigation";
 import { getDashboardMenuItems } from "../dashboard-menu";
 import HeaderActions from "../header-actions";
 import { cn, styles } from "../style";
@@ -19,11 +17,15 @@ export default function MerchantOrdersPage() {
     handleLogout,
     isDarkMode,
     isLoggingOut,
+    isSidebarCollapsed,
     menuRef,
+    openSidebar,
+    closeSidebar,
     profileMenuOpen,
     setTheme,
     theme,
     toggleProfileMenu,
+    toggleSidebar,
     username,
   } = useDashboard();
 
@@ -36,55 +38,55 @@ export default function MerchantOrdersPage() {
         isDarkMode ? styles.pageDark : styles.pageLight,
       )}
     >
-      <div className={styles.layout}>
-        <aside
-          className={cn(
-            styles.sidebar,
-            isDarkMode ? styles.sidebarDark : styles.sidebarLight,
-          )}
-        >
-          <div
-            className={cn(
-              styles.sidebarHeader,
-              isDarkMode ? styles.sidebarHeaderDark : styles.sidebarHeaderLight,
-            )}
-          >
-            <Link href="/" className={styles.sidebarLogoLink}>
-              <Logo size="lg" />
-            </Link>
-          </div>
+      <Navigation
+        theme="landingpage"
+        mode={theme}
+        onModeChange={setTheme}
+        isDarkMode={isDarkMode}
+        isAuthenticated
+        username={username}
+        contentClassName="max-w-none"
+        showLogo={false}
+        leftSlot={
+          <SidebarToggle
+            isCollapsed={isSidebarCollapsed}
+            isDarkMode={isDarkMode}
+            onToggle={toggleSidebar}
+          />
+        }
+        rightSlot={
+          <HeaderActions
+            avatarLabel={avatarLabel}
+            isDarkMode={isDarkMode}
+            isLoggingOut={isLoggingOut}
+            menuItems={ordersMenuItems}
+            menuRef={menuRef}
+            onClose={closeProfileMenu}
+            onLogout={handleLogout}
+            onToggle={toggleProfileMenu}
+            profileMenuOpen={profileMenuOpen}
+            username={username}
+          />
+        }
+      />
 
-          <Navbar items={ordersMenuItems} isDarkMode={isDarkMode} />
-        </aside>
+      <div className={styles.layout}>
+        <DashboardSidebar
+          items={ordersMenuItems}
+          isCollapsed={isSidebarCollapsed}
+          isDarkMode={isDarkMode}
+          onClose={closeSidebar}
+          onOpen={openSidebar}
+        />
 
         <div className={styles.mainPanel}>
-          <Navigation
-            theme={theme}
-            onChange={setTheme}
-            isDarkMode={isDarkMode}
-            rightSlot={
-              <HeaderActions
-                avatarLabel={avatarLabel}
-                isDarkMode={isDarkMode}
-                isLoggingOut={isLoggingOut}
-                menuItems={ordersMenuItems}
-                menuRef={menuRef}
-                onClose={closeProfileMenu}
-                onLogout={handleLogout}
-                onToggle={toggleProfileMenu}
-                profileMenuOpen={profileMenuOpen}
-                username={username}
-              />
-            }
-          />
-
           <main className={styles.main}>
             <OrdersTable isDarkMode={isDarkMode} />
           </main>
         </div>
       </div>
 
-      <Footer />
+      <Footerlp />
     </div>
   );
 }

@@ -2,6 +2,14 @@ const MISSING_AUTH_TOKEN_MESSAGES = [
   "AUTH_TOKEN_MISSING",
   "Jeton d'authentification manquant",
 ];
+const EXPIRED_REFRESH_TOKEN_MESSAGES = [
+  "INVALID_REFRESH_TOKEN",
+  "Invalid refresh token",
+  "Jeton de rafraichissement invalide",
+  "jwt expired",
+  "Unauthorized",
+];
+const LOGIN_PATH = "/merchant/login";
 
 let isHandlingExpiredSession = false;
 
@@ -15,12 +23,22 @@ export function isMissingAuthTokenError(error: unknown) {
   );
 }
 
-export async function redirectToHomeWithExpiredSessionAlert() {
+export function isRefreshTokenExpiredError(error: unknown) {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  return [...MISSING_AUTH_TOKEN_MESSAGES, ...EXPIRED_REFRESH_TOKEN_MESSAGES].some(
+    (message) => error.message.includes(message),
+  );
+}
+
+export async function redirectToLoginWithExpiredSessionAlert() {
   if (typeof window === "undefined" || isHandlingExpiredSession) {
     return;
   }
 
-  if (window.location.pathname === "/") {
+  if (window.location.pathname === LOGIN_PATH) {
     return;
   }
 
@@ -32,12 +50,15 @@ export async function redirectToHomeWithExpiredSessionAlert() {
     await Swal.fire({
       icon: "warning",
       title: "Session expiree",
-      text: "Votre session a expire. Veuillez vous reconnecter.",
-      confirmButtonText: "Retour a l'accueil",
+      text: "Votre refresh token a expire. Veuillez vous reconnecter.",
+      confirmButtonText: "Se connecter",
       confirmButtonColor: "#7ebb2b",
       allowOutsideClick: false,
     });
   } finally {
-    window.location.assign("/");
+    window.location.assign(LOGIN_PATH);
   }
 }
+
+export const redirectToHomeWithExpiredSessionAlert =
+  redirectToLoginWithExpiredSessionAlert;

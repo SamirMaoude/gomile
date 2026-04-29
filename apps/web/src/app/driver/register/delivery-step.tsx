@@ -3,7 +3,6 @@ import Input from "@/components/ui/design-system/input/input";
 import Typography from "@/components/ui/design-system/typography";
 import CircleIcon from "@/components/ui/icons/CircleIcon";
 import CityIcon from "@/components/ui/icons/CityIcon";
-import EquipmentIcon from "@/components/ui/icons/EquipmentIcon";
 import TransportIcon from "@/components/ui/icons/TransportIcon";
 import { styles } from "./styles";
 import type {
@@ -103,19 +102,6 @@ export default function DeliveryStep({
           ) : null}
         </div>
 
-        <Input
-          id="driver-equipments"
-          name="equipments"
-          type="text"
-          placeholder="Equipements (casque, isotherme, gants)"
-          leftIcon={<EquipmentIcon className={styles.fieldIcon} />}
-          helperText="Separez les equipements par des virgules."
-          value={formData.equipments}
-          onChange={(event) => onFieldChange("equipments", event.target.value)}
-          containerClassName={styles.fieldContainer}
-          inputWrapperClassName={styles.fieldWrapper}
-          className={styles.fieldInput}
-        />
       </div>
     </section>
   );

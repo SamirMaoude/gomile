@@ -61,7 +61,7 @@ export interface RegisterDriverInput {
   phone: string;
   gender: Gender;
   dateOfBirth: string;
-  address: string;
+  address?: string;
   city?: string;
   zipCode?: string;
   street?: string;

@@ -10,6 +10,8 @@ import Footerlp from "@/components/ui/design-system/header_footer/footerlp";
 import Typography from "@/components/ui/design-system/typography";
 import Container from "@/components/ui/elements/container";
 import { Navigation } from "@/components/ui/navigation/navigation";
+import { refreshSession } from "@/lib/auth-client";
+import { requestWithAutoRefresh } from "@/lib/protected-request";
 
 import styles from "./tarifs.module.css";
 
@@ -114,13 +116,12 @@ export default function TarifsPage() {
   );
 
   async function tryRefreshSession() {
-    const response = await fetch("/api/auth/refresh", {
-      method: "POST",
-      credentials: "include",
-      cache: "no-store",
-    });
-
-    return response.ok;
+    try {
+      await refreshSession();
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   async function handlePlanClick(plan: Plan) {
@@ -133,43 +134,10 @@ export default function TarifsPage() {
         return;
       }
 
-      let checkoutResponse = await fetch(
+      const data = await requestWithAutoRefresh<{ checkoutUrl: string }>(
         `/api/subscriptions/checkout?plan=${plan.checkoutPlan}`,
-        {
-          method: "POST",
-          credentials: "include",
-          cache: "no-store",
-        },
+        { method: "POST" },
       );
-
-      if (!checkoutResponse) {
-        const refreshWorked = await tryRefreshSession();
-
-        if (!refreshWorked) {
-          router.push("/auth");
-          return;
-        }
-
-        checkoutResponse = await fetch(
-          `/api/subscriptions/checkout?plan=${plan.checkoutPlan}`,
-          {
-            method: "POST",
-            credentials: "include",
-            cache: "no-store",
-          },
-        );
-      }
-
-      if (!checkoutResponse.status) {
-        router.push("/auth");
-        return;
-      }
-
-      if (!checkoutResponse.ok) {
-        throw new Error("Failed to create checkout session");
-      }
-
-      const data = (await checkoutResponse.json()) as { checkoutUrl: string };
       window.location.assign(data.checkoutUrl);
     } finally {
       setPendingPlan(null);

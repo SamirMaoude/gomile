@@ -7,32 +7,42 @@ export const styles = {
   pageLight: "bg-[#edf3e7] text-slate-900",
   pageDark: "bg-slate-950 text-slate-100",
 
-  layout: "flex flex-1",
+  layout: "flex flex-1 flex-col lg:flex-row",
 
-  sidebar: "hidden border-r lg:flex lg:w-[19rem] lg:flex-col",
+  sidebar: "shrink-0 transition-[width] duration-300 lg:flex lg:flex-col lg:border-r",
+  sidebarExpanded: "flex w-full flex-col border-b lg:w-[19rem] lg:border-b-0",
+  sidebarCollapsed: "hidden lg:flex lg:w-[5.75rem]",
   sidebarLight: "border-slate-200 bg-white",
   sidebarDark: "border-slate-800 bg-slate-900",
 
-  sidebarHeader: "border-b px-6 py-6",
+  sidebarHeader: "flex min-h-[5.6rem] items-center justify-center border-b px-6 py-6",
+  sidebarHeaderCollapsed: "justify-center px-3",
   sidebarHeaderLight: "border-slate-200",
   sidebarHeaderDark: "border-slate-800",
 
-  sidebarLogoLink: "inline-flex items-center",
-  sidebarNav: "grid gap-3 px-4 py-5",
+  sidebarToggle:
+    "inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full border transition focus:outline-none focus:ring-2 focus:ring-offset-2",
+  sidebarToggleLight:
+    "border-slate-200 bg-white text-slate-700 hover:bg-slate-50 focus:ring-[#86ba2f]/30",
+  sidebarToggleDark:
+    "border-slate-700 bg-slate-900 text-slate-200 hover:bg-slate-800 focus:ring-emerald-500/30",
+  sidebarNav: "grid justify-items-start gap-3 px-4 py-4 lg:py-6",
+  sidebarNavCollapsed: "justify-items-center px-3",
+  sidebarNavItems: "grid w-full gap-3",
 
   mainPanel: "min-w-0 flex-1",
-  main: "px-4 py-5 sm:px-6 lg:px-8 lg:py-6",
+  main: "min-w-0 px-3 py-4 sm:px-6 lg:px-8 lg:py-6",
 
   topBar: "mb-6 flex flex-wrap items-center gap-3",
   mobileLogoWrapper: "lg:hidden",
   mobileLogoLink: "inline-flex items-center rounded-[1.2rem] px-2 py-1",
 
   toolbar: "ml-auto flex items-center gap-3",
-  headerActions: "ml-auto flex items-center gap-3",
+  headerActions: "relative z-[2100] ml-auto flex items-center gap-2 sm:gap-3",
   upgradeLink:
-    "inline-flex items-center gap-3 rounded-[1.35rem] border px-3 py-2.5 transition focus:outline-none focus:ring-2 focus:ring-offset-2",
+    "inline-flex min-h-12 items-center gap-2 rounded-full border px-2 py-1 shadow-sm transition focus:outline-none focus:ring-2 focus:ring-offset-2 max-[380px]:hidden",
   subscriptionPill:
-    "inline-flex items-center gap-3 rounded-[1.35rem] border px-3 py-2.5",
+    "inline-flex min-h-12 items-center gap-2 rounded-full border px-2 py-1 shadow-sm max-[380px]:hidden",
   upgradeLinkLight:
     "border-[#d6e7b9] bg-[linear-gradient(135deg,#f6fbeb_0%,#ebf6d4_100%)] text-slate-900 shadow-[0_12px_30px_rgba(112,146,47,0.12)] hover:border-[#bfd98f] hover:shadow-[0_16px_34px_rgba(112,146,47,0.18)] focus:ring-[#86ba2f]/30",
   upgradeLinkDark:
@@ -42,13 +52,13 @@ export const styles = {
   subscriptionPillDark:
     "border-emerald-800 bg-slate-900 text-emerald-50 shadow-[0_12px_30px_rgba(0,0,0,0.22)]",
   upgradeIconWrap:
-    "inline-flex h-11 w-11 items-center justify-center rounded-[1rem] border shrink-0",
+    "inline-flex h-10 w-10 items-center justify-center rounded-full border shrink-0",
   upgradeIconWrapLight: "border-[#cfe4a8] bg-white text-[#6a9722]",
   upgradeIconWrapDark: "border-emerald-600/70 bg-emerald-500/10 text-emerald-300",
   upgradeIcon: "h-5 w-5",
   upgradeCopy: "flex min-w-0 flex-col items-start justify-center",
-  upgradeTitle: "font-display text-[0.95rem] font-bold leading-none",
-  upgradeArrow: "h-4 w-4 shrink-0 opacity-75",
+  upgradeTitle: "hidden font-display text-[0.9rem] font-bold leading-none sm:block",
+  upgradeArrow: "hidden h-4 w-4 shrink-0 opacity-75 sm:block",
 
   modeToggle: "inline-flex items-center rounded-full border p-1 shadow-sm",
   modeToggleLight: "border-slate-200 bg-white",
@@ -63,10 +73,10 @@ export const styles = {
   modeButtonInactiveLight: "text-slate-600 hover:bg-slate-100",
   modeButtonInactiveDark: "text-slate-300 hover:bg-slate-800",
 
-  profileMenuWrapper: "relative",
+  profileMenuWrapper: "relative z-[2200]",
 
   profileTrigger:
-    "flex items-center gap-3 rounded-full border px-2 py-1.5 shadow-sm",
+    "flex items-center rounded-full border p-1 shadow-sm",
   profileTriggerLight: "border-slate-200 bg-white",
   profileTriggerDark: "border-slate-700 bg-slate-900",
 
@@ -75,13 +85,13 @@ export const styles = {
   profileAvatarLight: "bg-[#86ba2f] text-white hover:bg-[#79ab29]",
   profileAvatarDark: "bg-emerald-700 text-white hover:bg-emerald-600",
 
-  profileNameWrapper: "hidden pr-2 sm:block",
+  profileNameWrapper: "hidden",
   profileName: "text-sm font-semibold",
   profileNameLight: "text-slate-900",
   profileNameDark: "!text-white",
 
   dropdown:
-    "absolute right-0 top-[calc(100%+0.75rem)] z-30 w-[18rem] rounded-[1.4rem] border p-3 shadow-[0_24px_60px_rgba(15,23,42,0.18)]",
+    "absolute right-0 top-[calc(100%+0.75rem)] z-[2300] w-[18rem] rounded-[1.4rem] border p-3 shadow-[0_24px_60px_rgba(15,23,42,0.18)]",
   dropdownLight: "border-slate-200 bg-white",
   dropdownDark: "border-slate-800 bg-slate-900",
 
@@ -100,7 +110,7 @@ export const styles = {
     "inline-flex h-8 w-8 items-center justify-center rounded-full bg-current/10",
 
   surfaceCard:
-    "rounded-[2rem] border p-5 shadow-[0_18px_50px_rgba(88,117,52,0.08)] lg:p-6",
+    "rounded-[1.25rem] border p-3 shadow-[0_18px_50px_rgba(88,117,52,0.08)] sm:rounded-[2rem] sm:p-5 lg:p-6",
   surfaceCardLight: "border-[#d9e7cf] bg-white",
   surfaceCardDark: "border-slate-800 bg-slate-900",
 
@@ -108,7 +118,7 @@ export const styles = {
     "grid gap-5 xl:grid-cols-[minmax(0,1.5fr)_minmax(23rem,0.95fr)]",
 
   mapSection:
-    "relative min-h-[42rem] overflow-hidden rounded-[1.75rem] border shadow-[0_16px_40px_rgba(15,23,42,0.06)]",
+    "relative z-0 min-h-[22rem] overflow-hidden rounded-[1.25rem] border shadow-[0_16px_40px_rgba(15,23,42,0.06)] sm:min-h-[32rem] sm:rounded-[1.75rem] lg:min-h-[42rem]",
   mapSectionLight: "border-[#d6dfcf] bg-[#f8f8f1]",
   mapSectionDark: "border-slate-800 bg-slate-950",
 
@@ -148,13 +158,13 @@ export const styles = {
   deliveriesHeaderLight: "border-slate-200",
   deliveriesHeaderDark: "border-slate-800",
 
-  sectionTitle: "font-display text-[2rem] font-bold",
+  sectionTitle: "font-display text-[1.45rem] font-bold sm:text-[2rem]",
 
   tableOverflow: "overflow-x-auto",
   deliveriesTableMin: "min-w-[44rem]",
 
   deliveriesTableHead:
-    "grid grid-cols-[9.5rem_1.4fr_1.1fr_1fr] gap-3 border-b px-5 py-4 text-[1.05rem] font-semibold",
+    "grid grid-cols-[9.5rem_1.4fr_1.1fr_1fr] gap-3 border-b px-5 py-4 text-sm font-semibold xl:text-[1.05rem]",
   deliveriesTableHeadLight: "border-slate-200 text-slate-700",
   deliveriesTableHeadDark: "border-slate-800 text-slate-300",
 
@@ -162,7 +172,7 @@ export const styles = {
   deliveriesDividerDark: "divide-y divide-slate-800",
 
   deliveryRow:
-    "grid grid-cols-[9.5rem_1.4fr_1.1fr_1fr] gap-3 px-5 py-4 text-[1.02rem]",
+    "grid grid-cols-[9.5rem_1.4fr_1.1fr_1fr] gap-3 px-5 py-4 text-sm xl:text-[1.02rem]",
   deliveryIdentity: "flex items-center gap-3",
   deliveryAvatar:
     "flex h-12 w-12 items-center justify-center rounded-full text-base font-bold",
@@ -187,7 +197,9 @@ export const styles = {
   navbarItemBase:
     "flex items-center gap-3 rounded-[1.05rem] border font-semibold transition",
   navbarItemCompact: "px-3 py-3 text-sm",
-  navbarItemDefault: "px-4 py-4 text-[1.05rem]",
+  navbarItemDefault: "px-4 py-4 text-sm xl:text-[1.05rem]",
+  navbarItemCollapsed: "justify-center px-3 py-3",
+  navbarLabelCollapsed: "sr-only",
 
   navbarItemActiveLight:
     "border-[#8cb83f] bg-[#f7fbe9] text-slate-950 shadow-[0_6px_18px_rgba(136,176,56,0.12)]",

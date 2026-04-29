@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useTransition, type FormEvent } from "react";
+import { useEffect, useState, useTransition, type FormEvent } from "react";
 
 import { login, logout } from "@/lib/auth-client";
 import {
@@ -15,6 +15,53 @@ export function useLogin() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  useEffect(() => {
+    let isActive = true;
+
+    async function restoreExistingSession() {
+      try {
+        const response = await fetch("/api/auth/refresh", {
+          method: "POST",
+          credentials: "include",
+          cache: "no-store",
+        });
+
+        if (!response.ok) {
+          return;
+        }
+
+        const session = (await response.json()) as Awaited<ReturnType<typeof login>>;
+
+        if (session.user.role !== "MERCHANT" && session.user.role !== "ADMIN") {
+          return;
+        }
+
+        primeMerchantSession(session);
+
+        try {
+          await getCurrentMerchantProfile();
+        } catch {
+          // Best-effort preload so the dashboard can show merchant.name immediately.
+        }
+
+        if (!isActive) {
+          return;
+        }
+
+        router.replace("/merchant/dashboard");
+        router.refresh();
+      } catch {
+        // No valid refresh token: keep the login page visible.
+      }
+    }
+
+    void restoreExistingSession();
+
+    return () => {
+      isActive = false;
+    };
+  }, [router]);
 
   function toggleShowPassword() {
     setShowPassword((value) => !value);

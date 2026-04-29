@@ -155,11 +155,19 @@ body {
 .gomile-leaflet-map {
   height: 100%;
   width: 100%;
+  z-index: 0;
 }
 
 .gomile-leaflet-map.leaflet-container {
   background: var(--color-bg);
   font: inherit;
+  z-index: 0;
+}
+
+.gomile-leaflet-map .leaflet-pane,
+.gomile-leaflet-map .leaflet-top,
+.gomile-leaflet-map .leaflet-bottom {
+  z-index: 0;
 }
 
 .gomile-leaflet-map .leaflet-control-zoom {

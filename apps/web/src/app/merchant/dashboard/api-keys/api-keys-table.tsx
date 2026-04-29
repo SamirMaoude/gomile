@@ -409,7 +409,7 @@ export default function ApiKeysTable({ isDarkMode }: ApiKeysTableProps) {
             </Typography>
           </div>
         ) : (
-          <div className="min-w-[98rem]">
+          <div className="lg:min-w-[98rem]">
             <DynamicTable
               columns={columns}
               rows={rows}

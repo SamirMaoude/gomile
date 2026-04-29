@@ -68,8 +68,26 @@ function buildStepErrors(
     if (normalizedFormData.gender === "UNDEFINED") {
       errors.gender = "Selectionnez votre genre.";
     }
-    if (!normalizedFormData.address) {
-      errors.address = "Renseignez votre adresse.";
+    const hasCompleteAddress = Boolean(normalizedFormData.address);
+    const hasStructuredAddress = Boolean(
+      normalizedFormData.city &&
+        normalizedFormData.zipCode &&
+        normalizedFormData.street,
+    );
+
+    if (!hasCompleteAddress && !hasStructuredAddress) {
+      const message =
+        "Renseignez l'adresse complete ou bien la ville, le code postal et la rue.";
+      errors.address = message;
+      if (!normalizedFormData.city) {
+        errors.city = "Renseignez votre ville.";
+      }
+      if (!normalizedFormData.zipCode) {
+        errors.zipCode = "Renseignez votre code postal.";
+      }
+      if (!normalizedFormData.street) {
+        errors.street = "Renseignez votre rue.";
+      }
     }
   } else if (stepId === 3) {
     if (!normalizedFormData.deliveryCity) {

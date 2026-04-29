@@ -27,6 +27,14 @@ function getStoredTheme(): ThemeMode {
     : "light";
 }
 
+function getStoredSidebarCollapsed() {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  return window.localStorage.getItem("dashboardSidebarCollapsed") === "true";
+}
+
 function resolveDashboardUsername(profile: { name: string; email: string }) {
   if (profile.name.trim().length > 0) {
     return profile.name.trim();
@@ -38,6 +46,9 @@ function resolveDashboardUsername(profile: { name: string; email: string }) {
 export function useDashboard() {
   const router = useRouter();
   const [theme, setTheme] = useState<ThemeMode>(getStoredTheme);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(
+    getStoredSidebarCollapsed,
+  );
   const [username, setUsername] = useState("Client");
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -50,6 +61,13 @@ export function useDashboard() {
     window.localStorage.setItem("dashboardTheme", theme);
     document.documentElement.style.colorScheme = theme;
   }, [theme]);
+
+  useEffect(() => {
+    window.localStorage.setItem(
+      "dashboardSidebarCollapsed",
+      String(isSidebarCollapsed),
+    );
+  }, [isSidebarCollapsed]);
 
   useEffect(() => {
     let isActive = true;
@@ -123,6 +141,18 @@ export function useDashboard() {
     setProfileMenuOpen(false);
   }
 
+  function openSidebar() {
+    setIsSidebarCollapsed(false);
+  }
+
+  function closeSidebar() {
+    setIsSidebarCollapsed(true);
+  }
+
+  function toggleSidebar() {
+    setIsSidebarCollapsed((value) => !value);
+  }
+
   async function handleLogout() {
     setIsLoggingOut(true);
 
@@ -171,11 +201,15 @@ export function useDashboard() {
     handleLogout,
     isDarkMode,
     isLoggingOut,
+    isSidebarCollapsed,
     menuRef,
+    openSidebar,
+    closeSidebar,
     profileMenuOpen,
     setTheme,
     theme,
     toggleProfileMenu,
+    toggleSidebar,
     username,
   };
 }

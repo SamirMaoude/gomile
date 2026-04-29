@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Navigation from "./navigation";
+import { Navigation } from "../navigation/navigation";
 
 type ThemeMode = "light" | "dark";
 
@@ -24,9 +24,9 @@ export default function NavigationDefault() {
 
   return (
     <Navigation
-      theme={theme}
+      mode={theme}
       isDarkMode={theme === "dark"}
-      onChange={setTheme}
+      onModeChange={setTheme}
     />
   );
 }
