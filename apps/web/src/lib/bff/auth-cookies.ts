@@ -3,7 +3,7 @@ import type { AuthTokensResponse } from "../../../../../shared/auth-contracts";
 
 const ACCESS_TOKEN_COOKIE = "gomile_access_token";
 const REFRESH_TOKEN_COOKIE = "gomile_refresh_token";
-const ACCESS_TOKEN_MAX_AGE_SECONDS = 15;
+const ACCESS_TOKEN_MAX_AGE_SECONDS = 15 * 60;
 const REFRESH_TOKEN_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
 const ACCESS_TOKEN_PATH = "/";
 const REFRESH_TOKEN_PATH = "/";
