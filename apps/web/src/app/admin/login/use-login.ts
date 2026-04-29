@@ -4,12 +4,8 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition, type FormEvent } from "react";
 
 import { login, logout } from "@/lib/auth-client";
-import {
-  getCurrentMerchantProfile,
-  primeMerchantSession,
-} from "@/lib/merchant-session";
 
-export function useLogin() {
+export default function useLogin() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,18 +33,10 @@ export function useLogin() {
     try {
       const session = await login({ identifier: email, password });
 
-      if (session.user.role !== "MERCHANT" && session.user.role !== "ADMIN") {
+      if (session.user.role !== "ADMIN") {
         await logout();
-        setError("Ce compte n'est pas un compte marchand.");
+        setError("Ce compte n'est pas un compte administrateur.");
         return;
-      }
-
-      primeMerchantSession(session);
-
-      try {
-        await getCurrentMerchantProfile();
-      } catch {
-        // Best-effort preload so the dashboard can show merchant.name immediately.
       }
 
       setSuccess("Connexion reussie. Redirection vers votre dashboard...");

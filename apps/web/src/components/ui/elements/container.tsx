@@ -2,22 +2,22 @@ import React from "react";
 import clsx from "clsx";
 
 type ContainerSize = 'sm' | 'md' | 'lg' | 'xl' | 'full';
-type ContainerTag = 'div' | 'section' | 'main' | 'article' | 'aside' | 'nav' | 'header' | 'footer';
+type ContainerTag = 'div' | 'section' | 'main' | 'article' | 'aside' | 'nav' | 'header' | 'footer' | 'form';
 const background_theme = {
     white: "bg-white",
     blue: "bg-primary-blue-dark",
     hero: "bg-linear-to-br from-blue-100 to-green-100"
 }
 
-interface ContainerProps {
+type ContainerProps<T extends ContainerTag = 'div'> = React.ComponentPropsWithoutRef<T> & {
   children: React.ReactNode;
   size?: ContainerSize;
   fullwidth?: boolean;
   className?: string;
-  Component?: ContainerTag;
+  Component?: T;
   padding?: boolean;
   bg_theme?: 'white' | 'blue' | 'hero';
-}
+};
 
 const sizeClasses: Record<string, string> = {
         sm:   'max-w-2xl mx-auto',
@@ -27,11 +27,16 @@ const sizeClasses: Record<string, string> = {
         full: 'w-full',
     }
 
-export default function Container({ children, size = 'md', fullwidth, className, Component='div', padding = true, bg_theme }: ContainerProps) {
+export default function Container<T extends ContainerTag = 'div'>({ children, size = 'md', fullwidth, className, Component, padding = true, bg_theme, ...props }: ContainerProps<T>) {
     if (fullwidth) size = 'full';
-    return (
-        <Component className={clsx(sizeClasses[size], bg_theme ? background_theme[bg_theme] : undefined, className, padding? 'py-3 px-6 sm:px-8 lg:px-10': '')}>
-            {children}
-        </Component>
+    const Element = (Component ?? 'div') as React.ElementType;
+
+    return React.createElement(
+        Element,
+        {
+            className: clsx(sizeClasses[size], bg_theme ? background_theme[bg_theme] : undefined, className, padding? 'py-3 px-6 sm:px-8 lg:px-10': ''),
+            ...props,
+        },
+        children,
     );
 }
