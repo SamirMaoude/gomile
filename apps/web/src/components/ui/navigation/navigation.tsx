@@ -181,6 +181,7 @@ export const Navigation = ({
         headerThemeClasses[theme]
       )}
     >
+<<<<<<< HEAD
       <div className={clsx("mx-auto flex w-full max-w-6xl items-center justify-between gap-2 sm:gap-6", contentClassName)}>
         <div className="flex min-w-0 items-center gap-2 sm:gap-3">
           {showLogo ? (
@@ -199,6 +200,11 @@ export const Navigation = ({
             </Link>
           ) : null}
           {leftSlot}
+=======
+      <div className="mx-auto flex w-full max-w-6xl items-center justify-around gap-6">
+        <div>
+          <Logo size="sm" />
+>>>>>>> d53dcd5ac813cf26cdb2a99e679e4410d3256d84
         </div>
 
         {showPublicLinks ? (

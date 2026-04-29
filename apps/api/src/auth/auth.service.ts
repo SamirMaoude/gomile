@@ -190,8 +190,21 @@ export class AuthService {
     userId: string,
     email: string,
     role: Role,
+    refreshToken: string,
   ): Promise<AuthResponse> {
-    return this.generateAndSaveTokens(userId, email, role);
+    const payload = { sub: userId, email, role };
+
+    const accessToken = await this.jwtService.signAsync(payload, {
+      secret: process.env.JWT_ACCESS_SECRET,
+      expiresIn: '15m',
+      jwtid: randomUUID(),
+    });
+
+    return {
+      accessToken,
+      refreshToken,
+      user: { id: userId, email, role },
+    };
   }
 
   async logout(userId: string) {

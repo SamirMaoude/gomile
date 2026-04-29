@@ -20,7 +20,6 @@ import { UploadService } from './upload.service';
 
 @ApiTags('[Uploads]')
 @ApiBearerAuth('access-token')
-@UseGuards(JwtAuthGuard)
 @Controller('uploads')
 export class UploadController {
   constructor(private readonly uploadService: UploadService) {}

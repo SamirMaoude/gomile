@@ -20,3 +20,7 @@ export interface JwtPayload {
 }
 
 export type AuthenticatedUser = AuthUser;
+
+export interface AuthenticatedRefreshUser extends AuthUser {
+  currentRefreshToken: string;
+}

@@ -10,6 +10,7 @@ export class SmsService {
     try {
       await this.client.send(new PublishCommand({ PhoneNumber: phone, Message: message }));
     } catch (err) {
+      console.error(`Failed to send SMS to ${phone}:`, err);
       this.logger.error(`SMS failed to ${phone}`, err);
     }
   }

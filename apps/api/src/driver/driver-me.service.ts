@@ -39,7 +39,7 @@ export class DriverMeService {
   ) {
     await this.prisma.$executeRaw`
     UPDATE "Driver"
-    SET location = ST_SetSRID(ST_MakePoint(${longitude}, ${latitude}), 4326)
+    SET "lastKnownLocation" = ST_SetSRID(ST_MakePoint(${longitude}, ${latitude}), 4326)
     WHERE "userId" = ${driverId}
     `;
   }
