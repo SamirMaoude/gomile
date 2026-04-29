@@ -80,6 +80,7 @@ export class OpenRouteService {
     url.searchParams.set('api_key', this.apiKey);
     url.searchParams.set('text', address);
     url.searchParams.set('size', '1');
+    url.searchParams.set('boundary.country', 'FRA');
 
     let response: Response;
     try {
