@@ -43,6 +43,9 @@ export class JwtRefreshStrategy extends PassportStrategy(
       );
     }
 
-    return user;
+    return {
+      ...user,
+      currentRefreshToken: refreshToken,
+    };
   }
 }

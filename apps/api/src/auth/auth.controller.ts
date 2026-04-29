@@ -33,7 +33,11 @@ import { AuthResponseDto, LogoutResponseDto } from './dto/auth-response.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
-import type { AuthenticatedUser, AuthResponse } from './auth.types';
+import type {
+  AuthenticatedRefreshUser,
+  AuthenticatedUser,
+  AuthResponse,
+} from './auth.types';
 
 @ApiTags('[auth]')
 @Controller('auth')
@@ -100,8 +104,15 @@ export class AuthController {
   @UseGuards(JwtRefreshGuard)
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
-  refresh(@CurrentUser() user: AuthenticatedUser): Promise<AuthResponse> {
-    return this.authService.refresh(user.id, user.email, user.role);
+  refresh(
+    @CurrentUser() user: AuthenticatedRefreshUser,
+  ): Promise<AuthResponse> {
+    return this.authService.refresh(
+      user.id,
+      user.email,
+      user.role,
+      user.currentRefreshToken,
+    );
   }
 
   @ApiOperation({

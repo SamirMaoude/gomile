@@ -190,8 +190,21 @@ export class AuthService {
     userId: string,
     email: string,
     role: Role,
+    refreshToken: string,
   ): Promise<AuthResponse> {
-    return this.generateAndSaveTokens(userId, email, role);
+    const payload = { sub: userId, email, role };
+
+    const accessToken = await this.jwtService.signAsync(payload, {
+      secret: process.env.JWT_ACCESS_SECRET,
+      expiresIn: '15s',
+      jwtid: randomUUID(),
+    });
+
+    return {
+      accessToken,
+      refreshToken,
+      user: { id: userId, email, role },
+    };
   }
 
   async logout(userId: string) {
@@ -520,7 +533,7 @@ export class AuthService {
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload, {
         secret: process.env.JWT_ACCESS_SECRET,
-        expiresIn: '15m',
+        expiresIn: '15s',
         jwtid: randomUUID(),
       }),
       this.jwtService.signAsync(payload, {

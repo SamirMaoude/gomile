@@ -2,8 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import type { AuthTokensResponse } from "../../../../shared/auth-contracts";
 import { AUTH_MESSAGES } from "../../../../shared/auth-messages";
 import { clearAuthCookies, setAuthCookies, authCookies } from "@/lib/bff/auth-cookies";
+import { getCookieValues } from "@/lib/bff/cookie-utils";
 import {
   buildBackendUnreachableResponse,
+  buildBackendUrl,
+  buildForwardHeaders,
   buildMissingAuthTokenResponse,
   buildProxyResponse,
   fetchBackendResponse,
@@ -40,31 +43,39 @@ export async function proxySessionCreation(
 }
 
 export async function proxySessionRefresh(request: NextRequest) {
-  const refreshToken = request.cookies.get(authCookies.refreshToken)?.value;
+  const refreshTokens = getCookieValues(request, authCookies.refreshToken);
 
-  if (!refreshToken) {
+  if (refreshTokens.length === 0) {
     const response = buildMissingAuthTokenResponse("refresh");
     clearAuthCookies(response);
     return response;
   }
 
-  try {
-    const backendResponse = await fetchBackendResponse(
-      request,
-      "/auth/refresh",
-      `Bearer ${refreshToken}`,
-    );
+  let lastBackendResponse: Response | null = null;
 
-    if (!backendResponse.ok) {
-      const response = await buildProxyResponse(backendResponse);
-      clearAuthCookies(response);
-      return response;
+  for (const refreshToken of refreshTokens) {
+    try {
+      const backendResponse = await fetch(buildBackendUrl(request, "/auth/refresh"), {
+        method: "POST",
+        headers: buildForwardHeaders(request, `Bearer ${refreshToken}`),
+        cache: "no-store",
+      });
+
+      if (backendResponse.ok) {
+        return buildAuthSuccessResponse(backendResponse);
+      }
+
+      lastBackendResponse = backendResponse;
+    } catch {
+      return buildBackendUnreachableResponse();
     }
-
-    return buildAuthSuccessResponse(backendResponse);
-  } catch {
-    return buildBackendUnreachableResponse();
   }
+
+  const response = lastBackendResponse
+    ? await buildProxyResponse(lastBackendResponse)
+    : buildMissingAuthTokenResponse("refresh");
+  clearAuthCookies(response);
+  return response;
 }
 
 export async function proxySessionLogout(request: NextRequest) {
