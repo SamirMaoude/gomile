@@ -63,7 +63,7 @@ class Gomile_Shipment_Admin_Settings {
      */
     public static function get_defaults() {
         return array(
-            'api_base_url'     => 'http://localhost:3000',
+            'api_base_url'     => self::PRODUCTION_API_BASE_URL,
             'api_key'          => '',
             'auth_header'      => 'x-api-key',
             'auth_scheme'      => 'Bearer',
@@ -139,9 +139,9 @@ class Gomile_Shipment_Admin_Settings {
         $settings = wp_parse_args((array) get_option(self::OPTION_NAME, array()), self::get_defaults());
         $settings = array_merge($settings, self::get_constant_overrides());
 
-        if (getenv('DEBUG') === 'false') {
-            $settings['api_base_url'] = self::PRODUCTION_API_BASE_URL;
-        }
+        
+        $settings['api_base_url'] = self::PRODUCTION_API_BASE_URL;
+        
 
         return $settings;
     }

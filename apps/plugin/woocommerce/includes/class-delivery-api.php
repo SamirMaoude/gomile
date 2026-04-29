@@ -326,7 +326,7 @@ class Gomile_Shipment_Delivery_API {
         );
 
         if (null !== $body) {
-            $request_args['body'] = wp_json_encode($body);
+            $request_args['body'] = wp_json_encode($body, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         }
 
         $request_args = apply_filters('gomile_shipment_delivery_request_args', $request_args, $url, $context);
@@ -371,7 +371,12 @@ class Gomile_Shipment_Delivery_API {
         ));
 
         if ($status_code < 200 || $status_code >= 300) {
-            $message = $decoded_body['message'] ?? $decoded_body['error'];
+            $message = $decoded_body['message']
+                ?? $decoded_body['error']
+                ?? $decoded_body['detail']
+                ?? $decoded_body['title']
+                ?? $decoded_body['raw_body']
+                ?? __('Unknown API error.', 'gomile-shipment');
 
             return new WP_Error(
                 'gomile_api_http_error',
@@ -537,6 +542,14 @@ class Gomile_Shipment_Delivery_API {
         return max(1.0, (float) $total_weight);
     }
 
+    protected function normalize_text($value) {
+        $value = html_entity_decode((string) $value, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $value = wp_strip_all_tags($value);
+        $value = preg_replace('/\s+/u', ' ', $value);
+
+        return trim((string) $value);
+    }
+
     /**
      * @brief Construit le nom client a partir des adresses WooCommerce.
      *
@@ -547,10 +560,10 @@ class Gomile_Shipment_Delivery_API {
         $shipping_name = trim($order->get_shipping_first_name() . ' ' . $order->get_shipping_last_name());
 
         if ($shipping_name !== '') {
-            return $shipping_name;
+            return $this->normalize_text($shipping_name);
         }
 
-        return trim($order->get_billing_first_name() . ' ' . $order->get_billing_last_name());
+        return $this->normalize_text(trim($order->get_billing_first_name() . ' ' . $order->get_billing_last_name()));
     }
 
     /**
@@ -573,7 +586,7 @@ class Gomile_Shipment_Delivery_API {
             isset($address['country']) ? $address['country'] : '',
         ));
 
-        return implode(', ', $parts);
+        return $this->normalize_text(implode(', ', $parts));
     }
 
 
