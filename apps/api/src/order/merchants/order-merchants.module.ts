@@ -11,9 +11,10 @@ import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { DeliveryPricingModule } from '../../delivery/delivery-pricing.module';
 import { NotificationModule } from '../../notification/notification.module';
 import { WebhookModule } from '../../webhook/webhook.module';
+import { SmsModule } from '../../sms/sms.module';
 
 @Module({
-  imports: [DeliveryPricingModule, NotificationModule, WebhookModule],
+  imports: [DeliveryPricingModule, NotificationModule, WebhookModule, SmsModule],
   controllers: [OrderMerchantsController, OrderPluginController],
   providers: [
     OrderService,

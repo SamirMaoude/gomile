@@ -6,22 +6,27 @@ export class SmsService {
   private readonly logger = new Logger(SmsService.name);
   private readonly client = new SNSClient({ region: process.env.AWS_REGION });
 
+  // SNS only accepts numbers following a strict format
+  private normalizePhone(phone: string): string {
+    const cleaned = phone.replace(/\s+/g, '');
+    if (cleaned.startsWith('+')) return cleaned;
+    if (cleaned.startsWith('0') && cleaned.length === 10) return `+33${cleaned.slice(1)}`;
+    return cleaned;
+  }
+
   async sendSms(phone: string, message: string): Promise<void> {
-    let response: any;
+    const normalized = this.normalizePhone(phone);
     try {
-        response = await this.client.send(new PublishCommand({ 
-        PhoneNumber: phone, 
+      await this.client.send(new PublishCommand({
+        PhoneNumber: normalized,
         Message: message,
         MessageAttributes: {
-          'AWS.SNS.SMS.SMSType': {
-            DataType: 'String',
-            StringValue: 'Transactional',
-          },
-      }}));
-      } catch (err) {
-      console.error(`Failed to send SMS to ${phone}:`, err);
-      this.logger.error(`SMS failed to ${phone}`, err);
+          'AWS.SNS.SMS.SMSType': { DataType: 'String', StringValue: 'Transactional' },
+        },
+      }));
+    } catch (err) {
+      this.logger.error(`SMS failed to ${normalized}`, err);
+      throw err;
     }
-    return response;
   }
 }
