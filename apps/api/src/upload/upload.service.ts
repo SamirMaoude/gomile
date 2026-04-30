@@ -3,6 +3,7 @@ import {
   S3Client,
   PutObjectCommand,
   DeleteObjectCommand,
+  CopyObjectCommand,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { randomUUID } from 'crypto';
@@ -60,5 +61,35 @@ export class UploadService {
     await this.s3.send(
       new DeleteObjectCommand({ Bucket: this.bucket, Key: key }),
     );
+  }
+
+  // Moves a file from the uploads/ staging area to the documents/ permanent area.
+  // Files in uploads/ are deleted by the S3 lifecycle rule after 2 days, so only
+  // committed (DB-linked) files should be moved here. If the URL is already in
+  // documents/ (e.g. called twice), it is returned unchanged.
+  async commitFile(fileUrl: string): Promise<string> {
+    const url = new URL(fileUrl);
+    const oldKey = url.pathname.slice(1);
+
+    if (!oldKey.startsWith('uploads/')) {
+      return fileUrl;
+    }
+
+    const filename = oldKey.slice('uploads/'.length);
+    const newKey = `documents/${filename}`;
+
+    await this.s3.send(
+      new CopyObjectCommand({
+        Bucket: this.bucket,
+        CopySource: `${this.bucket}/${oldKey}`,
+        Key: newKey,
+      }),
+    );
+
+    await this.s3.send(
+      new DeleteObjectCommand({ Bucket: this.bucket, Key: oldKey }),
+    );
+
+    return `https://${this.bucket}.s3.${process.env.AWS_REGION}.amazonaws.com/${newKey}`;
   }
 }

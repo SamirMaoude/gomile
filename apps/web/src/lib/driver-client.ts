@@ -27,7 +27,7 @@ export type UploadDriverDocumentInput = {
 };
 
 export function presignUpload(input: UploadPresignInput) {
-  return requestWithAutoRefresh<UploadPresignResponse>("/api/uploads/presign", {
+  return requestWithAutoRefresh<UploadPresignResponse>("/api/driver/me/documents/presign", {
     method: "POST",
     body: JSON.stringify(input),
   });
