@@ -4,6 +4,7 @@
 
 @import "tailwindcss";
 @import "leaflet/dist/leaflet.css";
+@import "sweetalert2/dist/sweetalert2.min.css";
 
 
 
@@ -148,6 +149,210 @@ body {
 
 .link:hover {
   color: var(--color-primary-green);
+}
+
+/* ─── SweetAlert responsive system ─────────────────────── */
+
+.swal2-container {
+  z-index: 6000;
+  padding: clamp(0.75rem, 2vw, 1.5rem);
+}
+
+.swal2-popup {
+  width: min(92vw, 38rem);
+  max-height: calc(100dvh - 2rem);
+  overflow: hidden;
+  border: 1px solid rgba(203, 213, 225, 0.86);
+  border-radius: clamp(1.1rem, 2.4vw, 1.8rem);
+  padding: clamp(1rem, 2.5vw, 1.75rem);
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 28px 80px rgba(15, 23, 42, 0.22);
+}
+
+.swal2-icon {
+  width: clamp(3rem, 10vw, 5rem);
+  height: clamp(3rem, 10vw, 5rem);
+  margin: 0 auto clamp(0.75rem, 2vw, 1.2rem);
+}
+
+.swal2-title {
+  padding: 0;
+  color: #0f172a;
+  font-family: var(--font-display);
+  font-size: clamp(1.2rem, 4.3vw, 1.85rem);
+  line-height: 1.15;
+  letter-spacing: 0;
+}
+
+.swal2-html-container {
+  max-height: min(52dvh, 32rem);
+  margin: clamp(0.75rem, 2vw, 1.1rem) 0 0;
+  overflow-y: auto;
+  color: #475569;
+  font-family: var(--font-body);
+  font-size: clamp(0.9rem, 2.8vw, 1rem);
+  line-height: 1.55;
+}
+
+.swal2-html-container label,
+.swal2-html-container span {
+  letter-spacing: 0;
+}
+
+.swal2-input,
+.swal2-select,
+.swal2-textarea {
+  width: 100%;
+  min-height: clamp(3rem, 8.5vw, 3.75rem);
+  border: 2px solid rgba(51, 65, 85, 0.72);
+  border-radius: clamp(0.95rem, 2vw, 1.25rem);
+  color: #020617;
+  font-family: var(--font-body);
+  font-size: clamp(0.9rem, 3vw, 1.05rem);
+  box-shadow: none;
+}
+
+.swal2-input:focus,
+.swal2-select:focus,
+.swal2-textarea:focus {
+  border-color: #7ebb2b;
+  box-shadow: 0 0 0 4px rgba(126, 187, 43, 0.16);
+}
+
+.swal2-textarea {
+  min-height: clamp(6rem, 22vw, 8rem);
+  resize: vertical;
+}
+
+.swal2-actions {
+  width: 100%;
+  gap: 0.75rem;
+  margin: clamp(1rem, 2.5vw, 1.35rem) 0 0;
+}
+
+.swal2-confirm,
+.swal2-cancel,
+.swal2-deny {
+  min-height: clamp(2.8rem, 8vw, 3.35rem);
+  border-radius: 999px;
+  padding: 0.75rem 1.35rem;
+  font-family: var(--font-display);
+  font-size: clamp(0.86rem, 2.5vw, 0.98rem);
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.swal2-confirm {
+  background: linear-gradient(180deg, #a7d84e 0%, #7ebb2b 100%) !important;
+  box-shadow: 0 14px 32px rgba(126, 187, 43, 0.32);
+}
+
+.swal2-cancel {
+  border: 1px solid #cbd5e1;
+  background: #ffffff !important;
+  color: #334155 !important;
+}
+
+.swal2-validation-message {
+  border-radius: 1rem;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: clamp(0.82rem, 2.6vw, 0.95rem);
+}
+
+html[style*="dark"] .swal2-popup {
+  border-color: rgba(51, 65, 85, 0.92);
+  background: rgba(15, 23, 42, 0.98);
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.42);
+}
+
+html[style*="dark"] .swal2-title {
+  color: #f8fafc;
+}
+
+html[style*="dark"] .swal2-html-container {
+  color: #cbd5e1;
+}
+
+html[style*="dark"] .swal2-html-container label,
+html[style*="dark"] .swal2-html-container span {
+  color: #e2e8f0 !important;
+}
+
+html[style*="dark"] .swal2-input,
+html[style*="dark"] .swal2-select,
+html[style*="dark"] .swal2-textarea {
+  border-color: rgba(71, 85, 105, 0.95);
+  background: #020617;
+  color: #f8fafc;
+}
+
+html[style*="dark"] .swal2-cancel {
+  border-color: #475569;
+  background: #0f172a !important;
+  color: #e2e8f0 !important;
+}
+
+@media (max-width: 480px) {
+  .swal2-container {
+    align-items: flex-end;
+    padding: 0.55rem;
+  }
+
+  .swal2-popup {
+    width: 100%;
+    max-height: calc(100dvh - 1.1rem);
+    border-radius: 1.35rem 1.35rem 1rem 1rem;
+    padding: 1rem;
+  }
+
+  .swal2-html-container {
+    max-height: 54dvh;
+  }
+
+  .swal2-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .swal2-actions button {
+    width: 100%;
+    margin: 0;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 1023px) {
+  .swal2-popup {
+    width: min(86vw, 40rem);
+  }
+
+  .swal2-html-container {
+    max-height: 58dvh;
+  }
+}
+
+@media (min-width: 1024px) {
+  .swal2-popup {
+    width: min(42rem, 88vw);
+  }
+
+  .swal2-html-container {
+    max-height: min(60dvh, 34rem);
+  }
+}
+
+@media (max-height: 640px) {
+  .swal2-popup {
+    max-height: calc(100dvh - 0.75rem);
+  }
+
+  .swal2-icon {
+    margin-bottom: 0.5rem;
+  }
+
+  .swal2-html-container {
+    max-height: 42dvh;
+  }
 }
 
 /* ─── Images - Map ───────────────────────── */

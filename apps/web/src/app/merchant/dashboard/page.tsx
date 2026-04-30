@@ -80,6 +80,7 @@ export default function MerchantDashboardPage() {
         username={username}
         contentClassName="max-w-none"
         showLogo={false}
+        showPublicLinks={false}
         leftSlot={
           <SidebarToggle
             isCollapsed={isSidebarCollapsed}

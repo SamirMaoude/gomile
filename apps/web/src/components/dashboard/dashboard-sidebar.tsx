@@ -17,6 +17,12 @@ export default function DashboardSidebar({
   onClose,
   onOpen,
 }: DashboardSidebarProps) {
+  function handleNavigate() {
+    if (window.matchMedia("(max-width: 1023px)").matches) {
+      onClose();
+    }
+  }
+
   return (
     <aside
       onMouseEnter={onOpen}
@@ -39,6 +45,7 @@ export default function DashboardSidebar({
           items={items}
           isCollapsed={isCollapsed}
           isDarkMode={isDarkMode}
+          onNavigate={handleNavigate}
         />
       </div>
     </aside>

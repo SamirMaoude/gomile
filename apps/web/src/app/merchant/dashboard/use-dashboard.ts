@@ -29,7 +29,11 @@ function getStoredTheme(): ThemeMode {
 
 function getStoredSidebarCollapsed() {
   if (typeof window === "undefined") {
-    return false;
+    return true;
+  }
+
+  if (window.matchMedia("(max-width: 1023px)").matches) {
+    return true;
   }
 
   return window.localStorage.getItem("dashboardSidebarCollapsed") === "true";
@@ -68,6 +72,26 @@ export function useDashboard() {
       String(isSidebarCollapsed),
     );
   }, [isSidebarCollapsed]);
+
+  useEffect(() => {
+    const mobileLayoutQuery = window.matchMedia("(max-width: 1023px)");
+
+    function closeSidebarOnResponsiveLayout() {
+      if (mobileLayoutQuery.matches) {
+        setIsSidebarCollapsed(true);
+      }
+    }
+
+    closeSidebarOnResponsiveLayout();
+    mobileLayoutQuery.addEventListener("change", closeSidebarOnResponsiveLayout);
+
+    return () => {
+      mobileLayoutQuery.removeEventListener(
+        "change",
+        closeSidebarOnResponsiveLayout,
+      );
+    };
+  }, []);
 
   useEffect(() => {
     let isActive = true;

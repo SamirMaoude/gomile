@@ -47,6 +47,7 @@ export default function MerchantApiKeysPage() {
         username={username}
         contentClassName="max-w-none"
         showLogo={false}
+        showPublicLinks={false}
         leftSlot={
           <SidebarToggle
             isCollapsed={isSidebarCollapsed}

@@ -110,7 +110,10 @@ export const Navigation = ({
   const shouldShowAuthLinks = showAuthLinks && !isSessionAuthenticated && !isRestoringSession
   const shouldShowModeToggle = Boolean(mode && onModeChange)
   const hasMobileMenuContent =
-    showPublicLinks || shouldShowAuthLinks || Boolean(isSessionAuthenticated && displayUsername)
+    showPublicLinks ||
+    shouldShowAuthLinks ||
+    Boolean(isSessionAuthenticated && displayUsername && !rightSlot)
+  const isMobileMenuVisible = hasMobileMenuContent && isMobileMenuOpen
 
   useEffect(() => {
     if (isAuthenticated || !showAuthLinks) {
@@ -181,7 +184,6 @@ export const Navigation = ({
         headerThemeClasses[theme]
       )}
     >
-<<<<<<< HEAD
       <div className={clsx("mx-auto flex w-full max-w-6xl items-center justify-between gap-2 sm:gap-6", contentClassName)}>
         <div className="flex min-w-0 items-center gap-2 sm:gap-3">
           {showLogo ? (
@@ -200,11 +202,6 @@ export const Navigation = ({
             </Link>
           ) : null}
           {leftSlot}
-=======
-      <div className="mx-auto flex w-full max-w-6xl items-center justify-around gap-6">
-        <div>
-          <Logo size="sm" />
->>>>>>> d53dcd5ac813cf26cdb2a99e679e4410d3256d84
         </div>
 
         {showPublicLinks ? (
@@ -258,12 +255,12 @@ export const Navigation = ({
             <button
               type="button"
               className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/15 text-white transition-colors hover:bg-white/25 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white lg:hidden"
-              aria-label={isMobileMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}
-              aria-expanded={isMobileMenuOpen}
+              aria-label={isMobileMenuVisible ? "Fermer le menu" : "Ouvrir le menu"}
+              aria-expanded={isMobileMenuVisible}
               aria-controls="main-mobile-navigation"
               onClick={() => setIsMobileMenuOpen((current) => !current)}
             >
-              {isMobileMenuOpen ? (
+              {isMobileMenuVisible ? (
                 <X className="h-5 w-5" aria-hidden />
               ) : (
                 <Menu className="h-5 w-5" aria-hidden />
@@ -279,7 +276,7 @@ export const Navigation = ({
             type="button"
             className={clsx(
               "fixed inset-0 z-[2100] bg-black/30 transition-opacity lg:hidden",
-              isMobileMenuOpen ? "opacity-100" : "pointer-events-none opacity-0"
+              isMobileMenuVisible ? "opacity-100" : "pointer-events-none opacity-0"
             )}
             aria-label="Fermer le menu"
             onClick={closeMobileMenu}
@@ -288,7 +285,7 @@ export const Navigation = ({
             id="main-mobile-navigation"
             className={clsx(
               "fixed right-0 top-0 z-[2200] flex h-dvh w-[min(20rem,88vw)] flex-col gap-2 bg-linear-to-b from-blue-600 to-green-600 px-4 py-5 text-white shadow-2xl transition-transform duration-300 ease-out lg:hidden",
-              isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
+              isMobileMenuVisible ? "translate-x-0" : "translate-x-full"
             )}
             aria-label="Navigation mobile"
           >

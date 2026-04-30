@@ -101,6 +101,17 @@ export const styles = {
 
   dropdownNav: "grid gap-2",
 
+  profileLink:
+    "flex items-center gap-3 rounded-[1.05rem] border px-3 py-3 text-left text-sm font-semibold transition",
+  profileLinkLight:
+    "border-transparent text-slate-800 hover:border-slate-200 hover:bg-slate-50",
+  profileLinkDark:
+    "border-transparent text-slate-200 hover:border-slate-700 hover:bg-slate-800",
+  profileLinkIconWrapper:
+    "inline-flex h-8 w-8 items-center justify-center rounded-full",
+  profileLinkIconWrapperLight: "bg-[#f7fbe9] text-[#628e20]",
+  profileLinkIconWrapperDark: "bg-emerald-900/40 text-emerald-300",
+
   logoutButton:
     "flex items-center gap-3 rounded-[1.05rem] border px-3 py-3 text-left text-sm font-semibold transition",
   logoutButtonLight: "border-slate-200 text-rose-600 hover:bg-rose-50",

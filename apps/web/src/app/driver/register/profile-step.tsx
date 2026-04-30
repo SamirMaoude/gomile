@@ -1,5 +1,6 @@
 import { APP_GENDERS, type Gender } from "@/lib/auth-client";
 import { Mailbox, Signpost } from "lucide-react";
+import AddressAutocomplete from "@/components/ui/address-autocomplete/address-autocomplete";
 import Input from "@/components/ui/design-system/input/input";
 import Typography from "@/components/ui/design-system/typography";
 import AddressIcon from "@/components/ui/icons/AddressIcon";
@@ -87,7 +88,7 @@ export default function ProfileStep({
           ) : null}
         </div>
 
-        <Input
+        <AddressAutocomplete
           id="driver-address"
           name="address"
           type="text"
@@ -96,7 +97,15 @@ export default function ProfileStep({
           leftIcon={<AddressIcon className={styles.fieldIcon} />}
           error={errors.address}
           value={formData.address}
-          onChange={(event) => onFieldChange("address", event.target.value)}
+          onValueChange={(value) => onFieldChange("address", value)}
+          onAddressSelect={(suggestion) => {
+            const { city, label, name, postcode } = suggestion.properties;
+
+            onFieldChange("address", label ?? "");
+            onFieldChange("city", city ?? "");
+            onFieldChange("zipCode", postcode ?? "");
+            onFieldChange("street", name ?? "");
+          }}
           containerClassName={styles.fieldContainer}
           inputWrapperClassName={styles.fieldWrapper}
           className={styles.fieldInput}

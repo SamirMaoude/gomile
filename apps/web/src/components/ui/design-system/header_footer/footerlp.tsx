@@ -1,8 +1,8 @@
 import React from 'react'
+import Image from 'next/image'
 import Container from '@/components/ui/elements/container'
 import Typography from '@/components/ui/design-system/typography'
 import SocialIcon from '@/components/ui/design-system/socialIcons'
-import { Logo } from '@/components/Logo/Logo'
 
 /* ─── Données des colonnes ───────────────────────────── */
 const links = {
@@ -38,7 +38,13 @@ export default function Footer() {
             <div className="flex flex-col gap-5">
                 {/* Logo + nom */}
                 <div className="flex items-center gap-3">
-                    <Logo size="sm" />
+                    <Image
+                      src="/images/gomile-logo.png"
+                      alt="GoMile"
+                      width={58}
+                      height={58}
+                      className="h-[58px] w-[58px] object-contain"
+                    />
                     <Typography variant="h5" weight="bold" theme="white">
                         GoMile
                     </Typography>

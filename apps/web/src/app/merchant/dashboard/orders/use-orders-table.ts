@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { attachAddressAutocomplete } from "@/lib/address-autocomplete";
 import type { StoreListItem } from "../shops/store.model";
 import type {
   CreateOrderResult,
@@ -13,6 +14,7 @@ import {
   isOrderCancellable,
 } from "./order.model";
 import {
+  ORDER_FIELD_IDS,
   buildCreateOrderPanelHtml,
   buildOrderFormSeed,
   parseCreateOrderInput,
@@ -156,6 +158,7 @@ export function useOrdersTable(): UseOrdersTableResult {
 
     try {
       let createdOrder: CreateOrderResult | null = null;
+      let cleanupAddressAutocomplete: (() => void) | null = null;
 
       const result = await Swal.fire({
         title: "Creer une commande",
@@ -166,6 +169,16 @@ export function useOrdersTable(): UseOrdersTableResult {
         cancelButtonText: "Annuler",
         showLoaderOnConfirm: true,
         allowOutsideClick: () => !Swal.isLoading(),
+        didOpen: (popup) => {
+          cleanupAddressAutocomplete = attachAddressAutocomplete(
+            popup.querySelector<HTMLTextAreaElement>(
+              `#${ORDER_FIELD_IDS.dropOffAddress}`,
+            ),
+          );
+        },
+        willClose: () => {
+          cleanupAddressAutocomplete?.();
+        },
         preConfirm: async () => {
           const parsed = parseCreateOrderInput(Swal.getPopup());
 

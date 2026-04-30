@@ -40,6 +40,7 @@ const API_KEY_FIELD_IDS = {
   name: "swal-api-key-name",
   storeId: "swal-api-key-store-id",
 };
+const API_KEY_COPY_BUTTON_ID = "swal-api-key-copy-button";
 
 type ApiKeyFormSeed = {
   expiresAt: string;
@@ -67,6 +68,53 @@ function escapeHtml(value: string) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
+}
+
+async function copyToClipboard(value: string) {
+  if (navigator.clipboard && window.isSecureContext) {
+    await navigator.clipboard.writeText(value);
+    return;
+  }
+
+  const textarea = document.createElement("textarea");
+  textarea.value = value;
+  textarea.setAttribute("readonly", "");
+  textarea.style.position = "fixed";
+  textarea.style.left = "-9999px";
+  textarea.style.top = "0";
+  document.body.appendChild(textarea);
+  textarea.select();
+
+  const copied = document.execCommand("copy");
+  document.body.removeChild(textarea);
+
+  if (!copied) {
+    throw new Error("Impossible de copier la cle automatiquement.");
+  }
+}
+
+function buildApiKeyCreatedHtml(apiKey: string) {
+  return `
+    <div style="display:grid;gap:10px;text-align:left;">
+      <p style="margin:0;">Copiez cette cle maintenant. Elle ne sera plus affichee ensuite.</p>
+      <div style="display:grid;grid-template-columns:minmax(0,1fr) 44px;align-items:stretch;gap:8px;">
+        <code style="display:block;overflow:auto;border-radius:12px;padding:12px;background:#0f172a;color:#f8fafc;font-size:13px;">${escapeHtml(apiKey)}</code>
+        <button
+          id="${API_KEY_COPY_BUTTON_ID}"
+          type="button"
+          aria-label="Copier la cle API"
+          title="Copier la cle API"
+          style="display:inline-flex;align-items:center;justify-content:center;width:44px;border:0;border-radius:12px;background:#7ebb2b;color:#ffffff;cursor:pointer;box-shadow:0 10px 24px rgba(126,187,43,0.28);"
+        >
+          <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect>
+            <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path>
+          </svg>
+        </button>
+      </div>
+      <p id="swal-api-key-copy-feedback" style="display:none;margin:0;font-size:13px;font-weight:600;color:#4f8f1f;">Cle copiee dans le presse-papiers.</p>
+    </div>
+  `;
 }
 
 function toDateTimeLocalValue(value: string | null | undefined) {
@@ -429,14 +477,68 @@ export function useApiKeysTable(): UseApiKeysTableResult {
       await Swal.fire({
         icon: "success",
         title: "API key creee",
-        html: `
-          <div style="display:grid;gap:10px;text-align:left;">
-            <p style="margin:0;">Copiez cette cle maintenant. Elle ne sera plus affichee ensuite.</p>
-            <code style="display:block;overflow:auto;border-radius:12px;padding:12px;background:#0f172a;color:#f8fafc;font-size:13px;">${escapeHtml(payload.apiKey)}</code>
-          </div>
-        `,
-        confirmButtonText: "Fermer",
+        html: buildApiKeyCreatedHtml(payload.apiKey),
+        showCancelButton: true,
+        confirmButtonText: "Copier et fermer",
+        cancelButtonText: "Fermer",
         confirmButtonColor: "#7ebb2b",
+        showLoaderOnConfirm: true,
+        didOpen: (popup) => {
+          const copyButton = popup.querySelector<HTMLButtonElement>(
+            `#${API_KEY_COPY_BUTTON_ID}`,
+          );
+          const copyFeedback = popup.querySelector<HTMLElement>(
+            "#swal-api-key-copy-feedback",
+          );
+
+          copyButton?.addEventListener("click", async () => {
+            try {
+              await copyToClipboard(payload.apiKey);
+
+              if (copyFeedback) {
+                copyFeedback.style.display = "block";
+              }
+
+              copyButton.innerHTML = `
+                <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 6 9 17l-5-5"></path>
+                </svg>
+              `;
+              copyButton.title = "Cle copiee";
+            } catch (error) {
+              Swal.showValidationMessage(
+                error instanceof Error
+                  ? error.message
+                  : "Impossible de copier la cle automatiquement.",
+              );
+            }
+          });
+        },
+        preConfirm: async () => {
+          try {
+            await copyToClipboard(payload.apiKey);
+            return true;
+          } catch (error) {
+            Swal.showValidationMessage(
+              error instanceof Error
+                ? error.message
+                : "Impossible de copier la cle automatiquement.",
+            );
+            return false;
+          }
+        },
+      }).then(async (copyResult) => {
+        if (!copyResult.isConfirmed) {
+          return;
+        }
+
+        await Swal.fire({
+          icon: "success",
+          title: "Cle copiee",
+          text: "La cle API a ete copiee dans le presse-papiers.",
+          timer: 1800,
+          showConfirmButton: false,
+        });
       });
     } catch (creationError) {
       await Swal.fire({

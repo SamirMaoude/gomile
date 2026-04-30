@@ -19,6 +19,7 @@ import type {
 
 export type VerifyMerchantHandshakeResult = {
   orderId: string;
+  orderReference?: string | null;
   message: string;
 };
 

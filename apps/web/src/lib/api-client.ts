@@ -47,6 +47,7 @@ export interface VerifyMerchantHandshakeInput {
 
 export interface VerifyMerchantHandshakeResponse {
   orderId: string;
+  orderReference?: string | null;
   message: string;
 }
 
@@ -230,4 +231,3 @@ export function deleteMerchant(merchantId: string) {
     method: "DELETE",
   });
 }
-

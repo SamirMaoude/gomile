@@ -138,7 +138,22 @@ export default function TarifsPage() {
         `/api/subscriptions/checkout?plan=${plan.checkoutPlan}`,
         { method: "POST" },
       );
-      window.location.assign(data.checkoutUrl);
+
+      const checkoutUrl = new URL(data.checkoutUrl);
+      window.location.assign(checkoutUrl.toString());
+    } catch (error) {
+      const Swal = (await import("sweetalert2")).default;
+
+      await Swal.fire({
+        icon: "error",
+        title: "Paiement indisponible",
+        text:
+          error instanceof Error
+            ? error.message
+            : "Impossible de lancer le paiement pour le moment.",
+        confirmButtonText: "Fermer",
+        confirmButtonColor: "#d95757",
+      });
     } finally {
       setPendingPlan(null);
     }
