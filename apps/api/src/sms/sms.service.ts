@@ -7,11 +7,21 @@ export class SmsService {
   private readonly client = new SNSClient({ region: process.env.AWS_REGION });
 
   async sendSms(phone: string, message: string): Promise<void> {
+    let response: any;
     try {
-      await this.client.send(new PublishCommand({ PhoneNumber: phone, Message: message }));
-    } catch (err) {
+        response = await this.client.send(new PublishCommand({ 
+        PhoneNumber: phone, 
+        Message: message,
+        MessageAttributes: {
+          'AWS.SNS.SMS.SMSType': {
+            DataType: 'String',
+            StringValue: 'Transactional',
+          },
+      }}));
+      } catch (err) {
       console.error(`Failed to send SMS to ${phone}:`, err);
       this.logger.error(`SMS failed to ${phone}`, err);
     }
+    return response;
   }
 }
