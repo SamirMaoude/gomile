@@ -480,7 +480,6 @@ export function useApiKeysTable(): UseApiKeysTableResult {
         html: buildApiKeyCreatedHtml(payload.apiKey),
         showCancelButton: true,
         confirmButtonText: "Copier et fermer",
-        cancelButtonText: "Fermer",
         confirmButtonColor: "#7ebb2b",
         showLoaderOnConfirm: true,
         didOpen: (popup) => {

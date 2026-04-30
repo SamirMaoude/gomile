@@ -25,7 +25,7 @@ export default function ClientLoginPage() {
   return (
     <main>
       <Navigation theme="landingpage" />
-      <Background as="div" backHref="/">
+      <Background as="div">
       <div className={styles.card}>
         <div className={styles.splitCard}>
           <div className={styles.brandPanel}>

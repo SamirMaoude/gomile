@@ -101,6 +101,7 @@ export default function GrenobleDeliveryMap({
 
   useEffect(() => {
     let cancelled = false;
+    let resizeObserver: ResizeObserver | null = null;
 
     async function initMap() {
       if (!containerRef.current || mapRef.current) {
@@ -142,12 +143,24 @@ export default function GrenobleDeliveryMap({
         map.invalidateSize();
         setIsMapReady(true);
       });
+
+      if (typeof ResizeObserver !== "undefined") {
+        resizeObserver = new ResizeObserver(() => {
+          window.requestAnimationFrame(() => {
+            if (!cancelled) {
+              map.invalidateSize();
+            }
+          });
+        });
+        resizeObserver.observe(containerRef.current);
+      }
     }
 
     initMap();
 
     return () => {
       cancelled = true;
+      resizeObserver?.disconnect();
 
       if (mapRef.current) {
         mapRef.current.remove();

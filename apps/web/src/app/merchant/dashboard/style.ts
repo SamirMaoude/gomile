@@ -126,7 +126,7 @@ export const styles = {
   surfaceCardDark: "border-slate-800 bg-slate-900",
 
   mapGrid:
-    "grid gap-5 xl:grid-cols-[minmax(0,1.5fr)_minmax(23rem,0.95fr)]",
+    "grid gap-5 xl:grid-cols-[minmax(0,1.95fr)_minmax(18rem,0.68fr)]",
 
   mapSection:
     "relative z-0 min-h-[22rem] overflow-hidden rounded-[1.25rem] border shadow-[0_16px_40px_rgba(15,23,42,0.06)] sm:min-h-[32rem] sm:rounded-[1.75rem] lg:min-h-[42rem]",
@@ -142,17 +142,17 @@ export const styles = {
     "rounded-[1.75rem] border shadow-[0_16px_40px_rgba(15,23,42,0.06)]",
   handshakeSectionLight: "border-[#d6dfcf] bg-white",
   handshakeSectionDark: "border-slate-800 bg-slate-900",
-  handshakeHeader: "border-b px-5 py-5",
+  handshakeHeader: "border-b px-4 py-4",
   handshakeHeaderLight: "border-slate-200",
   handshakeHeaderDark: "border-slate-800",
   handshakeDescription: "mt-2 text-sm leading-6",
-  handshakeForm: "grid gap-4 px-5 py-5",
+  handshakeForm: "grid gap-3 px-4 py-4",
   handshakeFieldGroup: "grid gap-2",
   handshakeLabel: "text-sm font-semibold",
   handshakeSelect:
-    "min-h-[3.5rem] rounded-[1rem] border px-4 text-[1rem] outline-none transition",
+    "min-h-[3rem] rounded-[0.85rem] border px-3 text-[0.95rem] outline-none transition",
   handshakeInput:
-    "min-h-[3.5rem] rounded-[1rem] border px-4 text-[1rem] outline-none transition",
+    "min-h-[3rem] rounded-[0.85rem] border px-3 text-[0.95rem] outline-none transition",
   handshakeControlLight:
     "border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-[#86ba2f] focus:ring-4 focus:ring-[#86ba2f]/10",
   handshakeControlDark:
@@ -163,7 +163,7 @@ export const styles = {
     "border-emerald-900 bg-emerald-950/60 text-emerald-300",
   handshakeErrorLight: "border-rose-200 bg-rose-50 text-rose-700",
   handshakeErrorDark: "border-rose-900 bg-rose-950/60 text-rose-300",
-  handshakeButton: "!w-full !justify-center",
+  handshakeButton: "!w-full !justify-center !text-sm",
 
   deliveriesHeader: "border-b px-5 py-5",
   deliveriesHeaderLight: "border-slate-200",

@@ -151,7 +151,7 @@ export function buildCreateOrderPanelHtml(
       </div>
       <div style="display:grid;gap:6px;">
         <label for="${ORDER_FIELD_IDS.dropOffAddress}" style="font-size:13px;font-weight:600;color:#334155;">Adresse de livraison</label>
-        <textarea id="${ORDER_FIELD_IDS.dropOffAddress}" class="swal2-textarea" placeholder="Ex: 12 rue Lesdiguieres, Grenoble" style="width:100%;height:110px;margin:0;">${escapeHtml(seed.dropOffAddress)}</textarea>
+        <input id="${ORDER_FIELD_IDS.dropOffAddress}" class="swal2-input" autocomplete="off" placeholder="Ex: 12 rue Lesdiguieres, Grenoble" value="${escapeHtml(seed.dropOffAddress)}" style="width:100%;margin:0;" />
       </div>
     </div>
   `;

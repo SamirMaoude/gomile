@@ -171,7 +171,7 @@ export function useOrdersTable(): UseOrdersTableResult {
         allowOutsideClick: () => !Swal.isLoading(),
         didOpen: (popup) => {
           cleanupAddressAutocomplete = attachAddressAutocomplete(
-            popup.querySelector<HTMLTextAreaElement>(
+            popup.querySelector<HTMLInputElement>(
               `#${ORDER_FIELD_IDS.dropOffAddress}`,
             ),
           );
