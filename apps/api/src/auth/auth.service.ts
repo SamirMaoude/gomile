@@ -24,6 +24,7 @@ import { createApiError } from '../common/api-error';
 import { AUTH_MESSAGES } from './auth-messages';
 import { AUTH_ERRORS } from './auth-errors';
 import { EmailService } from '../emails/email.service';
+import { UploadService } from '../upload/upload.service';
 
 const DEFAULT_APP_URL = 'http://localhost:3001';
 
@@ -33,6 +34,7 @@ export class AuthService {
     private prisma: PrismaService,
     private jwtService: JwtService,
     private emailService: EmailService,
+    private uploadService: UploadService,
   ) { }
   // Return a hash of the pwd
   private hashPassword(pwd: string) {
@@ -91,68 +93,79 @@ export class AuthService {
   async registerDriver(dto: RegisterDriverDto): Promise<AuthResponse> {
     await this.checkEmailAvailable(dto.email);
     await this.checkPhoneAvailable(dto.phone);
+
+    // Commit all S3 files from the staging area before writing anything to the DB.
+    // This moves them from uploads/ (lifecycle-deleted after 2 days) to documents/
+    // (permanent). If the DB write fails afterward, we roll back by deleting the
+    // committed files so S3 stays clean.
+    const committedAvatarUrl = await this.uploadService.commitFile(dto.avatarUrl);
+
+    const rawDocuments: { type: DocumentType; url: string }[] = [
+      dto.cniFile && { type: DocumentType.CNI, url: dto.cniFile },
+      dto.justificatifFile && { type: DocumentType.OTHER, url: dto.justificatifFile },
+      dto.permisFile && { type: DocumentType.DRIVING_LICENSE, url: dto.permisFile },
+      dto.carteGriseFile && { type: DocumentType.REGISTRATION_CARD, url: dto.carteGriseFile },
+      dto.kbisFile && { type: DocumentType.OTHER, url: dto.kbisFile },
+      dto.ribFile && { type: DocumentType.RIB, url: dto.ribFile },
+    ].filter(Boolean) as { type: DocumentType; url: string }[];
+
+    const committedDocuments = await Promise.all(
+      rawDocuments.map(async (doc) => ({
+        ...doc,
+        url: await this.uploadService.commitFile(doc.url),
+      })),
+    );
+
     const hashedPassword = await this.hashPassword(dto.password);
     const gomileCode = await this.generateUniqueGomileCode();
     const { token, hash, expiry } = this.generateVerificationToken();
 
-    const user = await this.prisma.user.create({
-      data: {
-        email: dto.email.toLowerCase(),
-        phone: dto.phone,
-        password: hashedPassword,
-        role: Role.DRIVER,
-        emailVerificationToken: hash,
-        emailVerificationExpiry: expiry,
-        driver: {
-          create: {
-            firstName: dto.firstName,
-            lastName: dto.lastName,
-            dateOfBirth: new Date(dto.dateOfBirth),
-            gender: dto.gender,
-            avatarUrl: dto.avatarUrl,
-            address: dto.address,
-            city: dto.city,
-            zipCode: dto.zipCode,
-            street: dto.street,
-            deliveryCity: dto.deliveryCity,
-            deliveryRadius: dto.deliveryRadius,
-            transportType: dto.transportType,
-            siret: dto.siret,
-            gomileCode,
-            wallet: { create: { balance: 0 } },
+    let user: { id: string; email: string; role: Role };
+    try {
+      user = await this.prisma.user.create({
+        data: {
+          email: dto.email.toLowerCase(),
+          phone: dto.phone,
+          password: hashedPassword,
+          role: Role.DRIVER,
+          emailVerificationToken: hash,
+          emailVerificationExpiry: expiry,
+          driver: {
+            create: {
+              firstName: dto.firstName,
+              lastName: dto.lastName,
+              dateOfBirth: new Date(dto.dateOfBirth),
+              gender: dto.gender,
+              avatarUrl: committedAvatarUrl,
+              address: dto.address,
+              city: dto.city,
+              zipCode: dto.zipCode,
+              street: dto.street,
+              deliveryCity: dto.deliveryCity,
+              deliveryRadius: dto.deliveryRadius,
+              transportType: dto.transportType,
+              siret: dto.siret,
+              gomileCode,
+              wallet: { create: { balance: 0 } },
+            },
           },
         },
-      },
-    });
-
-    // Create DriverDocument records for any provided file URLs
-    const documents: { type: DocumentType; url: string }[] = [];
-    if (dto.cniFile)
-      documents.push({ type: DocumentType.CNI, url: dto.cniFile });
-    if (dto.justificatifFile)
-      documents.push({ type: DocumentType.OTHER, url: dto.justificatifFile });
-    if (dto.permisFile)
-      documents.push({
-        type: DocumentType.DRIVING_LICENSE,
-        url: dto.permisFile,
+        select: { id: true, email: true, role: true },
       });
-    if (dto.carteGriseFile)
-      documents.push({
-        type: DocumentType.REGISTRATION_CARD,
-        url: dto.carteGriseFile,
-      });
-    if (dto.kbisFile)
-      documents.push({ type: DocumentType.OTHER, url: dto.kbisFile });
-    if (dto.ribFile)
-      documents.push({ type: DocumentType.RIB, url: dto.ribFile });
+    } catch (err) {
+      await Promise.allSettled([
+        this.uploadService.deleteFile(committedAvatarUrl),
+        ...committedDocuments.map((doc) => this.uploadService.deleteFile(doc.url)),
+      ]);
+      throw err;
+    }
 
-    if (documents.length > 0) {
+    if (committedDocuments.length > 0) {
       await this.prisma.driverDocument.createMany({
-        data: documents.map((doc) => ({ ...doc, driverId: user.id })),
+        data: committedDocuments.map((doc) => ({ ...doc, driverId: user.id })),
       });
     }
 
-    // Just like merchants, drivers should have their accounts email verified
     const verifyUrl = `${process.env.APP_URL ?? DEFAULT_APP_URL}/verify-email?token=${token}`;
     await this.emailService.sendVerificationEmail(
       user.email,

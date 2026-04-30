@@ -265,32 +265,39 @@ export class DriverMeService {
       dto.zipCode !== undefined ||
       dto.street !== undefined ||
       dto.avatarUrl !== undefined;
-    // Uploading avatar must first erase the existing one on the S3 database
-    if (dto.avatarUrl !== undefined && driver.avatarUrl) {
-      await this.uploadService.deleteFile(driver.avatarUrl);
+    // Commit new avatar from uploads/ → documents/ before writing to DB.
+    // If DB update fails afterward, roll back by deleting the committed avatar.
+    const committedAvatarUrl =
+      dto.avatarUrl !== undefined
+        ? await this.uploadService.commitFile(dto.avatarUrl)
+        : undefined;
+
+    try {
+      await this.prisma.driver.update({
+        where: { userId: user.id },
+        data: {
+          ...(dto.address !== undefined && { address: dto.address }),
+          ...(dto.city !== undefined && { city: dto.city }),
+          ...(dto.zipCode !== undefined && { zipCode: dto.zipCode }),
+          ...(dto.street !== undefined && { street: dto.street }),
+          ...(dto.deliveryCity !== undefined && { deliveryCity: dto.deliveryCity }),
+          ...(dto.deliveryRadius !== undefined && { deliveryRadius: dto.deliveryRadius }),
+          ...(dto.transportType !== undefined && { transportType: dto.transportType }),
+          ...(committedAvatarUrl !== undefined && { avatarUrl: committedAvatarUrl }),
+          ...(kycResubmission && { kycStatus: KycStatus.NOT_SUBMITTED }),
+        },
+      });
+    } catch (err) {
+      if (committedAvatarUrl !== undefined) {
+        void this.uploadService.deleteFile(committedAvatarUrl).catch(() => {});
+      }
+      throw err;
     }
 
-    // Any address or identity related update will unvalidate KYC status. Driver must then resubmit KYC documents
-    await this.prisma.driver.update({
-      where: { userId: user.id },
-      data: {
-        ...(dto.address !== undefined && { address: dto.address }),
-        ...(dto.city !== undefined && { city: dto.city }),
-        ...(dto.zipCode !== undefined && { zipCode: dto.zipCode }),
-        ...(dto.street !== undefined && { street: dto.street }),
-        ...(dto.deliveryCity !== undefined && {
-          deliveryCity: dto.deliveryCity,
-        }),
-        ...(dto.deliveryRadius !== undefined && {
-          deliveryRadius: dto.deliveryRadius,
-        }),
-        ...(dto.transportType !== undefined && {
-          transportType: dto.transportType,
-        }),
-        ...(dto.avatarUrl !== undefined && { avatarUrl: dto.avatarUrl }),
-        ...(kycResubmission && { kycStatus: KycStatus.NOT_SUBMITTED }),
-      },
-    });
+    // Delete old avatar from S3 after the DB update succeeds
+    if (committedAvatarUrl !== undefined && driver.avatarUrl) {
+      void this.uploadService.deleteFile(driver.avatarUrl).catch(() => {});
+    }
 
     if (dto.phone !== undefined) {
       await this.prisma.user.update({
@@ -463,11 +470,13 @@ export class DriverMeService {
     });
   }
 
+  async presignDocument(filename: string, contentType: string) {
+    return this.uploadService.presign(filename, contentType);
+  }
+
   async uploadDocument(user: AuthenticatedUser, dto: CreateDriverDocumentDto) {
     const driver = await this.existsDriver(user);
 
-    // Upload no longer available when admin is verifying the documents.
-    // Of course, drivers can update their documents after once KYC status is verified (for example, outdated documents need to be updated)
     if (driver.kycStatus === KycStatus.PENDING) {
       throw new ConflictException(
         createApiError('KYC_VERIFYING_IN_PROCESS', KYC_ERRORS),
@@ -475,50 +484,42 @@ export class DriverMeService {
     }
 
     const oldDocument = await this.prisma.driverDocument.findFirst({
-      where: {
-        driverId: user.id,
-        type: dto.type,
-      },
+      where: { driverId: user.id, type: dto.type },
     });
 
-    // Removing old documents from S3 database as well
-    if (oldDocument) {
-      await this.uploadService.deleteFile(oldDocument.url);
-      await this.prisma.driverDocument.delete({
-        where: {
-          id: oldDocument.id,
-        },
-      });
-    }
+    // Move the new file from the uploads/ staging area to documents/ before
+    // touching the DB. If the DB write fails, roll back by deleting the
+    // committed file so S3 stays clean.
+    const committedUrl = await this.uploadService.commitFile(dto.url);
 
-    const updateTransaction = await this.prisma.$transaction([
-      this.prisma.driverDocument.create({
-        data: {
-          driverId: user.id,
-          type: dto.type,
-          url: dto.url,
-        },
-        select: {
-          id: true,
-          type: true,
-          url: true,
-          verified: true,
-          createdAt: true,
-        },
-      }),
-      // Update driver status back to NOT_SUBMITTED so driver can call submit KYC
-      ...(driver.kycStatus === KycStatus.ACCEPTED ||
-      driver.kycStatus === KycStatus.REJECTED
-        ? [
-            this.prisma.driver.update({
+    const newDocIdx = oldDocument ? 1 : 0;
+    try {
+      const results = await this.prisma.$transaction([
+        ...(oldDocument
+          ? [this.prisma.driverDocument.delete({ where: { id: oldDocument.id } })]
+          : []),
+        this.prisma.driverDocument.create({
+          data: { driverId: user.id, type: dto.type, url: committedUrl },
+          select: { id: true, type: true, url: true, verified: true, createdAt: true },
+        }),
+        ...(driver.kycStatus === KycStatus.ACCEPTED ||
+        driver.kycStatus === KycStatus.REJECTED
+          ? [this.prisma.driver.update({
               where: { userId: user.id },
               data: { kycStatus: KycStatus.NOT_SUBMITTED },
-            }),
-          ]
-        : []),
-    ]);
+            })]
+          : []),
+      ]);
 
-    return updateTransaction[0];
+      if (oldDocument) {
+        void this.uploadService.deleteFile(oldDocument.url).catch(() => {});
+      }
+
+      return results[newDocIdx];
+    } catch (err) {
+      void this.uploadService.deleteFile(committedUrl).catch(() => {});
+      throw err;
+    }
   }
 
   async deleteDocument(user: AuthenticatedUser, documentId: string) {

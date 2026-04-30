@@ -40,6 +40,7 @@ import { KycStatusResponseDto } from '../kyc/dto/kyc-status-response.dto';
 import { DashboardResponseDto } from './dto/dashboard-response.dto';
 import { WithdrawalRequestDto } from './dto/withdrawal-request.dto';
 import { CreateDriverDocumentDto } from './dto/create-driver-document.dto';
+import { PresignRequestDto } from '../upload/dto/presign-request.dto';
 
 @ApiTags('[Mobile] Driver')
 @ApiBearerAuth('access-token')
@@ -449,6 +450,26 @@ export class DriverMeController {
     @Body() dto: WithdrawalRequestDto,
   ) {
     return this.driverMeService.requestWithdrawal(user, dto.amount);
+  }
+
+  @ApiOperation({
+    summary: 'Get a pre-signed S3 upload URL',
+    description:
+      'Returns a short-lived signed URL for document or avatar uploads. Use this endpoint when authenticated; use POST /uploads/presign only during registration.',
+  })
+  @ApiOkResponse({
+    schema: {
+      properties: {
+        uploadUrl: { type: 'string', description: 'PUT the file bytes to this URL' },
+        fileUrl: { type: 'string', description: 'Permanent URL to store in DB' },
+      },
+    },
+  })
+  @ApiUnauthorizedResponse({ description: 'Invalid or missing JWT' })
+  @Post('documents/presign')
+  @HttpCode(HttpStatus.OK)
+  async presignDocument(@Body() dto: PresignRequestDto) {
+    return this.driverMeService.presignDocument(dto.filename, dto.contentType);
   }
 
   @ApiOperation({
