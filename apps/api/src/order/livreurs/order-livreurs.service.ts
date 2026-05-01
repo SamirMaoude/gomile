@@ -25,6 +25,7 @@ import { ListDriverOrdersResponseDto } from '../dto/list-livreurs-orders-respons
 import { ORDER_MESSAGE } from '../order-messages';
 import { SmsService } from '../../sms/sms.service';
 import { OutboundWebhookService } from '../../webhook/outbound-webhook.service';
+import { Logger } from '@nestjs/common';
 
 @Injectable()
 export class OrderLivreursService {
@@ -32,6 +33,8 @@ export class OrderLivreursService {
     private readonly prisma: PrismaService,
     private readonly sms: SmsService,
     private readonly outboundWebhook: OutboundWebhookService,
+    private readonly logger: Logger,
+  
   ) {}
   private async existsDriver(driverId: string) {
     const driver = await this.prisma.driver.findUnique({
@@ -141,10 +144,6 @@ export class OrderLivreursService {
       );
     }
 
-    await this.sms.sendSms(
-      order!.customerPhone,
-      `A driver has accepted your order and is heading to pick it up.`,
-    );
     this.outboundWebhook.fireOrderEvent(orderId, OrderStatus.DRIVER_ACCEPTED);
 
     // Driver should present to the merchant presenting the pickup code
@@ -320,7 +319,7 @@ export class OrderLivreursService {
       order.customerPhone,
       `${driver.firstName} has picked up your order and is on the way ! \n
       Please show the following code to the driver when he arrives: ${deliveryHandshake.code}`,
-    );
+    ).catch((err) => this.logger.error('SMS on order pickup failed', err));
     this.outboundWebhook.fireOrderEvent(orderId, OrderStatus.PICKED_UP);
 
     return { orderId: orderId, message: ORDER_MESSAGE.ORDER_PICKED_UP };
@@ -454,10 +453,6 @@ export class OrderLivreursService {
       }
     }
 
-    await this.sms.sendSms(
-      order.customerPhone,
-      `Your GoMile order has been delivered. Thank you!`,
-    );
     this.outboundWebhook.fireOrderEvent(orderId, OrderStatus.DELIVERED);
 
     return { orderId: orderId, message: ORDER_MESSAGE.ORDER_DELIVERED };

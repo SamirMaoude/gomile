@@ -172,7 +172,7 @@ export class OrderService {
 
     // Notify customer by SMS that their order has been received
     await this.smsService
-      .sendSms(order.customerPhone, `Votre commande GoMile a bien été reçue. Un livreur va bientôt la prendre en charge.`)
+      .sendSms(order.customerPhone, `Hi ${order.customerName}, your order has been received. We will notify you when it is picked up and on the way!`)
       .catch((err) => this.logger.error('SMS on order creation failed', err));
 
     // Expo push notification notifies nearby drivers
