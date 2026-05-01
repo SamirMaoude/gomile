@@ -16,8 +16,9 @@ export class SmsService {
 
   async sendSms(phone: string, message: string): Promise<void> {
     const normalized = this.normalizePhone(phone);
+    let response : any;
     try {
-      await this.client.send(new PublishCommand({
+      response = await this.client.send(new PublishCommand({
         PhoneNumber: normalized,
         Message: message,
         MessageAttributes: {
@@ -28,5 +29,6 @@ export class SmsService {
       this.logger.error(`SMS failed to ${normalized}`, err);
       throw err;
     }
+    return response;
   }
 }

@@ -141,7 +141,7 @@ export class OrderLivreursService {
       );
     }
 
-    this.sms.sendSms(
+    await this.sms.sendSms(
       order!.customerPhone,
       `A driver has accepted your order and is heading to pick it up.`,
     );
@@ -454,7 +454,7 @@ export class OrderLivreursService {
       }
     }
 
-    this.sms.sendSms(
+    await this.sms.sendSms(
       order.customerPhone,
       `Your GoMile order has been delivered. Thank you!`,
     );

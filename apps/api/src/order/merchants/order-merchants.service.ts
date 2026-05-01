@@ -171,12 +171,12 @@ export class OrderService {
     });
 
     // Notify customer by SMS that their order has been received
-    this.smsService
+    await this.smsService
       .sendSms(order.customerPhone, `Votre commande GoMile a bien été reçue. Un livreur va bientôt la prendre en charge.`)
       .catch((err) => this.logger.error('SMS on order creation failed', err));
 
     // Expo push notification notifies nearby drivers
-    this.findNearbyDriverTokens(store.latitude, store.longitude)
+    await this.findNearbyDriverTokens(store.latitude, store.longitude)
       .then((tokens) =>
         this.notificationService.notifyDrivers(
           tokens,
