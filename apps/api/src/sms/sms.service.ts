@@ -1,12 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { SNSClient, PublishCommand } from '@aws-sdk/client-sns';
+import twilio from 'twilio';
 
 @Injectable()
 export class SmsService {
   private readonly logger = new Logger(SmsService.name);
-  private readonly client = new SNSClient({ region: process.env.AWS_REGION });
+  private readonly client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 
-  // SNS only accepts numbers following a strict format
   private normalizePhone(phone: string): string {
     const cleaned = phone.replace(/\s+/g, '');
     if (cleaned.startsWith('+')) return cleaned;
@@ -16,19 +15,15 @@ export class SmsService {
 
   async sendSms(phone: string, message: string): Promise<void> {
     const normalized = this.normalizePhone(phone);
-    let response : any;
     try {
-      response = await this.client.send(new PublishCommand({
-        PhoneNumber: normalized,
-        Message: message,
-        MessageAttributes: {
-          'AWS.SNS.SMS.SMSType': { DataType: 'String', StringValue: 'Transactional' },
-        },
-      }));
+      await this.client.messages.create({
+        to: normalized,
+        from: process.env.TWILIO_PHONE_NUMBER,
+        body: message,
+      });
     } catch (err) {
       this.logger.error(`SMS failed to ${normalized}`, err);
       throw err;
     }
-    return response;
   }
 }
