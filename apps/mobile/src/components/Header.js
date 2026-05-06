@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, Switch, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../constants/theme';
@@ -11,13 +11,19 @@ export default function Header({ title, showAvailabilityToggle = false }) {
   const isOnline = useAvailabilityStore((state) => state.isOnline);
   const setOnlineStatus = useAvailabilityStore((state) => state.setOnlineStatus);
   const isCompactScreen = width < 360;
+  const [isToggling, setIsToggling] = useState(false);
 
   const handleToggleAvailability = async () => {
+    if (isToggling) return;
+
+    setIsToggling(true);
     try {
       await toggleDriverAvailability();
       setOnlineStatus(!isOnline);
-    } catch (error) {
-      // R.A.S
+    } catch {
+      // Ne bloque pas l'UI si la sync backend échoue ponctuellement.
+    } finally {
+      setIsToggling(false);
     }
   };
 
@@ -42,6 +48,7 @@ export default function Header({ title, showAvailabilityToggle = false }) {
           <Switch
             value={isOnline}
             onValueChange={handleToggleAvailability}
+            disabled={isToggling}
             trackColor={{ false: '#8FA3BF', true: '#49C96D' }}
             thumbColor={COLORS.white}
             ios_backgroundColor="#8FA3BF"

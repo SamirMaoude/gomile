@@ -73,7 +73,8 @@ async function requestApi<T>(
   });
 
   if (!response.ok) {
-    throw new Error(await parseError(response));
+    const err = await parseError(response);
+    throw new Error(`${path} - ${err}`);
   }
 
   return (await response.json()) as T;

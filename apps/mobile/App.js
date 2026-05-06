@@ -9,6 +9,7 @@ import LoginScreen from './src/screens/LoginScreen';
 import ForgotPasswordScreen from './src/screens/ForgotPasswordScreen';
 import RegisterStep1 from './src/screens/RegisterStep1';
 import { EmailVerificationScreen } from './src/screens/EmailVerificationScreen';
+import RegisterStep2Identity from './src/screens/RegisterStep2Identity';
 import RegisterStep2 from './src/screens/RegisterStep2';
 import RegisterStep3 from './src/screens/RegisterStep3';
 import RegisterStep4 from './src/screens/RegisterStep4';
@@ -38,6 +39,7 @@ export default function App() {
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
           <Stack.Screen name="RegisterStep1" component={RegisterStep1} />
+          <Stack.Screen name="RegisterStep2Identity" component={RegisterStep2Identity} />
           <Stack.Screen name="EmailVerification" component={EmailVerificationScreen} />
           <Stack.Screen name="RegisterStep2" component={RegisterStep2} />
           <Stack.Screen name="RegisterStep3" component={RegisterStep3} />

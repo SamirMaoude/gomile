@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, Alert, Keyboard, TouchableOpacity } from 'react-native';
 import { login } from '../../lib/auth-client';
+import { registerDriverPushToken } from '../lib/push-notifications';
 import Header from '../components/Header';
 import GoMileInput from '../components/GoMileInput';
 import GoMileButton from '../components/GoMileButton';
@@ -30,6 +31,7 @@ export default function LoginScreen({ navigation }) {
     setIsLoading(true);
     try {
       await login({ identifier, password });
+      registerDriverPushToken();
       navigation.replace('MainApp');
     } catch (error) {
       Alert.alert("Erreur", error.message);

@@ -23,12 +23,14 @@ import { SessionVehicleDto } from './dto/session-vehicle.dto';
 import { DashboardResponseDto } from './dto/dashboard-response.dto';
 import { CreateDriverDocumentDto } from './dto/create-driver-document.dto';
 import { KYC_ERRORS } from 'src/kyc/kyc.error';
+import { OpenRouteService } from '../delivery/openrouteservice.service';
 
 @Injectable()
 export class DriverMeService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly uploadService: UploadService,
+    private readonly openRouteService: OpenRouteService,
   ) {}
 
   // update postgis location manually
@@ -85,30 +87,73 @@ export class DriverMeService {
 
   // Check available orders using postgis
   async availableOrders(user: AuthenticatedUser) {
-    return this.prisma.$queryRaw`
-    select
-      o.id,
-      o.status,
-      o.type,
-      o."packageSize",
-      o.weight,
-      o.reward,
-      o."distanceKm",
-      o."dropOffAddress",
-      o."customerName",
-      o."createdAt",
-      s.name as store,
-      s.address as "pickupAddress"
-    from "Order" o
-    join "Store" s on s.id = o."storeId"
-    join "Driver" d on d."userId" = ${user.id}
-    where o.status = 'SEARCHING_DRIVER'
-    and ST_DWithin(
-      s.location::geography,
-      d."lastKnownLocation"::geography,
-      d."deliveryRadius" * 1000
-    )
+    const orders = await this.prisma.$queryRaw<
+      Array<{
+        id: string;
+        status: string;
+        type: string;
+        packageSize: string;
+        weight: number;
+        reward: number;
+        distanceKm: number;
+        dropOffAddress: string;
+        customerName: string;
+        createdAt: Date;
+        store: string;
+        pickupAddress: string;
+      }>
+    >`
+      select
+        o.id,
+        o.status,
+        o.type,
+        o."packageSize",
+        o.weight,
+        o.reward,
+        o."distanceKm",
+        o."dropOffAddress",
+        o."customerName",
+        o."createdAt",
+        s.name as store,
+        s.address as "pickupAddress"
+      from "Order" o
+      join "Store" s on s.id = o."storeId"
+      join "Driver" d on d."userId" = ${user.id}
+      where o.status = 'SEARCHING_DRIVER'
+      and ST_DWithin(
+        s.location::geography,
+        d."lastKnownLocation"::geography,
+        d."deliveryRadius" * 1000
+      )
     `;
+
+    return Promise.all(
+      orders.map(async (order) => {
+        const [pickupResolution, dropoffResolution] = await Promise.allSettled([
+          this.openRouteService.resolveAddress({
+            fullAddress: order.pickupAddress,
+          }),
+          this.openRouteService.resolveAddress({
+            fullAddress: order.dropOffAddress,
+          }),
+        ]);
+
+        const pickupLocation =
+          pickupResolution.status === 'fulfilled'
+            ? pickupResolution.value
+            : null;
+        const dropoffLocation =
+          dropoffResolution.status === 'fulfilled'
+            ? dropoffResolution.value
+            : null;
+
+        return {
+          ...order,
+          pickupLocation,
+          dropoffLocation,
+        };
+      }),
+    );
   }
 
   // Toggle driver's availabitlity (if a driver is accepting order or not
@@ -173,7 +218,7 @@ export class DriverMeService {
     });
 
     // Flatten store object to string
-    return orders.map(order => ({
+    return orders.map((order) => ({
       ...order,
       store: order.store?.name ?? 'Store',
     }));
@@ -193,7 +238,7 @@ export class DriverMeService {
     });
 
     // Flatten store object to string
-    return orders.map(order => ({
+    return orders.map((order) => ({
       ...order,
       store: order.store?.name ?? 'Store',
     }));

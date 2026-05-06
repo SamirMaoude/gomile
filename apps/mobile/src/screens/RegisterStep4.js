@@ -11,9 +11,13 @@ import DocPicker from '../components/DocPicker'; // Réutilisation du picker de 
 import { useRegistrationStore } from '../store/useRegistrationStore';
 import { COLORS } from '../constants/theme';
 import { COMMON_STYLE_VALUES } from '../styles/commonStyles';
-import { completeDriverRegistration } from '../../lib/auth-client';
+import { registerDriver } from '../../lib/auth-client';
 import { uploadLocalFile } from '../../lib/upload-client';
 import { pickImageSource } from '../lib/media-picker';
+import { createMyDocument, updateDriverProfile } from '../../lib/driver-client';
+import { setCachedProfileAvatarUrl } from '../../lib/profile-cache';
+
+const FALLBACK_AVATAR_URL = 'https://placehold.co/512x512/png?text=GoMile';
 
 export default function RegisterStep4({ navigation }) {
   const [isLoading, setIsLoading] = useState(false);
@@ -78,18 +82,6 @@ export default function RegisterStep4({ navigation }) {
         utilitaire: 'TRUCK',
       };
 
-      const cniUrl = cniFile ? await uploadLocalFile(cniFile, 'cni.jpg') : undefined;
-      const justificatifUrl = justificatifFile
-        ? await uploadLocalFile(justificatifFile, 'justificatif.jpg')
-        : undefined;
-      const avatarUrlUploaded = avatarUrl ? await uploadLocalFile(avatarUrl, 'avatar.jpg') : undefined;
-      const permisUrl = permisFile ? await uploadLocalFile(permisFile, 'permis.jpg') : undefined;
-      const carteGriseUrl = carteGriseFile
-        ? await uploadLocalFile(carteGriseFile, 'carte-grise.jpg')
-        : undefined;
-      const kbisUrl = kbisFile ? await uploadLocalFile(kbisFile, 'kbis.jpg') : undefined;
-      const ribUrl = ribFile ? await uploadLocalFile(ribFile, 'rib.jpg') : undefined;
-
       const signupData = {
         email: String(email).trim().toLowerCase(),
         password,
@@ -98,7 +90,7 @@ export default function RegisterStep4({ navigation }) {
         gender: genderMap[gender] || 'UNDEFINED',
         phone: normalizePhone(phone),
         dateOfBirth: birthDate,
-        avatarUrl: avatarUrlUploaded,
+        avatarUrl: FALLBACK_AVATAR_URL,
         address: String(address).trim(),
         city: city ? String(city).trim() : undefined,
         zipCode: zipCode ? String(zipCode).trim() : undefined,
@@ -106,16 +98,76 @@ export default function RegisterStep4({ navigation }) {
         deliveryCity: String(deliveryCity).trim(),
         deliveryRadius: safeDeliveryRadius,
         transportType: vehicleMap[transportType] || 'BIKE',
-        cniFile: cniUrl,
-        justificatifFile: justificatifUrl,
-        permisFile: permisUrl,
-        carteGriseFile: carteGriseUrl,
         siret: siret ? String(siret).trim() : undefined,
-        kbisFile: kbisUrl,
-        ribFile: ribUrl,
       };
 
-      await completeDriverRegistration(signupData);
+      // Nettoyer: supprimer les undefined ET les URIs locales (pas http/https)
+      const cleanedSignupData = Object.fromEntries(
+        Object.entries(signupData).filter(([_, value]) => {
+          if (value === undefined) return false;
+          // Pour les champs URL, garder seulement les URLs valides (http/https)
+          if (typeof value === 'string' && (value.startsWith('http://') || value.startsWith('https://'))) {
+            return true;
+          }
+          // Pour les autres champs, garder les valeurs non-URL
+          if (typeof value !== 'string' || (!value.includes('://') && !value.includes('ImagePicker'))) {
+            return true;
+          }
+          return false;
+        })
+      );
+
+      // 1) Créer le compte avec un avatar valide pour respecter la contrainte de la base.
+      await registerDriver(cleanedSignupData);
+
+      // 2) Après login automatique, presign + upload des vrais fichiers.
+      const [cniUrl, justificatifUrl, avatarUrlUploaded, permisUrl, carteGriseUrl, kbisUrl, ribUrl] = await Promise.all([
+        cniFile ? uploadLocalFile(cniFile, 'cni.jpg') : Promise.resolve(undefined),
+        justificatifFile ? uploadLocalFile(justificatifFile, 'justificatif.jpg') : Promise.resolve(undefined),
+        avatarUrl ? uploadLocalFile(avatarUrl, 'avatar.jpg') : Promise.resolve(undefined),
+        permisFile ? uploadLocalFile(permisFile, 'permis.jpg') : Promise.resolve(undefined),
+        carteGriseFile ? uploadLocalFile(carteGriseFile, 'carte-grise.jpg') : Promise.resolve(undefined),
+        kbisFile ? uploadLocalFile(kbisFile, 'kbis.jpg') : Promise.resolve(undefined),
+        ribFile ? uploadLocalFile(ribFile, 'rib.jpg') : Promise.resolve(undefined),
+      ]);
+
+      if (avatarUrlUploaded) {
+        setCachedProfileAvatarUrl(avatarUrlUploaded);
+
+        try {
+          await updateDriverProfile({ avatarUrl: avatarUrlUploaded });
+        } catch (err) {
+          const msg = String(err?.message || err);
+          if (msg.includes('EMAIL_NOT_VERIFIED') || /verify/i.test(msg)) {
+            // Le backend peut exiger la vérification email avant update profile.
+          } else {
+            throw err;
+          }
+        }
+      }
+
+      const documentsToCreate = [
+        cniUrl ? { type: 'CNI', url: cniUrl } : null,
+        justificatifUrl ? { type: 'OTHER', url: justificatifUrl } : null,
+        permisUrl ? { type: 'DRIVING_LICENSE', url: permisUrl } : null,
+        carteGriseUrl ? { type: 'REGISTRATION_CARD', url: carteGriseUrl } : null,
+        kbisUrl ? { type: 'OTHER', url: kbisUrl } : null,
+        ribUrl ? { type: 'RIB', url: ribUrl } : null,
+      ].filter(Boolean);
+
+      for (const document of documentsToCreate) {
+        try {
+          await createMyDocument(document.type, document.url);
+        } catch (err) {
+          const msg = String(err?.message || err);
+          if (msg.includes('EMAIL_NOT_VERIFIED') || /verify/i.test(msg)) {
+            // Le backend peut exiger la vérification email avant création document.
+          } else {
+            throw err;
+          }
+        }
+      }
+
       resetForm();
 
       Alert.alert(
@@ -133,7 +185,7 @@ export default function RegisterStep4({ navigation }) {
 
   return (
     <FormLayout title="INFOS PRO" progress={100}>
-      <SectionTitle>Dernière étape (4/4)</SectionTitle>
+      <SectionTitle>Dernière étape (5/5)</SectionTitle>
 
       <GoMileInput 
         label="Numéro SIRET"

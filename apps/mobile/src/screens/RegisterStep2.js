@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
 import { useRegistrationStore } from '../store/useRegistrationStore';
 
@@ -9,12 +9,16 @@ import OptionCard from '../components/OptionCard';
 import SectionTitle from '../components/SectionTitle';
 import AddressAutocomplete from '../components/AddressAutocomplete';
 import { COMMON_STYLE_VALUES } from '../styles/commonStyles';
+import { COLORS } from '../constants/theme';
 
 export default function RegisterStep2({ navigation }) {
-  // On récupère tout du store pour que rien ne disparaisse au retour (Back)
   const { 
-    updateField, address, city, zipCode, 
-    transportType, deliveryCity, deliveryRadius
+    updateField,
+    address,
+    city,
+    deliveryCity,
+    deliveryRadius,
+    transportType,
   } = useRegistrationStore();
 
   const onSelectAddress = (data) => {
@@ -22,15 +26,18 @@ export default function RegisterStep2({ navigation }) {
     updateField('city', data.city);
     updateField('zipCode', data.zip);
     updateField('street', data.street);
-    
-    // Auto-remplissage de la ville de livraison avec la ville de résidence
     if (!deliveryCity) {
       updateField('deliveryCity', data.city);
     }
   };
 
+  useEffect(() => {
+    if (!deliveryCity && city) {
+      updateField('deliveryCity', city);
+    }
+  }, [city, deliveryCity, updateField]);
+
   const handleNext = () => {
-    // Validation stricte : Tous les champs obligatoires
     if (!address || !city) return Alert.alert("Champs requis", "Veuillez sélectionner une adresse valide.");
     if (!deliveryCity) return Alert.alert("Champs requis", "Indiquez votre ville de livraison.");
     if (!deliveryRadius) return Alert.alert("Champs requis", "Indiquez votre rayon d'action.");
@@ -40,38 +47,36 @@ export default function RegisterStep2({ navigation }) {
   };
 
   return (
-    <FormLayout title="TRANSPORT" progress={50}>
-      <SectionTitle>Logistique (2/4)</SectionTitle>
+    <FormLayout title="LOGISTIQUE" progress={60}>
+      <SectionTitle>Logistique (3/5)</SectionTitle>
 
-      <AddressAutocomplete 
+      <AddressAutocomplete
         label="Adresse de résidence"
         value={address}
         updateValue={(v) => updateField('address', v)}
         onAddressSelect={onSelectAddress}
       />
 
-      <View style={styles.detailsRow}>
-        <View style={{ flex: 1, marginRight: 10 }}>
-          <GoMileInput 
-            label="Ville de livraison" 
-            value={deliveryCity} 
-            onChangeText={(v) => updateField('deliveryCity', v)} 
-          />
-        </View>
-        <View style={{ width: 120 }}>
-          <GoMileInput 
-            label="Rayon (km)" 
-            keyboardType="numeric"
-            value={deliveryRadius} 
-            onChangeText={(v) => updateField('deliveryRadius', String(v).replace(/[^0-9]/g, ''))}
-          />
-        </View>
-      </View>
+      <GoMileInput
+        label="Ville de livraison"
+        value={deliveryCity || city}
+        onChangeText={(v) => updateField('deliveryCity', v)}
+        placeholder={city || 'Ville'}
+        containerStyle={styles.fullInput}
+      />
 
-      <SectionTitle style={{ marginTop: 25 }}>Mode de transport</SectionTitle>
+      <GoMileInput
+        label="Rayon (km)"
+        keyboardType="numeric"
+        value={deliveryRadius}
+        onChangeText={(v) => updateField('deliveryRadius', String(v).replace(/[^0-9]/g, ''))}
+        containerStyle={styles.fullInput}
+      />
+
+      <SectionTitle style={{ marginTop: 10 }}>Mode de transport</SectionTitle>
       <View style={styles.grid}>
         {['velo', 'moto', 'voiture', 'utilitaire'].map((type) => (
-          <OptionCard 
+          <OptionCard
             key={type}
             label={type.charAt(0).toUpperCase() + type.slice(1)}
             active={transportType === type}
@@ -89,6 +94,6 @@ export default function RegisterStep2({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  detailsRow: { ...COMMON_STYLE_VALUES.rowCenter, marginTop: 5 },
+  fullInput: { marginBottom: 15 },
   grid: { ...COMMON_STYLE_VALUES.rowBetween, flexWrap: 'wrap', marginTop: 5 },
 });

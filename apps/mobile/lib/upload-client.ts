@@ -55,7 +55,8 @@ async function requestUploadApi<T>(path: string, init?: RequestInit): Promise<T>
   });
 
   if (!response.ok) {
-    throw new Error(await parseError(response));
+    const err = await parseError(response);
+    throw new Error(`${path} - ${err}`);
   }
 
   return (await response.json()) as T;
@@ -106,11 +107,6 @@ export async function uploadFileToPresignedUrl(
 export async function uploadLocalFile(fileUri: string, fallbackName: string) {
   if (fileUri.startsWith("http://") || fileUri.startsWith("https://")) {
     return fileUri;
-  }
-
-  const tokens = await getAuthTokenStore().getTokens();
-  if (!tokens?.accessToken) {
-    return undefined;
   }
 
   const contentType = inferContentType(fileUri);

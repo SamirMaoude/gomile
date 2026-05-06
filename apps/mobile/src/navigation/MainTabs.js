@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialCommunityIcons } from '@expo/vector-icons'; 
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
@@ -12,11 +12,32 @@ import WalletScreen from '../screens/WalletScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import TableauDeBord from '../screens/TableauDeBord';
 import { useMissionStore } from '../store/useMissionStore';
+import { configureDriverPushNotifications, registerDriverPushToken } from '../lib/push-notifications';
 
 const Tab = createBottomTabNavigator();
 
 export default function MainTabs() {
   const activeMission = useMissionStore((state) => state.activeMission);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const setupNotifications = async () => {
+      try {
+        await configureDriverPushNotifications();
+        if (!isMounted) return;
+        await registerDriverPushToken();
+      } catch {
+        // Les notifications push ne doivent pas bloquer l'accès à l'application.
+      }
+    };
+
+    setupNotifications();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return (
     <View style={{ flex: 1 }}>

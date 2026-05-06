@@ -75,6 +75,13 @@ export default function WalletScreen({ navigation }) {
         onAction={handleCashOut} 
       />
 
+      <View style={styles.pendingCard}>
+        <Text style={styles.pendingLabel}>Montant en attente</Text>
+        <Text style={styles.pendingValue}>
+          {Number(wallet.pendingAmount || 0).toFixed(2)} {wallet.currency || 'EUR'}
+        </Text>
+      </View>
+
 
       {/* --- HISTORIQUE DES TRANSACTIONS --- */}
       <SectionTitle style={{ marginTop: 25 }}>Dernières activités</SectionTitle>
@@ -126,6 +133,25 @@ const TransactionItem = ({ item }) => (
 
 const styles = StyleSheet.create({
   // Section Bonus
+  pendingCard: {
+    marginTop: 12,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    backgroundColor: COLORS.white,
+    padding: 14,
+    ...COMMON_STYLE_VALUES.rowBetween,
+  },
+  pendingLabel: {
+    ...COMMON_STYLE_VALUES.textMuted,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  pendingValue: {
+    ...COMMON_STYLE_VALUES.textSecondary,
+    fontSize: 14,
+    fontWeight: '800',
+  },
   bonusContainer: {
     backgroundColor: COLORS.white,
     marginTop: 20,

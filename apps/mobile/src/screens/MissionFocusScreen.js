@@ -12,6 +12,7 @@ import { COMMON_STYLE_VALUES } from '../styles/commonStyles';
 import { useMissionStore } from '../store/useMissionStore';
 import { formatDistanceKm, formatDurationMin, getDrivingRoute } from '../../lib/routing';
 import {
+  getMissionPickupCode,
   verifyMerchantHandshake,
   verifyClientHandshake,
 } from '../../lib/driver-client';
@@ -33,6 +34,7 @@ export default function MissionFocusScreen({ navigation }) {
   const [routeCoords, setRouteCoords] = useState([]);
   const [routeDistance, setRouteDistance] = useState('--');
   const [routeEta, setRouteEta] = useState('--');
+  const [merchantCode, setMerchantCode] = useState('');
   const normalizedClientCode = typedClientCode.trim();
   const [keyboardOffset, setKeyboardOffset] = useState(0);
 
@@ -111,6 +113,31 @@ export default function MissionFocusScreen({ navigation }) {
   }, [activeMission]);
 
   useEffect(() => {
+    let isMounted = true;
+
+    const loadPickupCode = async () => {
+      if (!activeMission?.id) return;
+      try {
+        const data = await getMissionPickupCode(activeMission.id);
+        const apiCode = String(data?.pickupCode || data?.code || '').trim();
+        if (isMounted && apiCode) {
+          setMerchantCode(apiCode);
+        }
+      } catch {
+        if (isMounted) {
+          setMerchantCode('');
+        }
+      }
+    };
+
+    loadPickupCode();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [activeMission?.id]);
+
+  useEffect(() => {
     const onKeyboardShow = (event) => {
       const keyboardHeight = event?.endCoordinates?.height || 0;
       setKeyboardOffset(Math.max(0, keyboardHeight - 12));
@@ -148,7 +175,11 @@ export default function MissionFocusScreen({ navigation }) {
   const handleValidateMerchant = () => {
     (async () => {
       try {
-        const code = String(activeMission.merchantAuthCode || '').trim();
+        const code = String(merchantCode || activeMission.merchantAuthCode || '').trim();
+        if (!code) {
+          Alert.alert('Code indisponible', 'Le code commerçant n\'est pas encore disponible.');
+          return;
+        }
         await verifyMerchantHandshake(activeMission.id, code);
         markMerchantVerified();
         Alert.alert('Commercant verifie', 'Tu peux maintenant recuperer la commande.');
@@ -233,7 +264,7 @@ export default function MissionFocusScreen({ navigation }) {
 
               <View style={styles.codeBox}>
                 <Text style={styles.codeLabel}>Code commercant (backend)</Text>
-                <Text style={styles.codeValue}>{activeMission.merchantAuthCode}</Text>
+                <Text style={styles.codeValue}>{merchantCode || '----'}</Text>
                 <Text style={styles.routeMeta}>Trajet estimé: {routeDistance} • {routeEta}</Text>
                 <GoMileButton
                   title={merchantVerified ? 'IDENTIFICATION COMMERCANT OK' : 'VALIDER IDENTIFICATION COMMERCANT'}

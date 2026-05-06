@@ -7,8 +7,8 @@ import {
   Alert,
   ScrollView,
 } from 'react-native';
-import { FormLayout } from '../components/FormLayout';
-import { GoMileButton } from '../components/GoMileButton';
+import FormLayout from '../components/FormLayout';
+import GoMileButton from '../components/GoMileButton';
 import { getEmailStatus } from '../../lib/auth-client';
 import { useRegistrationStore } from '../store/useRegistrationStore';
 
@@ -129,7 +129,6 @@ export function EmailVerificationScreen({ navigation }) {
         }
       } catch (err) {
         if (isMounted) {
-          console.error('Erreur lors de la vérification d\'email:', err);
           setError(err.message);
         }
       }
@@ -232,7 +231,7 @@ export function EmailVerificationScreen({ navigation }) {
         {/* Boutons d'action */}
         <View style={styles.buttonsContainer}>
           <GoMileButton
-            label="Continuer"
+            title="Continuer"
             onPress={handleContinue}
             disabled={!isVerified}
             style={!isVerified ? styles.disabledButton : {}}

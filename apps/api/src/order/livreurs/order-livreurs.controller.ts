@@ -73,7 +73,6 @@ export class OrderLivreursController {
     summary: 'Accept an available order',
     description:
       'Atomically claims an order in SEARCHING_DRIVER status. Returns 409 if another driver accepted it first.',
-  })
   @ApiOkResponse({
     description: 'Order accepted successfully',
     schema: { properties: { message: { type: 'string' } } },
@@ -84,7 +83,7 @@ export class OrderLivreursController {
   })
   @ApiNotFoundResponse({ description: 'Driver or order not found' })
   @ApiConflictResponse({
-    description: 'Order was already accepted by another driver',
+    @UseGuards(JwtAuthGuard, RolesGuard)
   })
   @Roles(Role.DRIVER)
   @Post('/orders/:orderId/accept')
