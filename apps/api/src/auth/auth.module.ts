@@ -28,6 +28,14 @@ import { EmailVerifiedGuard } from './guards/email-verified.guard';
     EmailVerifiedGuard,
   ], // adding guard provider for nest
   controllers: [AuthController, ApiKeyController],
-  exports: [AuthService, ApiKeyGuard, ApiKeyService, JwtOrApiKeyGuard, EmailVerifiedGuard],
+  exports: [
+    AuthService,
+    ApiKeyGuard,
+    ApiKeyService,
+    JwtOrApiKeyGuard,
+    EmailVerifiedGuard,
+    JwtAuthGuard,
+    RolesGuard,
+  ],
 })
 export class AuthModule {}

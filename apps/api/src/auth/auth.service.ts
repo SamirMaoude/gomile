@@ -53,6 +53,27 @@ export class AuthService {
     return { token, hash, expiry };
   }
 
+  async registerAdmin(email: string, password: string): Promise<{ message: string }> {
+    await this.checkEmailAvailable(email);
+    const hashedPassword = await this.hashPassword(password);
+    const { token, hash, expiry } = this.generateVerificationToken();
+
+    const user = await this.prisma.user.create({
+      data: {
+        email: email.toLowerCase(),
+        password: hashedPassword,
+        role: Role.ADMIN,
+        emailVerificationToken: hash,
+        emailVerificationExpiry: expiry,
+      },
+    });
+
+    const verifyUrl = `${process.env.APP_URL ?? DEFAULT_APP_URL}/verify-email?token=${token}`;
+    await this.emailService.sendVerificationEmail(user.email, 'Admin', verifyUrl);
+
+    return { message: 'Admin account created. A verification email has been sent.' };
+  }
+
   // Merchant created will have a trial period of 30 days
   async registerMerchant(dto: RegisterMerchantDto): Promise<AuthResponse> {
     await this.checkEmailAvailable(dto.email);
@@ -95,9 +116,8 @@ export class AuthService {
     await this.checkPhoneAvailable(dto.phone);
 
     // Commit all S3 files from the staging area before writing anything to the DB.
-    // This moves them from uploads/ (lifecycle-deleted after 2 days) to documents/
-    // (permanent). If the DB write fails afterward, we roll back by deleting the
-    // committed files so S3 stays clean.
+    // This moves them from uploads/ to documents/
+    // A task on S3 is scheduled to remove all files dated 2 days on S3, so no trash files will stay forever
     const committedAvatarUrl = await this.uploadService.commitFile(dto.avatarUrl);
 
     const rawDocuments: { type: DocumentType; url: string }[] = [
@@ -153,6 +173,7 @@ export class AuthService {
         select: { id: true, email: true, role: true },
       });
     } catch (err) {
+      // If failed to create user after committing files, we need to remove committed files
       await Promise.allSettled([
         this.uploadService.deleteFile(committedAvatarUrl),
         ...committedDocuments.map((doc) => this.uploadService.deleteFile(doc.url)),
@@ -160,12 +181,14 @@ export class AuthService {
       throw err;
     }
 
+
     if (committedDocuments.length > 0) {
       await this.prisma.driverDocument.createMany({
         data: committedDocuments.map((doc) => ({ ...doc, driverId: user.id })),
       });
     }
 
+    // Sending verifying email
     const verifyUrl = `${process.env.APP_URL ?? DEFAULT_APP_URL}/verify-email?token=${token}`;
     await this.emailService.sendVerificationEmail(
       user.email,

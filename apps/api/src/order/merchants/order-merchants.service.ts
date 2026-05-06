@@ -26,6 +26,7 @@ import { CancelOrderResponseDto } from '../dto/cancel-order-response';
 import { randomInt } from 'crypto';
 import { OpenRouteService } from '../../delivery/openrouteservice.service';
 import { DeliveryPricingService } from '../../delivery/delivery-pricing.service';
+import { SmsService } from '../../sms/sms.service';
 
 @Injectable()
 export class OrderService {
@@ -37,6 +38,7 @@ export class OrderService {
     private readonly deliveryPricingService: DeliveryPricingService,
     private readonly notificationService: NotificationService,
     private readonly outboundWebhook: OutboundWebhookService,
+    private readonly smsService: SmsService,
   ) {}
   private handshakeTTL = 12 * 60 * 60 * 1000; // 12h for short deliveries, or maybe less
 
@@ -168,8 +170,13 @@ export class OrderService {
       },
     });
 
+    // Notify customer by SMS that their order has been received
+    await this.smsService
+      .sendSms(order.customerPhone, `Hi ${order.customerName}, your order has been received. We will notify you when it is picked up and on the way!`)
+      .catch((err) => this.logger.error('SMS on order creation failed', err));
+
     // Expo push notification notifies nearby drivers
-    this.findNearbyDriverTokens(store.latitude, store.longitude)
+    await this.findNearbyDriverTokens(store.latitude, store.longitude)
       .then((tokens) =>
         this.notificationService.notifyDrivers(
           tokens,
