@@ -1,6 +1,7 @@
 import type { ApiErrorPayload } from "../../../../shared/api-errors";
 import { createApiError } from "../../../../shared/api-errors";
 import { redirectToHomeWithExpiredSessionAlert } from "./session-expiration";
+import { ensureTokenRefreshed } from "./token-refresh";
 
 async function parseApiError(response: Response) {
   const fallbackError = createApiError("REQUEST_FAILED");
@@ -31,13 +32,8 @@ async function tryRefreshAccessToken() {
   // The browser cannot read an httpOnly access-token cookie directly.
   // So instead of "checking the cookie", we refresh only after the server
   // tells us the protected request is no longer authenticated.
-  const response = await fetch("/api/auth/refresh", {
-    method: "POST",
-    credentials: "include",
-    cache: "no-store",
-  });
-
-  return response.ok;
+  const session = await ensureTokenRefreshed();
+  return Boolean(session);
 }
 
 export async function requestWithAutoRefresh<T>(

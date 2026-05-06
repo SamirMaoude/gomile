@@ -130,7 +130,7 @@ export class OrderMerchantsController {
   @ApiBearerAuth('access-token')
   @ApiOkResponse({
     schema: {
-      properties: { orderId: { type: 'string' }, message: { type: 'string' } },
+      properties: { orderId: { type: 'string' }, orderReference: { type: 'string' }, message: { type: 'string' } },
     },
   })
   @ApiNotFoundResponse({

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { styles } from "./styles";
 import Typography from "@/components/ui/design-system/typography";
 import Input from "@/components/ui/design-system/input/input";
-import Form from "@/components/ui/design-system/forms/form";
+import Container from "@/components/ui/elements/container";
 import Button from "@/components/ui/design-system/button/button";
 import SuccessMessage from "@/components/ui/design-system/messages/successMessage";
 import ErrorMessage from "@/components/ui/design-system/messages/errorMessage";
@@ -13,7 +13,7 @@ import { Logo } from "@/components/Logo/Logo";
 import Background from "@/components/ui/auth/background";
 import { Navigation } from "@/components/ui/navigation/navigation";
 import Footerlp from "@/components/ui/design-system/header_footer/footerlp";
-import { useLogin } from "./use-login";
+import useLogin from "./use-login";
 import SocialIcon from "@/components/ui/design-system/socialIcons";
 
 export default function AdminLoginPage() {
@@ -62,7 +62,13 @@ export default function AdminLoginPage() {
               </Typography>
             </div>
 
-            <Form onSubmit={handleSubmit} className={styles.form}>
+            <Container
+              Component="form"
+              onSubmit={handleSubmit}
+              size="full"
+              padding={false}
+              className={styles.form}
+            >
               <Input
                 id="client-email"
                 name="email"
@@ -136,7 +142,7 @@ export default function AdminLoginPage() {
               >
                 {isPending ? "Connexion..." : "Se connecter"}
               </Button>
-            </Form>
+            </Container>
 
             <div className={styles.divider}>
               <span className={styles.dividerLine} />

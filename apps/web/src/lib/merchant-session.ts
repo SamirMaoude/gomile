@@ -1,9 +1,9 @@
 import type { AuthSession } from "./auth-client";
-import { refreshSession } from "./auth-client";
 import {
   getMerchantProfile,
   type MerchantProfileResponse,
 } from "./api-client";
+import { ensureTokenRefreshed } from "./token-refresh";
 
 let cachedSession: AuthSession | null = null;
 let inFlightSessionRequest: Promise<AuthSession> | null = null;
@@ -54,8 +54,12 @@ export async function getCurrentMerchantSession(): Promise<AuthSession> {
     return inFlightSessionRequest;
   }
 
-  inFlightSessionRequest = refreshSession()
+  inFlightSessionRequest = ensureTokenRefreshed()
     .then((session) => {
+      if (!session) {
+        throw new Error("Session expirée. Veuillez vous reconnecter.");
+      }
+
       if (!isMerchantRole(session.user.role)) {
         throw new Error("La session courante n'est pas un compte marchand.");
       }

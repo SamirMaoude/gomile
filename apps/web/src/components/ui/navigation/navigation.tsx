@@ -36,7 +36,7 @@ export const Navigation = ({
         headerThemeClasses[theme]
       )}
     >
-      <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-6">
+      <div className="mx-auto flex w-full max-w-6xl items-center justify-around gap-6">
         <div>
           <Logo size="sm" />
         </div>

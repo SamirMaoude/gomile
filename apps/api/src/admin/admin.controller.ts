@@ -6,6 +6,7 @@ import {
   HttpStatus,
   Param,
   Patch,
+  Post,
   Put,
   Query,
   UseGuards,
@@ -27,8 +28,12 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { AdminService } from './admin.service';
 import { UpdateWithdrawalDto } from './dto/update-withdrawal.dto';
+import { CreateAdminAccountDto } from './dto/create-admin-account.dto';
 import { KycService } from '../kyc/kyc.service';
 import { RejectKycDto } from '../kyc/dto/reject-kyc.dto';
+import { AuthService } from '../auth/auth.service';
+import { RegisterMerchantDto } from '../auth/dto/register-merchant.dto';
+import { RegisterDriverDto } from '../auth/dto/register-driver.dto';
 
 @ApiTags('[Admin]')
 @ApiBearerAuth('access-token')
@@ -39,7 +44,43 @@ export class AdminController {
   constructor(
     private readonly adminService: AdminService,
     private readonly kycService: KycService,
+    private readonly authService: AuthService,
   ) {}
+
+  @ApiOperation({ summary: 'Create an admin account' })
+  @ApiOkResponse({ schema: { properties: { message: { type: 'string' } } } })
+  @ApiUnauthorizedResponse({ description: 'Invalid or missing JWT' })
+  @ApiForbiddenResponse({ description: 'Admin role required' })
+  @ApiConflictResponse({ description: 'Email already in use' })
+  @Post('accounts/admin')
+  @HttpCode(HttpStatus.CREATED)
+  async createAdminAccount(@Body() dto: CreateAdminAccountDto) {
+    return this.authService.registerAdmin(dto.email, dto.password);
+  }
+
+  @ApiOperation({ summary: 'Create a merchant account' })
+  @ApiOkResponse({ schema: { properties: { message: { type: 'string' } } } })
+  @ApiUnauthorizedResponse({ description: 'Invalid or missing JWT' })
+  @ApiForbiddenResponse({ description: 'Admin role required' })
+  @ApiConflictResponse({ description: 'Email or phone already in use' })
+  @Post('accounts/merchant')
+  @HttpCode(HttpStatus.CREATED)
+  async createMerchantAccount(@Body() dto: RegisterMerchantDto) {
+    await this.authService.registerMerchant(dto);
+    return { message: 'Merchant account created. A verification email has been sent.' };
+  }
+
+  @ApiOperation({ summary: 'Create a driver account' })
+  @ApiOkResponse({ schema: { properties: { message: { type: 'string' } } } })
+  @ApiUnauthorizedResponse({ description: 'Invalid or missing JWT' })
+  @ApiForbiddenResponse({ description: 'Admin role required' })
+  @ApiConflictResponse({ description: 'Email or phone already in use' })
+  @Post('accounts/driver')
+  @HttpCode(HttpStatus.CREATED)
+  async createDriverAccount(@Body() dto: RegisterDriverDto) {
+    await this.authService.registerDriver(dto);
+    return { message: 'Driver account created. A verification email has been sent.' };
+  }
 
   @ApiOperation({
     summary: 'List all drivers',

@@ -24,6 +24,7 @@ import { createApiError } from '../common/api-error';
 import { AUTH_MESSAGES } from './auth-messages';
 import { AUTH_ERRORS } from './auth-errors';
 import { EmailService } from '../emails/email.service';
+import { UploadService } from '../upload/upload.service';
 
 const DEFAULT_APP_URL = 'http://localhost:3001';
 
@@ -33,6 +34,7 @@ export class AuthService {
     private prisma: PrismaService,
     private jwtService: JwtService,
     private emailService: EmailService,
+    private uploadService: UploadService,
   ) { }
   // Return a hash of the pwd
   private hashPassword(pwd: string) {
@@ -49,6 +51,27 @@ export class AuthService {
     const hash = this.hashToken(token);
     const expiry = new Date(Date.now() + 48 * 60 * 60 * 1000);
     return { token, hash, expiry };
+  }
+
+  async registerAdmin(email: string, password: string): Promise<{ message: string }> {
+    await this.checkEmailAvailable(email);
+    const hashedPassword = await this.hashPassword(password);
+    const { token, hash, expiry } = this.generateVerificationToken();
+
+    const user = await this.prisma.user.create({
+      data: {
+        email: email.toLowerCase(),
+        password: hashedPassword,
+        role: Role.ADMIN,
+        emailVerificationToken: hash,
+        emailVerificationExpiry: expiry,
+      },
+    });
+
+    const verifyUrl = `${process.env.APP_URL ?? DEFAULT_APP_URL}/verify-email?token=${token}`;
+    await this.emailService.sendVerificationEmail(user.email, 'Admin', verifyUrl);
+
+    return { message: 'Admin account created. A verification email has been sent.' };
   }
 
   // Merchant created will have a trial period of 30 days
@@ -91,68 +114,81 @@ export class AuthService {
   async registerDriver(dto: RegisterDriverDto): Promise<AuthResponse> {
     await this.checkEmailAvailable(dto.email);
     await this.checkPhoneAvailable(dto.phone);
+
+    // Commit all S3 files from the staging area before writing anything to the DB.
+    // This moves them from uploads/ to documents/
+    // A task on S3 is scheduled to remove all files dated 2 days on S3, so no trash files will stay forever
+    const committedAvatarUrl = await this.uploadService.commitFile(dto.avatarUrl);
+
+    const rawDocuments: { type: DocumentType; url: string }[] = [
+      dto.cniFile && { type: DocumentType.CNI, url: dto.cniFile },
+      dto.justificatifFile && { type: DocumentType.OTHER, url: dto.justificatifFile },
+      dto.permisFile && { type: DocumentType.DRIVING_LICENSE, url: dto.permisFile },
+      dto.carteGriseFile && { type: DocumentType.REGISTRATION_CARD, url: dto.carteGriseFile },
+      dto.kbisFile && { type: DocumentType.OTHER, url: dto.kbisFile },
+      dto.ribFile && { type: DocumentType.RIB, url: dto.ribFile },
+    ].filter(Boolean) as { type: DocumentType; url: string }[];
+
+    const committedDocuments = await Promise.all(
+      rawDocuments.map(async (doc) => ({
+        ...doc,
+        url: await this.uploadService.commitFile(doc.url),
+      })),
+    );
+
     const hashedPassword = await this.hashPassword(dto.password);
     const gomileCode = await this.generateUniqueGomileCode();
     const { token, hash, expiry } = this.generateVerificationToken();
 
-    const user = await this.prisma.user.create({
-      data: {
-        email: dto.email.toLowerCase(),
-        phone: dto.phone,
-        password: hashedPassword,
-        role: Role.DRIVER,
-        emailVerificationToken: hash,
-        emailVerificationExpiry: expiry,
-        driver: {
-          create: {
-            firstName: dto.firstName,
-            lastName: dto.lastName,
-            dateOfBirth: new Date(dto.dateOfBirth),
-            gender: dto.gender,
-            avatarUrl: dto.avatarUrl,
-            address: dto.address,
-            city: dto.city,
-            zipCode: dto.zipCode,
-            street: dto.street,
-            deliveryCity: dto.deliveryCity,
-            deliveryRadius: dto.deliveryRadius,
-            transportType: dto.transportType,
-            siret: dto.siret,
-            gomileCode,
-            wallet: { create: { balance: 0 } },
+    let user: { id: string; email: string; role: Role };
+    try {
+      user = await this.prisma.user.create({
+        data: {
+          email: dto.email.toLowerCase(),
+          phone: dto.phone,
+          password: hashedPassword,
+          role: Role.DRIVER,
+          emailVerificationToken: hash,
+          emailVerificationExpiry: expiry,
+          driver: {
+            create: {
+              firstName: dto.firstName,
+              lastName: dto.lastName,
+              dateOfBirth: new Date(dto.dateOfBirth),
+              gender: dto.gender,
+              avatarUrl: committedAvatarUrl,
+              address: dto.address,
+              city: dto.city,
+              zipCode: dto.zipCode,
+              street: dto.street,
+              deliveryCity: dto.deliveryCity,
+              deliveryRadius: dto.deliveryRadius,
+              transportType: dto.transportType,
+              siret: dto.siret,
+              gomileCode,
+              wallet: { create: { balance: 0 } },
+            },
           },
         },
-      },
-    });
-
-    // Create DriverDocument records for any provided file URLs
-    const documents: { type: DocumentType; url: string }[] = [];
-    if (dto.cniFile)
-      documents.push({ type: DocumentType.CNI, url: dto.cniFile });
-    if (dto.justificatifFile)
-      documents.push({ type: DocumentType.OTHER, url: dto.justificatifFile });
-    if (dto.permisFile)
-      documents.push({
-        type: DocumentType.DRIVING_LICENSE,
-        url: dto.permisFile,
+        select: { id: true, email: true, role: true },
       });
-    if (dto.carteGriseFile)
-      documents.push({
-        type: DocumentType.REGISTRATION_CARD,
-        url: dto.carteGriseFile,
-      });
-    if (dto.kbisFile)
-      documents.push({ type: DocumentType.OTHER, url: dto.kbisFile });
-    if (dto.ribFile)
-      documents.push({ type: DocumentType.RIB, url: dto.ribFile });
+    } catch (err) {
+      // If failed to create user after committing files, we need to remove committed files
+      await Promise.allSettled([
+        this.uploadService.deleteFile(committedAvatarUrl),
+        ...committedDocuments.map((doc) => this.uploadService.deleteFile(doc.url)),
+      ]);
+      throw err;
+    }
 
-    if (documents.length > 0) {
+
+    if (committedDocuments.length > 0) {
       await this.prisma.driverDocument.createMany({
-        data: documents.map((doc) => ({ ...doc, driverId: user.id })),
+        data: committedDocuments.map((doc) => ({ ...doc, driverId: user.id })),
       });
     }
 
-    // Just like merchants, drivers should have their accounts email verified
+    // Sending verifying email
     const verifyUrl = `${process.env.APP_URL ?? DEFAULT_APP_URL}/verify-email?token=${token}`;
     await this.emailService.sendVerificationEmail(
       user.email,
@@ -190,8 +226,21 @@ export class AuthService {
     userId: string,
     email: string,
     role: Role,
+    refreshToken: string,
   ): Promise<AuthResponse> {
-    return this.generateAndSaveTokens(userId, email, role);
+    const payload = { sub: userId, email, role };
+
+    const accessToken = await this.jwtService.signAsync(payload, {
+      secret: process.env.JWT_ACCESS_SECRET,
+      expiresIn: '15m',
+      jwtid: randomUUID(),
+    });
+
+    return {
+      accessToken,
+      refreshToken,
+      user: { id: userId, email, role },
+    };
   }
 
   async logout(userId: string) {

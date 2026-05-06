@@ -6,11 +6,11 @@ import { RolesGuard } from '../../auth/guards/roles.guard';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { SmsModule } from '../../sms/sms.module';
 import { WebhookModule } from '../../webhook/webhook.module';
-
+import { Logger } from '@nestjs/common';
 @Module({
-  imports: [SmsModule, WebhookModule],
+  imports: [SmsModule, WebhookModule,],
   controllers: [OrderLivreursController],
-  providers: [OrderLivreursService, RolesGuard, JwtAuthGuard, EmailVerifiedGuard],
+  providers: [OrderLivreursService, Logger, RolesGuard, JwtAuthGuard, EmailVerifiedGuard],
   exports: [OrderLivreursService],
 })
 export class OrderLivreursModule {}

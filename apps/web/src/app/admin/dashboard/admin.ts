@@ -1,17 +1,19 @@
-import { requestWithAutoRefresh } from "@/lib/protected-request";
+import {
+  getDriverOrdersList,
+  getDriversList,
+  type AdminDriverListItem as Driver,
+  type DriverStatus,
+  type KycStatus,
+} from "@/lib/api-admin";
 
-export type DriverStatus = "approved" | "pending" | "denied";
-export type KycStatus = "NONE" | "PENDING" | "APPROVED" | "REJECTED";
+export { getDriverOrdersList, getDriversList };
+export type { Driver, DriverStatus, KycStatus };
 
-export type Driver = {
-  userId: string;
-  firstName: string;
-  lastName: string;
-  status: DriverStatus;
-  kycStatus: KycStatus;
-  totalTrips: number;
-};
+export async function getAllDriverOrders() {
+  const drivers = await getDriversList();
+  const ordersByDriver = await Promise.all(
+    drivers.map((driver) => getDriverOrdersList(driver.userId)),
+  );
 
-export async function getDriversList(): Promise<Driver[]> {
-  return requestWithAutoRefresh<Driver[]>("/api/admin/drivers");
+  return ordersByDriver.flat();
 }
