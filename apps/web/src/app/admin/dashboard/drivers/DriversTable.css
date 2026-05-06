@@ -1,0 +1,251 @@
+.admin-drivers-card {
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  border-radius: 1.75rem;
+  background: #ffffff;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.06);
+}
+
+.admin-drivers-toolbar {
+  display: grid;
+  gap: 1.25rem;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 1.25rem;
+}
+
+.admin-drivers-title-block {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.25rem;
+}
+
+.admin-drivers-title,
+.admin-drivers-count {
+  color: #020617 !important;
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.75rem;
+}
+
+.admin-drivers-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.admin-drivers-search-container {
+  width: 100%;
+}
+
+.admin-drivers-search-wrapper {
+  height: 2.5rem !important;
+  border-color: #cbd5e1 !important;
+  border-radius: 0.75rem !important;
+  padding-left: 0.75rem !important;
+  padding-right: 0.75rem !important;
+}
+
+.admin-drivers-search-wrapper:focus-within {
+  border-color: var(--color-primary-light) !important;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary-light) 10%, transparent);
+}
+
+.admin-drivers-search-icon {
+  width: 1rem;
+  height: 1rem;
+  color: #64748b;
+}
+
+.admin-drivers-select {
+  height: 2.5rem;
+  min-width: 9.5rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  padding: 0 1rem;
+  color: #0f172a;
+  font-size: 0.875rem;
+  font-weight: 500;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.admin-drivers-select:focus {
+  border-color: var(--color-primary-light);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary-light) 10%, transparent);
+}
+
+.admin-drivers-table-overflow {
+  overflow-x: auto;
+}
+
+.admin-drivers-table-min {
+  min-width: 74rem;
+}
+
+.admin-drivers-table-head {
+  display: grid;
+  align-items: center;
+  gap: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  background: #f8fafc;
+  padding: 1rem 1.25rem;
+  color: #020617;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.admin-drivers-table-body > * + * {
+  border-top: 1px solid #e2e8f0;
+}
+
+.admin-drivers-table-row {
+  display: grid;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem;
+  color: #334155;
+  font-size: 0.875rem;
+}
+
+.admin-drivers-driver-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.admin-drivers-driver-text {
+  min-width: 0;
+}
+
+.admin-drivers-driver-name {
+  display: block;
+  color: #020617 !important;
+  font-size: 1rem !important;
+}
+
+.admin-drivers-driver-meta {
+  display: block;
+  margin-top: 0.25rem;
+  color: #64748b !important;
+  font-size: 0.75rem !important;
+}
+
+.admin-drivers-stack {
+  display: grid;
+  gap: 0.375rem;
+}
+
+.admin-drivers-icon-text {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.5rem;
+  color: #475569;
+  font-size: 0.875rem;
+}
+
+.admin-drivers-cell-icon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  color: #64748b;
+}
+
+.admin-drivers-primary-cell {
+  color: #334155;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.admin-drivers-status-text {
+  color: #334155;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.admin-drivers-metric {
+  color: #020617;
+  font-weight: 700;
+}
+
+.admin-drivers-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: #020617;
+  font-weight: 600;
+}
+
+.admin-drivers-star-icon {
+  width: 1rem;
+  height: 1rem;
+  fill: #fbbf24;
+  color: #fbbf24;
+}
+
+.admin-drivers-actions-header {
+  text-align: right;
+}
+
+.admin-drivers-actions-cell {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.admin-drivers-action-button {
+  display: inline-flex;
+  width: 2.25rem;
+  height: 2.25rem;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 0.75rem;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.admin-drivers-action-button:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+}
+
+.admin-drivers-action-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.admin-drivers-feedback,
+.admin-drivers-error {
+  padding: 2rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.admin-drivers-feedback {
+  color: #475569;
+}
+
+.admin-drivers-error {
+  color: #e11d48;
+}
+
+@media (min-width: 640px) {
+  .admin-drivers-search-container {
+    width: 14.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .admin-drivers-toolbar {
+    grid-template-columns: 10rem 1fr;
+    align-items: flex-start;
+  }
+
+  .admin-drivers-title-block {
+    display: block;
+  }
+}

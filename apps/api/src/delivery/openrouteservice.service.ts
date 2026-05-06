@@ -2,10 +2,13 @@ import {
   BadGatewayException,
   Injectable,
   Logger,
+  NotFoundException,
   ServiceUnavailableException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { RedisService } from '../redis/redis.service';
+import { createApiError } from 'src/common/api-error';
+import { DELIVERY_ERRORS } from './delivery.errors';
 
 type Coordinates = {
   latitude: number;
@@ -48,7 +51,7 @@ export class OpenRouteService {
     const apiKey = this.configService.get<string>('ORS_API_KEY');
 
     if (!apiKey) {
-      throw new ServiceUnavailableException('ORS_API_KEY is not configured');
+      throw new ServiceUnavailableException(createApiError('ORS_API_KEY_MISSING', DELIVERY_ERRORS));
     }
 
     return apiKey;
@@ -77,25 +80,25 @@ export class OpenRouteService {
     url.searchParams.set('api_key', this.apiKey);
     url.searchParams.set('text', address);
     url.searchParams.set('size', '1');
+    url.searchParams.set('boundary.country', 'FRA');
 
     let response: Response;
     try {
       response = await fetch(url.toString());
     } catch {
-      throw new BadGatewayException(
-        'Failed to reach OpenRouteService geocoder',
+      throw new BadGatewayException(createApiError('ORS_SERVICE_UNAVAILABLE', DELIVERY_ERRORS)
       );
     }
 
     if (!response.ok) {
-      throw new BadGatewayException('OpenRouteService geocoding failed');
+      throw new BadGatewayException(createApiError('GEOCODING_FAILED', DELIVERY_ERRORS));
     }
 
     const data = (await response.json()) as OrsGeocodeResponse;
     const coordinates = data.features?.[0]?.geometry?.coordinates;
 
     if (!coordinates) {
-      throw new BadGatewayException('Address could not be geocoded');
+      throw new NotFoundException(createApiError('ADDRESS_NOT_FOUND', DELIVERY_ERRORS));
     }
 
     const result = {
@@ -158,20 +161,18 @@ export class OpenRouteService {
         }),
       });
     } catch {
-      throw new BadGatewayException('Failed to reach OpenRouteService routing');
+      throw new BadGatewayException(createApiError('ORS_SERVICE_UNAVAILABLE', DELIVERY_ERRORS));
     }
 
     if (!response.ok) {
-      throw new BadGatewayException(
-        'Failed to retrieve route from OpenRouteService',
-      );
+      throw new BadGatewayException(createApiError('ROUTING_FAILED', DELIVERY_ERRORS));
     }
 
     const data = (await response.json()) as OrsDirectionsResponse;
     const summary = data.routes?.[0]?.summary;
 
     if (!summary) {
-      throw new BadGatewayException('OpenRouteService did not return a route');
+      throw new NotFoundException(createApiError('ROUTE_NOT_FOUND', DELIVERY_ERRORS));
     }
 
     const result = {

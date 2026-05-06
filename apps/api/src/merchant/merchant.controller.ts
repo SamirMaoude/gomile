@@ -7,7 +7,7 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
-  ForbiddenException,
+  Delete
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -22,17 +22,16 @@ import {
 import { MerchantService } from './merchant.service';
 import { UpdateMerchantDto } from './dto/update-merchant.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { EmailVerifiedGuard } from '../auth/guards/email-verified.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '@prisma/client';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '../auth/auth.types';
-import { createApiError } from '../common/api-error';
-import { MERCHANT_ERRORS } from './merchant-errors';
 
 @ApiTags('[Web][Merchant]')
 @ApiBearerAuth('access-token')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, EmailVerifiedGuard, RolesGuard)
 @Roles(Role.MERCHANT)
 @Controller('merchants/:merchantId')
 export class MerchantController {
@@ -43,8 +42,11 @@ export class MerchantController {
   @ApiNotFoundResponse({ description: 'Merchant not found' })
   @Get()
   @HttpCode(HttpStatus.OK)
-  getProfile(@Param('merchantId') merchantId: string) {
-    return this.merchantService.getMerchant(merchantId);
+  getProfile(
+    @Param('merchantId') merchantId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.merchantService.getMerchant(user, merchantId);
   }
 
   @ApiOperation({ summary: 'Update merchant name or phone number' })
@@ -60,11 +62,16 @@ export class MerchantController {
     @Body() dto: UpdateMerchantDto,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    if (user.id !== merchantId) {
-      throw new ForbiddenException(
-        createApiError('MERCHANT_NOT_FOUND', MERCHANT_ERRORS),
-      );
-    }
-    return this.merchantService.updateMerchant(merchantId, dto);
+    return this.merchantService.updateMerchant(user, merchantId, dto);
+  }
+
+  @ApiOperation({ summary: 'Delete merchant account' })
+  @ApiOkResponse({ description: 'Merchant deleted' })
+  @ApiNotFoundResponse({ description: 'Merchant not found' })
+  @ApiForbiddenResponse({ description: 'Not your account' })
+  @Delete()
+  @HttpCode(HttpStatus.OK)
+  delete(@Param('merchantId') merchantId: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.merchantService.deleteMerchant(user, merchantId);
   }
 }

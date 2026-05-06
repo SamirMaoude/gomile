@@ -4,12 +4,15 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import type {
   CreateStoreInput,
+  ConfigureWebhookInput,
+  ConfigureWebhookResult,
   Store,
   StoreListItem,
   StoreProvider,
   UpdateStoreInput,
 } from "./store.model";
 import {
+  configureCurrentMerchantStoreWebhook,
   createCurrentMerchantStore,
   deleteCurrentMerchantStore,
   disableCurrentMerchantStore,
@@ -20,6 +23,7 @@ import {
 } from "./stores.service";
 
 type UseStoresTableResult = {
+  handleConfigureWebhook: (store: StoreListItem) => Promise<void>;
   error: string | null;
   handleCreateStore: () => Promise<void>;
   handleDeleteStore: (store: StoreListItem) => Promise<void>;
@@ -43,7 +47,6 @@ const CREATE_STORE_FIELD_IDS = {
   latitude: "swal-store-latitude",
   longitude: "swal-store-longitude",
   name: "swal-store-name",
-  webhookUrl: "swal-store-webhook-url",
 };
 const CREATE_STORE_PROVIDER_NAME = "swal-store-provider";
 
@@ -55,7 +58,6 @@ type StoreFormSeed = {
   longitude: string;
   name: string;
   provider: StoreProvider;
-  webhookUrl: string;
 };
 
 function escapeHtml(value: string) {
@@ -91,7 +93,6 @@ function buildStoreFormSeed(store?: Store | StoreListItem): StoreFormSeed {
     latitude: store ? String(store.latitude) : "",
     longitude: store ? String(store.longitude) : "",
     provider: store?.provider ?? "OTHER",
-    webhookUrl: store?.webhookUrl ?? "",
   };
 }
 
@@ -118,10 +119,6 @@ function buildStorePanelHtml(seed: StoreFormSeed) {
       <div style="display:grid;gap:6px;">
         <label for="${CREATE_STORE_FIELD_IDS.domain}" style="font-size:13px;font-weight:600;color:#334155;">Domaine</label>
         <input id="${CREATE_STORE_FIELD_IDS.domain}" class="swal2-input" placeholder="Ex: myshop.com" value="${escapeHtml(seed.domain)}" style="width:100%;margin:0;" />
-      </div>
-      <div style="display:grid;gap:6px;">
-        <label for="${CREATE_STORE_FIELD_IDS.webhookUrl}" style="font-size:13px;font-weight:600;color:#334155;">Webhook URL</label>
-        <input id="${CREATE_STORE_FIELD_IDS.webhookUrl}" class="swal2-input" placeholder="Ex: https://example.com/webhooks/orders" value="${escapeHtml(seed.webhookUrl)}" style="width:100%;margin:0;" />
       </div>
       <div style="display:grid;gap:6px;">
         <label for="${CREATE_STORE_FIELD_IDS.latitude}" style="font-size:13px;font-weight:600;color:#334155;">Latitude</label>
@@ -175,6 +172,15 @@ function readDomainValue(popup: HTMLElement | null): string {
   return element?.value.trim() ?? "";
 }
 
+function isValidWebhookUrl(value: string) {
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 // This function reads the panel inputs and builds the object sent to the API.
 // In "create" mode we send a full store payload.
 // In "update" mode we can omit provider/domain when they do not need to change.
@@ -190,7 +196,6 @@ function parseStorePanelInput(
   const description = readPanelValue(popup, CREATE_STORE_FIELD_IDS.description);
   const domain = readDomainValue(popup);
   const provider = readSelectedProvider(popup);
-  const webhookUrl = readPanelValue(popup, CREATE_STORE_FIELD_IDS.webhookUrl);
   const latitude = Number.parseFloat(
     readPanelValue(popup, CREATE_STORE_FIELD_IDS.latitude),
   );
@@ -222,7 +227,6 @@ function parseStorePanelInput(
     latitude,
     longitude,
     ...(description ? { description } : {}),
-    ...(webhookUrl ? { webhookUrl } : {}),
   };
 
   if (options.mode === "create") {
@@ -237,14 +241,12 @@ function parseStorePanelInput(
 
   const providerChanged = provider !== options.initialValue.provider;
   const domainChanged = domain !== options.initialValue.domain;
-  const webhookUrlChanged = webhookUrl !== options.initialValue.webhookUrl;
 
   return {
     value: {
       ...basePayload,
       ...(providerChanged ? { provider } : {}),
       ...(domainChanged && domain ? { domain } : {}),
-      ...(webhookUrlChanged ? { webhookUrl } : {}),
     },
   };
 }
@@ -362,6 +364,96 @@ export function useStoresTable(): UseStoresTableResult {
 
   function handleStatusFilterChange(nextStatusFilter: StoreStatusFilter) {
     setStatusFilter(nextStatusFilter);
+  }
+
+  async function handleConfigureWebhook(store: StoreListItem) {
+    setProcessingStoreId(store.id);
+
+    try {
+      const Swal = (await import("sweetalert2")).default;
+
+      const result = await Swal.fire<ConfigureWebhookResult>({
+        title: store.webhookUrl
+          ? "Modifier le webhook"
+          : "Ajouter un webhook",
+        input: "url",
+        inputLabel: "URL du webhook",
+        inputPlaceholder: "https://myshop.com/webhooks/gomile",
+        inputValue: store.webhookUrl ?? "",
+        showCancelButton: true,
+        confirmButtonText: store.webhookUrl ? "Mettre à jour" : "Enregistrer",
+        cancelButtonText: "Annuler",
+        showLoaderOnConfirm: true,
+        allowOutsideClick: () => !Swal.isLoading(),
+        inputValidator: (value) => {
+          const trimmedValue = value.trim();
+
+          if (!trimmedValue) {
+            return "L'URL du webhook est obligatoire.";
+          }
+
+          if (!isValidWebhookUrl(trimmedValue)) {
+            return "Entrez une URL webhook valide en http ou https.";
+          }
+
+          return undefined;
+        },
+        preConfirm: async (value) => {
+          const trimmedValue = value.trim();
+
+          try {
+            return await configureCurrentMerchantStoreWebhook(store.id, {
+              webhookUrl: trimmedValue,
+            } satisfies ConfigureWebhookInput);
+          } catch (error) {
+            Swal.showValidationMessage(
+              error instanceof Error
+                ? error.message
+                : "Impossible de configurer le webhook pour le moment.",
+            );
+            return;
+          }
+        },
+      });
+
+      if (!result.isConfirmed || !result.value) {
+        return;
+      }
+
+      await loadStores(false);
+
+      await Swal.fire({
+        icon: "success",
+        title: "Webhook configuré",
+        html: `
+          <div style="display:grid;gap:10px;text-align:left;">
+            <p>L'URL du webhook a été enregistrée.</p>
+            <p style="margin:0;">Secret de signature :</p>
+            <code style="display:block;overflow-wrap:anywhere;padding:10px 12px;border-radius:12px;background:#0f172a;color:#f8fafc;">${result.value.webhookSecret}</code>
+            <p style="margin:0;font-size:13px;color:#64748b;">Ce secret n'est affiché qu'une seule fois. Conservez-le côté boutique.</p>
+          </div>
+        `,
+        confirmButtonText: "Fermer",
+        confirmButtonColor: "#7ebb2b",
+      });
+    } catch (configureError) {
+      const Swal = (await import("sweetalert2")).default;
+
+      await Swal.fire({
+        icon: "error",
+        title: "Configuration impossible",
+        text:
+          configureError instanceof Error
+            ? configureError.message
+            : "Impossible de configurer le webhook pour le moment.",
+        confirmButtonText: "Fermer",
+        confirmButtonColor: "#d95757",
+      });
+    } finally {
+      if (isMountedRef.current) {
+        setProcessingStoreId(null);
+      }
+    }
   }
 
   // Opens the SweetAlert panel, creates the store, then reloads the table.
@@ -575,6 +667,7 @@ export function useStoresTable(): UseStoresTableResult {
 
   return {
     error,
+    handleConfigureWebhook,
     handleCreateStore,
     handleDeleteStore,
     handleEditStore,

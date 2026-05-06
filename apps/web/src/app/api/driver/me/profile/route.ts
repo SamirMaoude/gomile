@@ -1,6 +1,3 @@
-import { NextRequest } from "next/server";
-import { proxyApiRequest } from "@/lib/api-proxy";
+import { makeProtectedRoute } from "@/lib/bff/route-factories";
 
-export async function PATCH(request: NextRequest) {
-  return proxyApiRequest(request, "/driver/me/profile");
-}
+export const PATCH = makeProtectedRoute("/driver/me/profile");

@@ -24,6 +24,7 @@ import {
 } from '@nestjs/swagger';
 import { Role } from '@prisma/client';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { EmailVerifiedGuard } from '../../auth/guards/email-verified.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { Roles } from '../../auth/decorators/roles.decorator';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
@@ -34,7 +35,7 @@ import { HandshakeDto } from '../dto/handshake.dto';
 
 @ApiTags('[Web][Livreurs]')
 @ApiBearerAuth('access-token')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, EmailVerifiedGuard, RolesGuard)
 @Controller('/livreurs/:driverId')
 export class OrderLivreursController {
   constructor(private readonly orderLivreursService: OrderLivreursService) {}

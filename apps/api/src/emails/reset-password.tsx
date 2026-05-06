@@ -3,6 +3,7 @@ import { Section, Row, Column, Text, Hr } from 'react-email'
 import { EmailShell } from './components/email-shell'
 import { EmailFooter } from './components/email-footer'
 import { LogoLockup } from './components/logo-lockup'
+import { colors, font } from './components/email-tokens'
 import { sharedBodySection, sharedGreeting, sharedPara, sharedDivider, sharedFootnote } from './components/shared-styles'
 
 export interface ResetPasswordEmailProps {
@@ -43,11 +44,23 @@ export function ResetPasswordEmail(dto: ResetPasswordEmailProps) {
         {/* OTP block */}
         <div style={otpWrap}>
           <Text style={otpEyebrow}>Verification code</Text>
-          <div style={otpRow}>
-            {digits.map((d, i) => (
-              <span key={i} style={{ ...otpDigit, marginRight: i === 2 ? '16px' : '7px' }}>{d}</span>
-            ))}
-          </div>
+          <table role="presentation" cellPadding="0" cellSpacing="0" style={otpTable}>
+            <tbody>
+              <tr>
+                {digits.map((d, i) => (
+                  <td
+                    key={i}
+                    style={{
+                      ...otpCell,
+                      paddingRight: i === digits.length - 1 ? '0' : i === 2 ? '12px' : '6px',
+                    }}
+                  >
+                    <span style={otpDigit}>{d}</span>
+                  </td>
+                ))}
+              </tr>
+            </tbody>
+          </table>
           <div style={timerPill}>
             <span style={timerDot} />
             Expires in 1 hour
@@ -91,7 +104,7 @@ export default ResetPasswordEmail
 // Styles
 
 const header: React.CSSProperties = {
-  backgroundColor: '#07101e',
+  backgroundColor: colors.dark,
   padding: '36px 44px 40px',
 }
 
@@ -100,14 +113,14 @@ const kicker: React.CSSProperties = {
   fontWeight: 600,
   letterSpacing: '0.18em',
   textTransform: 'uppercase',
-  color: '#90C440',
+  color: colors.green,
   margin: '0 0 10px',
 }
 
 const title: React.CSSProperties = {
   fontSize: '38px',
   fontWeight: 700,
-  color: '#ffffff',
+  color: colors.white,
   letterSpacing: '-0.04em',
   lineHeight: '1.0',
   margin: '0 0 14px',
@@ -122,7 +135,7 @@ const metaText: React.CSSProperties = {
 }
 
 const otpWrap: React.CSSProperties = {
-  backgroundColor: '#07101e',
+  backgroundColor: colors.dark,
   borderRadius: '14px',
   padding: '26px 24px 22px',
   textAlign: 'center',
@@ -138,48 +151,52 @@ const otpEyebrow: React.CSSProperties = {
   margin: '0 0 18px',
 }
 
-const otpRow: React.CSSProperties = {
-  display: 'flex',
-  justifyContent: 'center',
-  marginBottom: '14px',
+const otpTable: React.CSSProperties = {
+  margin: '0 auto 14px',
+}
+
+const otpCell: React.CSSProperties = {
+  padding: '0',
+  margin: '0',
 }
 
 const otpDigit: React.CSSProperties = {
-  fontFamily: "'DM Mono', monospace",
-  fontSize: '26px',
+  fontFamily: font.mono,
+  fontSize: '22px',
   fontWeight: 500,
-  color: '#ffffff',
-  width: '48px',
-  height: '58px',
+  color: colors.white,
+  width: '38px',
+  height: '48px',
   backgroundColor: 'rgba(255,255,255,0.05)',
   border: '1px solid rgba(255,255,255,0.09)',
-  borderRadius: '10px',
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
+  borderRadius: '9px',
+  display: 'inline-block',
+  verticalAlign: 'top',
   textAlign: 'center',
-  lineHeight: '58px',
+  lineHeight: '48px',
+  whiteSpace: 'nowrap',
 }
 
 const timerPill: React.CSSProperties = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: '5px',
+  display: 'inline-block',
   backgroundColor: 'rgba(144,196,64,0.12)',
   border: '1px solid rgba(144,196,64,0.22)',
   borderRadius: '20px',
   padding: '3px 10px 3px 7px',
-  color: '#90C440',
+  color: colors.green,
   fontSize: '11px',
   fontWeight: 500,
+  lineHeight: '1',
 }
 
 const timerDot: React.CSSProperties = {
   width: '5px',
   height: '5px',
   borderRadius: '50%',
-  backgroundColor: '#90C440',
+  backgroundColor: colors.green,
   display: 'inline-block',
+  verticalAlign: 'middle',
+  marginRight: '5px',
 }
 
 const secBanner: React.CSSProperties = {

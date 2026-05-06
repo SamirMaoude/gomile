@@ -6,6 +6,8 @@ import type {
   UpdateStoreResponse,
   UpdateStoreInput,
   StoreResponse,
+  ConfigureWebhookInput,
+  ConfigureWebhookResponse,
 } from "../../../../shared/store-contracts";
 import type {
   CreateOrderInput,
@@ -28,6 +30,7 @@ export interface MerchantProfileResponse {
   name: string;
   email: string;
   phone: string | null;
+  subscription: "FREE" | "PRO" | "BUSINESS";
   createdAt: string;
 }
 
@@ -35,6 +38,8 @@ export interface UpdateMerchantProfileInput {
   name?: string;
   phone?: string;
 }
+
+
 
 export interface VerifyMerchantHandshakeInput {
   code: string;
@@ -53,6 +58,8 @@ export type {
   UpdateStoreResponse,
   UpdateStoreInput,
   StoreResponse,
+  ConfigureWebhookInput,
+  ConfigureWebhookResponse,
   CreateOrderInput,
   CreateOrderResponse,
   ListMerchantOrdersItem,
@@ -113,6 +120,16 @@ export function deleteStore(merchantId: string, storeId: string) {
   return request<DeleteStoreResponse>(`/api/merchants/${merchantId}/stores/${storeId}`, {
     method: "DELETE",
   });
+}
+
+export function configureWebhook(merchantId: string, storeId: string, input: ConfigureWebhookInput) {
+  return request<ConfigureWebhookResponse>(
+    `/api/merchants/${merchantId}/stores/${storeId}/webhook`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    },
+  );
 }
 
 export function createOrder(merchantId: string, storeId: string, input: CreateOrderInput) {
@@ -198,3 +215,19 @@ export function updateMerchantProfile(
     body: JSON.stringify(input),
   });
 }
+
+export function getUserEmailVerified(
+  email: string,
+) {
+  return request<{ isVerified: boolean }>(`/api/auth/email-verified`, {
+    method: "GET",
+    body: JSON.stringify({ email }),
+  });
+}
+
+export function deleteMerchant(merchantId: string) {
+  return request<void>(`/api/merchants/${merchantId}`, {
+    method: "DELETE",
+  });
+}
+

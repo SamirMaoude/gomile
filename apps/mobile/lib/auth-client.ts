@@ -9,10 +9,11 @@ import type {
   RegisterDriverInput,
   RegisterMerchantInput,
   Role,
-} from "../../../shared/auth-contracts";
-import { AUTH_MESSAGES } from "../../../shared/auth-messages";
-import type { ApiErrorPayload } from "../../../shared/api-errors";
-import { createApiError } from "../../../shared/api-errors";
+  ForgotPasswordInput,
+} from "./auth-contracts";
+import { AUTH_MESSAGES } from "./auth-messages";
+import type { ApiErrorPayload } from "./api-errors";
+import { createApiError } from "./api-errors";
 import { getAuthTokenStore } from "./auth-storage";
 
 const DEFAULT_API_BASE_URL = "http://localhost:3000";
@@ -41,7 +42,14 @@ async function parseError(response: Response) {
 
   if (contentType?.includes("application/json")) {
     const payload = (await response.json()) as Partial<ApiErrorPayload>;
-    return payload.message ?? payload.code ?? fallbackError.message;
+    const message = payload.message;
+    if (Array.isArray(message)) {
+      return message.join("\n");
+    }
+    if (typeof message === "string") {
+      return message;
+    }
+    return payload.code ?? `Erreur ${response.status}`;
   }
 
   const text = await response.text();
@@ -95,6 +103,7 @@ export type {
   RegisterDriverInput,
   RegisterMerchantInput,
   Role,
+  ForgotPasswordInput,
 };
 
 // Registers a merchant account, stores issued tokens, and returns the authenticated user.
@@ -120,6 +129,35 @@ export async function registerDriver(input: RegisterDriverInput) {
 
   await persistTokens(response);
   return toSession(response);
+}
+
+// Starts driver registration - first step with basic info only
+export async function startDriverRegistration(input: Partial<RegisterDriverInput>) {
+  const response = await requestApi<AuthTokensResponse>("/auth/register/driver/start", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+
+  await persistTokens(response);
+  return toSession(response);
+}
+
+// Completes driver registration with full information (for authenticated users)
+export async function completeDriverRegistration(input: Partial<RegisterDriverInput>) {
+  const tokens = await getAuthTokenStore().getTokens();
+
+  if (!tokens?.accessToken) {
+    throw new Error(createApiError("AUTH_TOKEN_MISSING").message);
+  }
+
+  return requestApi<{ message: string }>(
+    "/auth/complete-registration",
+    {
+      method: "POST",
+      body: JSON.stringify(input),
+    },
+    tokens.accessToken,
+  );
 }
 
 // Logs in an existing user, stores issued tokens, and returns the authenticated user.
@@ -172,6 +210,34 @@ export async function logout(): Promise<LogoutResponse> {
 
   await getAuthTokenStore().clearTokens();
   return response;
+}
+
+// Requests a password reset code to be sent to the provided email.
+export async function forgotPassword(input: ForgotPasswordInput) {
+  return requestApi<{ message: string }>(
+    "/auth/forgot-password",
+    {
+      method: "POST",
+      body: JSON.stringify(input),
+    },
+  );
+}
+
+// Checks the email verification status of the current user.
+export async function getEmailStatus() {
+  const tokens = await getAuthTokenStore().getTokens();
+
+  if (!tokens?.accessToken) {
+    throw new Error(createApiError("AUTH_TOKEN_MISSING").message);
+  }
+
+  return requestApi<{ emailVerified: boolean }>(
+    "/auth/email-status",
+    {
+      method: "GET",
+    },
+    tokens.accessToken,
+  );
 }
 
 // Exposes the current stored token pair for integration/debugging purposes.

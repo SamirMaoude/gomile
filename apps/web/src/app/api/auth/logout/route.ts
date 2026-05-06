@@ -1,7 +1,3 @@
-import { NextRequest } from "next/server";
+import { makeSessionLogoutRoute } from "@/lib/bff/route-factories";
 
-import { proxySessionLogout } from "@/lib/auth-proxy";
-
-export async function POST(request: NextRequest) {
-  return proxySessionLogout(request);
-}
+export const POST = makeSessionLogoutRoute();

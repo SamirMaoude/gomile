@@ -69,7 +69,7 @@ export async function getMyKycStatus() {
   }
 
   return requestKyc<DriverKycStatus>(
-    "/livreurs/me/kyc",
+    "/driver/me/kyc",
     { method: "GET" },
     tokens.accessToken,
   );

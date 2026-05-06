@@ -16,13 +16,23 @@ type PricingResult = {
 
 @Injectable()
 export class DeliveryPricingService {
+  // Derives packageSize base on weight
+  private inferPackageSize(weightKg?: number): PackageSize {
+    if (!weightKg) return PackageSize.MEDIUM;
+    const t = ORDER_PRICING.WEIGHT_SIZE_THRESHOLDS;
+    if (weightKg < t.SMALL) return PackageSize.SMALL;
+    if (weightKg < t.MEDIUM) return PackageSize.MEDIUM;
+    if (weightKg < t.LARGE) return PackageSize.LARGE;
+    return PackageSize.EXTRA_LARGE;
+  }
+
   calculate(input: PricingInput): PricingResult {
     // Price formula :
     // (base_rate + distance * price_per_km) * (weight_multiplier) + surcharge_cost
     // weight_multiplier and surcharge_cost base on order weight
     const distanceKm = input.distanceMeters / 1000;
-    const multiplier =
-      ORDER_PRICING.SIZE_MULTIPLIER[input.packageSize ?? PackageSize.MEDIUM];
+    const resolvedSize = input.packageSize ?? this.inferPackageSize(input.weightKg);
+    const multiplier = ORDER_PRICING.SIZE_MULTIPLIER[resolvedSize];
     const heavySurcharge =
       (input.weightKg ?? 0) > ORDER_PRICING.HEAVY_THRESHOLD_KG
         ? ORDER_PRICING.HEAVY_SURCHARGE

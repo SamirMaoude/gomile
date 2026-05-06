@@ -17,7 +17,10 @@ export class DeliveryClient {
         });
         
         if (!response.ok) {
-            throw new Error(`Failed to get delivery estimate: ${response.statusText}`);
+            const body = await response.json().catch(() => null);
+            const message = body?.message ?? response.statusText;
+            const code = body?.code ?? 'UNKNOWN_ERROR';
+            throw Object.assign(new Error(message), { code, statusCode: response.status });
         }
 
         const result = await response.json();

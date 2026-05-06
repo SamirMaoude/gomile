@@ -43,10 +43,9 @@ export class RegisterDriverDto {
   @IsEnum(Gender)
   gender: Gender;
 
-  @ApiProperty({ example: 'https://example.com/avatar.jpg', required: false })
+  @ApiProperty({ example: 'https://example.com/avatar.jpg' })
   @IsUrl()
-  @IsOptional()
-  avatarUrl?: string;
+  avatarUrl: string;
 
   // Address
   @ApiProperty({ example: '22 boulevard Clemenceau, 38000 Grenoble' })

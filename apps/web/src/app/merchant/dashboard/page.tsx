@@ -12,7 +12,7 @@ import GrenobleDeliveryMap from "@/components/dashboard/grenoble-delivery-map";
 import { Logo } from "@/components/Logo/Logo";
 import Typography from "@/components/ui/design-system/typography";
 import { getDashboardMenuItems } from "./dashboard-menu";
-import ProfileSlot from "./profile-slot";
+import HeaderActions from "./header-actions";
 import { cn, styles } from "./style";
 import { useDashboard } from "./use-dashboard";
 import { useDashboardOverview } from "./use-dashboard-overview";
@@ -95,7 +95,7 @@ export default function MerchantDashboardPage() {
             onChange={setTheme}
             isDarkMode={isDarkMode}
             rightSlot={
-              <ProfileSlot
+              <HeaderActions
                 avatarLabel={avatarLabel}
                 isDarkMode={isDarkMode}
                 isLoggingOut={isLoggingOut}

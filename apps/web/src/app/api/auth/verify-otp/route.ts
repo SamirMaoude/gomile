@@ -1,6 +1,3 @@
-import { NextRequest } from "next/server";
-import { forwardRequest } from "@/lib/backend-proxy";
+import { makePublicRoute } from "@/lib/bff/route-factories";
 
-export async function POST(request: NextRequest) {
-  return forwardRequest(request, "/auth/verify-otp");
-}
+export const POST = makePublicRoute("/auth/verify-otp");

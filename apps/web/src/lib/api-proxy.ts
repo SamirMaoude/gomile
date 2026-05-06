@@ -1,54 +1,49 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createApiError } from "../../../../shared/api-errors";
-import { authCookies } from "./auth-proxy";
+import type { AuthTokensResponse } from "../../../../shared/auth-contracts";
+import { authCookies, clearAuthCookies, setAuthCookies } from "@/lib/bff/auth-cookies";
+import { getCookieValues } from "@/lib/bff/cookie-utils";
+import {
+  buildBackendUrl,
+  buildForwardHeaders,
+  buildMissingAuthTokenResponse,
+  buildProxyResponse,
+  readRequestBody,
+} from "@/lib/bff/proxy-core";
 
-const API_BASE_URL = "http://localhost:3000";
+async function refreshAccessToken(request: NextRequest) {
+  const refreshTokens = getCookieValues(request, authCookies.refreshToken);
 
-function getApiBaseUrl() {
-  return process.env.API_BASE_URL ?? API_BASE_URL;
-}
+  if (refreshTokens.length === 0) {
+    return null;
+  }
 
-async function forwardRequest(
-  request: NextRequest,
-  backendPath: string,
-  token: string,
-): Promise<NextResponse> {
-  const url = new URL(backendPath, getApiBaseUrl());
-
-  request.nextUrl.searchParams.forEach((value, key) => {
-    url.searchParams.set(key, value);
-  });
-
-  const headers = new Headers();
-  headers.set("authorization", `Bearer ${token}`);
-  const contentType = request.headers.get("content-type");
-  if (contentType) headers.set("content-type", contentType);
-
-  const method = request.method;
-  const hasBody = method !== "GET" && method !== "HEAD";
-  const body = hasBody ? await request.text() : undefined;
-
-  try {
-    const backendResponse = await fetch(url.toString(), {
-      method,
-      headers,
-      body,
+  for (const refreshToken of refreshTokens) {
+    const refreshResponse = await fetch(buildBackendUrl(request, "/auth/refresh"), {
+      method: "POST",
+      headers: buildForwardHeaders(request, `Bearer ${refreshToken}`),
       cache: "no-store",
     });
 
-    const responseText = await backendResponse.text();
-    const responseHeaders = new Headers();
-    const resContentType = backendResponse.headers.get("content-type");
-    if (resContentType) responseHeaders.set("content-type", resContentType);
-
-    return new NextResponse(responseText || null, {
-      status: backendResponse.status,
-      headers: responseHeaders,
-    });
-  } catch {
-    const error = createApiError("BACKEND_UNREACHABLE");
-    return NextResponse.json(error, { status: error.statusCode });
+    if (refreshResponse.ok) {
+      return (await refreshResponse.json()) as AuthTokensResponse;
+    }
   }
+
+  return null;
+}
+
+async function fetchProtectedBackend(
+  request: NextRequest,
+  backendPath: string,
+  accessToken: string,
+  body?: ArrayBuffer,
+) {
+  return fetch(buildBackendUrl(request, backendPath), {
+    method: request.method,
+    headers: buildForwardHeaders(request, `Bearer ${accessToken}`),
+    body,
+    cache: "no-store",
+  });
 }
 
 export async function proxyApiRequest(
@@ -56,13 +51,52 @@ export async function proxyApiRequest(
   backendPath: string,
 ): Promise<NextResponse> {
   const accessToken = request.cookies.get(authCookies.accessToken)?.value;
+  const body = await readRequestBody(request);
 
   if (!accessToken) {
-    const error = createApiError("AUTH_TOKEN_MISSING");
-    return NextResponse.json(error, { status: error.statusCode });
+    const refreshedTokens = await refreshAccessToken(request);
+
+    if (!refreshedTokens) {
+      return buildMissingAuthTokenResponse();
+    }
+
+    const backendResponse = await fetchProtectedBackend(
+      request,
+      backendPath,
+      refreshedTokens.accessToken,
+      body,
+    );
+    const response = await buildProxyResponse(backendResponse);
+    setAuthCookies(response, refreshedTokens);
+    return response;
   }
 
-  return forwardRequest(request, backendPath, accessToken);
+  const backendResponse = await fetchProtectedBackend(
+    request,
+    backendPath,
+    accessToken,
+    body,
+  );
+
+  if (backendResponse.status !== 401) {
+    return buildProxyResponse(backendResponse);
+  }
+
+  const refreshedTokens = await refreshAccessToken(request);
+
+  if (!refreshedTokens) {
+    const response = await buildProxyResponse(backendResponse);
+    clearAuthCookies(response);
+    return response;
+  }
+
+  const retryResponse = await fetchProtectedBackend(
+    request,
+    backendPath,
+    refreshedTokens.accessToken,
+    body,
+  );
+  const response = await buildProxyResponse(retryResponse);
+  setAuthCookies(response, refreshedTokens);
+  return response;
 }
-
-

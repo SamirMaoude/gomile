@@ -1,6 +1,3 @@
-import { NextRequest } from "next/server";
-import { forwardRequest } from "@/lib/backend-proxy";
+import { makePublicRoute } from "@/lib/bff/route-factories";
 
-export async function POST(request: NextRequest) {
-  return forwardRequest(request, "/auth/reset-password");
-}
+export const POST = makePublicRoute("/auth/reset-password");

@@ -2,17 +2,26 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateMerchantDto } from './dto/update-merchant.dto';
 import { createApiError } from '../common/api-error';
 import { MERCHANT_ERRORS } from './merchant-errors';
+import { OrderStatus } from '@prisma/client';
+import { AUTH_ERRORS } from '../auth/auth-errors';
+import type { AuthenticatedUser } from '../auth/auth.types';
 
 @Injectable()
 export class MerchantService {
   constructor(private prisma: PrismaService) {}
 
-  async getMerchant(merchantId: string) {
+  async getMerchant(user: AuthenticatedUser, merchantId: string) {
+    if (user.id !== merchantId) {
+      throw new ForbiddenException(
+        createApiError('NOT_OWNER', AUTH_ERRORS),
+      );
+    }
     const result = await this.prisma.merchant.findUnique({
       where: { userId: merchantId },
       select: {
@@ -24,11 +33,12 @@ export class MerchantService {
             phone: true,
           },
         },
+        subscription: true,
       },
     });
     if (!result) {
       throw new NotFoundException(
-        createApiError('MERCHANT_NOT_FOUND', MERCHANT_ERRORS),
+        createApiError('MERCHANT_NOT_FOUND', AUTH_ERRORS),
       );
     }
     return {
@@ -36,11 +46,17 @@ export class MerchantService {
       name: result.name,
       email: result.user.email,
       phone: result.user.phone,
+      subscription: result.subscription,
       createdAt: result.createdAt,
     };
   }
 
-  async updateMerchant(merchantId: string, dto: UpdateMerchantDto) {
+  async updateMerchant(user: AuthenticatedUser, merchantId: string, dto: UpdateMerchantDto) {
+    if (user.id !== merchantId) {
+      throw new ForbiddenException(
+        createApiError('NOT_OWNER', AUTH_ERRORS),
+      );
+    }
     const merchant = await this.prisma.merchant.findUnique({
       where: {
         userId: merchantId,
@@ -48,7 +64,7 @@ export class MerchantService {
     });
     if (!merchant) {
       throw new NotFoundException(
-        createApiError('MERCHANT_NOT_FOUND', MERCHANT_ERRORS),
+        createApiError('MERCHANT_NOT_FOUND', AUTH_ERRORS),
       );
     }
 
@@ -95,5 +111,46 @@ export class MerchantService {
       name: dto.name ?? merchant.name,
       phone: dto.phone,
     };
+  }
+
+  async deleteMerchant(user: AuthenticatedUser, merchantId: string) {
+    if (user.id !== merchantId) {
+      throw new ForbiddenException(
+        createApiError('NOT_OWNER', AUTH_ERRORS),
+      );
+    }
+    const merchant = await this.prisma.merchant.findUnique({
+      where: {
+        userId: merchantId,
+      },
+    });
+    if (!merchant) {
+      throw new NotFoundException(
+        createApiError('MERCHANT_NOT_FOUND', AUTH_ERRORS),
+      );
+    }
+
+    const hasOngoingOrders = await this.prisma.order.findFirst({
+      where: {
+        store: {
+          merchantId,
+        },
+        status: {
+          in: [OrderStatus.SEARCHING_DRIVER, OrderStatus.DRIVER_ACCEPTED, OrderStatus.DRIVER_ASSIGNED, OrderStatus.PICKED_UP],
+        },
+      },
+    });
+
+    if (hasOngoingOrders) {
+      throw new ConflictException(
+        createApiError('MERCHANT_STILL_HAS_ORDERS', MERCHANT_ERRORS),
+      );
+    }
+
+    await this.prisma.user.delete({
+      where: {
+        id: merchantId,
+      },
+    });
   }
 }

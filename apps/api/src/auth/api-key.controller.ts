@@ -30,6 +30,7 @@ import { GetApiKeyResponseDto } from './dto/get-api-key-response.dto';
 import { UpdateApiKeyResponseDto } from './dto/update-api-key-response.dto';
 import { RolesGuard } from './guards/roles.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { EmailVerifiedGuard } from './guards/email-verified.guard';
 import { Roles } from './decorators/roles.decorator';
 import { Role } from '@prisma/client';
 import { CurrentUser } from './decorators/current-user.decorator';
@@ -37,7 +38,7 @@ import type { AuthenticatedUser } from './auth.types';
 
 @ApiTags('[Web][api-keys]')
 @ApiBearerAuth('access-token')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, EmailVerifiedGuard, RolesGuard)
 @Controller('merchants/:merchantId/api-keys')
 export class ApiKeyController {
   constructor(private readonly apiKeyService: ApiKeyService) {}
