@@ -101,7 +101,6 @@ export const Navigation = ({
     () => (isAuthenticated || !showAuthLinks || restoredSession ? "checked" : "pending")
   );
   const style1 = "hover:text-primary-green-dark transition-colors duration-200"
-  const headerLinkClasses = clsx(style1, "text-sm sm:text-base lg:text-lg")
   const drawerLinkClasses =
     "rounded-xl px-4 py-3 text-sm font-semibold text-white/95 transition-colors hover:bg-white/15 sm:text-base";
   const isSessionAuthenticated = isAuthenticated || Boolean(restoredUsername)
@@ -184,7 +183,7 @@ export const Navigation = ({
         headerThemeClasses[theme]
       )}
     >
-      <div className={clsx("mx-auto flex w-full max-w-6xl items-center justify-between gap-2 sm:gap-6", contentClassName)}>
+      <div className={clsx("mx-auto flex w-full items-center justify-between gap-2 sm:gap-6", contentClassName)}>
         <div className="flex min-w-0 items-center gap-2 sm:gap-3">
           {showLogo ? (
             <Link href="/" className="inline-flex shrink-0 items-center" aria-label="Accueil">
@@ -206,14 +205,17 @@ export const Navigation = ({
 
         {showPublicLinks ? (
           <div className={clsx("hidden lg:flex items-center gap-8 xl:gap-10", textThemeClasses[text_theme])}>
-            <Typography theme={text_theme} weight="medium" variant="h6" className={headerLinkClasses}>
+            <Typography theme={text_theme} weight="medium" variant="h5" >
               <Link href="/#contact">Contact</Link>
             </Typography>
-            <Typography theme={text_theme} weight="medium" variant="h6" className={headerLinkClasses}>
+            <Typography theme={text_theme} weight="medium" variant="h5" >
               <Link href="/faq">FAQ</Link>
             </Typography>
-            <Typography theme={text_theme} weight="medium" variant="h6" className={headerLinkClasses}>
+            <Typography theme={text_theme} weight="medium" variant="h5" >
               <Link href="/enSavoirPlus">En savoir plus</Link>
+            </Typography>
+            <Typography theme={text_theme} weight="medium" variant="h5" >
+              <Link href="/tarifs">Tarifs</Link>
             </Typography>
           </div>
         ) : null}
@@ -229,10 +231,10 @@ export const Navigation = ({
 
           {shouldShowAuthLinks ? (
             <div className="hidden items-center gap-6 lg:flex xl:gap-8">
-              <Typography theme={text_theme} weight="medium" variant="h6" className={headerLinkClasses}>
-                <Link href="/auth">S&apos;inscrire</Link>
+              <Typography theme={text_theme} weight="medium" variant="h5" >
+                <Link href="/auth">S'inscrire</Link>
               </Typography>
-              <Typography theme={text_theme} weight="medium" variant="h6" className={headerLinkClasses}>
+              <Typography theme={text_theme} weight="medium" variant="h5" >
                 <Link href="/merchant/login">Se connecter</Link>
               </Typography>
             </div>
@@ -311,6 +313,9 @@ export const Navigation = ({
                 </Link>
                 <Link href="/enSavoirPlus" className={drawerLinkClasses} onClick={closeMobileMenu}>
                   En savoir plus
+                </Link>
+                <Link href="/tarifs" className={drawerLinkClasses} onClick={closeMobileMenu}>
+                  Tarifs
                 </Link>
               </>
             ) : null}

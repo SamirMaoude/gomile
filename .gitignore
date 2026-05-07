@@ -44,3 +44,6 @@ pnpm-lock.yaml
 pnpm-lock.yaml
 package-lock.json
 apps/api/requests.http
+apps/api/gomile-api-dev_accessKeys.csv
+apps/plugin/woocommerce/docs/*
+apps/plugin/woocommerce/gomile-shipment

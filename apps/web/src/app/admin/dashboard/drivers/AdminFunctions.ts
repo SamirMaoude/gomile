@@ -3,7 +3,11 @@ import type { Driver, DriverStatus, KycStatus } from "../admin";
 type DriverChartData = {
   kycStatus: KycStatus;
   transportType?: string | null;
+  activeVehicle?: string | null;
 };
+
+type RuntimeDriverStatus = DriverStatus | "AVAILABLE" | "BUSY" | "OFFLINE";
+type RuntimeKycStatus = KycStatus | "ACCEPTED" | "NOT_SUBMITTED";
 
 export type Order = {
   id: string;
@@ -23,8 +27,8 @@ export type DriverWithOptionalListFields = Driver & {
   rating?: number | null;
 };
 
-export type StatusOption = "all" | DriverStatus;
-export type KycOption = "all" | KycStatus;
+export type StatusOption = "all" | RuntimeDriverStatus;
+export type KycOption = "all" | RuntimeKycStatus;
 export type VehicleOption = "all" | "bike" | "scooter" | "car" | "truck" | "unknown";
 
 type DriverFilters = {
@@ -34,17 +38,22 @@ type DriverFilters = {
   vehicleFilter: VehicleOption;
 };
 
-export const statusLabels: Record<DriverStatus, string> = {
+const driverStatusLabels: Record<string, string> = {
   approved: "Actif",
   pending: "En attente",
   denied: "Inactif",
+  AVAILABLE: "Disponible",
+  BUSY: "Occupe",
+  OFFLINE: "Hors ligne",
 };
 
-export const kycLabels: Record<KycStatus, string> = {
+const driverKycStatusLabels: Record<string, string> = {
   APPROVED: "Valide",
+  ACCEPTED: "Valide",
   PENDING: "En attente",
   REJECTED: "Refuse",
   NONE: "Non verifie",
+  NOT_SUBMITTED: "Non verifie",
 };
 
 const vehicleLabels: Record<string, string> = {
@@ -53,6 +62,22 @@ const vehicleLabels: Record<string, string> = {
   CAR: "Voiture",
   TRUCK: "Camion",
 };
+
+export function getDriverStatusLabel(status: RuntimeDriverStatus) {
+  return driverStatusLabels[status] ?? status;
+}
+
+export function getDriverKycStatusLabel(status: RuntimeKycStatus) {
+  return driverKycStatusLabels[status] ?? status;
+}
+
+export function isDriverKycApproved(status: RuntimeKycStatus) {
+  return status === "APPROVED" || status === "ACCEPTED";
+}
+
+export function isDriverKycPending(status: RuntimeKycStatus) {
+  return status === "PENDING";
+}
 
 function isSameDay(dateA: Date, dateB: Date) {
   return (
@@ -179,8 +204,9 @@ export function getDeliveriesCountByMonth(orders: Order[], month: string | Date)
 
 export function getTransportChartData(drivers: DriverChartData[]): ChartDataItem[] {
   const counts = drivers.reduce<Record<string, number>>((countDict, driver) => {
-    const type = driver.transportType ?? "UNKNOWN";
-    countDict[type] = (countDict[type] ?? 0) + 1;
+    const vehicle = driver.activeVehicle ?? driver.transportType;
+    const label = vehicle ? vehicleLabels[vehicle] ?? vehicle : "Non renseigne";
+    countDict[label] = (countDict[label] ?? 0) + 1;
     return countDict;
   }, {});
 
@@ -189,8 +215,8 @@ export function getTransportChartData(drivers: DriverChartData[]): ChartDataItem
 
 export function getKycStatusChartData(drivers: DriverChartData[]): ChartDataItem[] {
   const counts = drivers.reduce<Record<string, number>>((countDict, driver) => {
-    const type = driver.kycStatus ?? "UNKNOWN";
-    countDict[type] = (countDict[type] ?? 0) + 1;
+    const label = driver.kycStatus ? getDriverKycStatusLabel(driver.kycStatus) : "Non verifie";
+    countDict[label] = (countDict[label] ?? 0) + 1;
     return countDict;
   }, {});
 
