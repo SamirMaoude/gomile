@@ -84,8 +84,57 @@ export default function DynamicTable<T>({
 
   return (
     <>
+      <div className="grid gap-3 px-2 py-3 lg:hidden">
+        {paginatedRows.map((row, rowIndex) => {
+          const absoluteRowIndex = hasPagination
+            ? ((currentPageInRange - 1) * rowsPerPage) + rowIndex
+            : rowIndex;
+          const currentRowKey = rowKey
+            ? rowKey(row, absoluteRowIndex)
+            : absoluteRowIndex;
+          const isExpanded = renderExpandedRow
+            ? isRowExpanded?.(row, absoluteRowIndex) ?? false
+            : false;
+
+          return (
+            <article
+              key={currentRowKey}
+              className={[
+                "grid gap-3 rounded-2xl border p-3 text-sm",
+                isDarkMode
+                  ? "border-slate-800 bg-slate-950/35 text-slate-100"
+                  : "border-slate-200 bg-white text-slate-800",
+              ].join(" ")}
+            >
+              {columns.map((column) => (
+                <div key={column.key} className="grid gap-1">
+                  <Typography
+                    variant="span"
+                    Component="span"
+                    weight="semibold"
+                    className={[
+                      "text-[0.72rem] uppercase tracking-[0.04em]",
+                      isDarkMode ? "!text-slate-400" : "!text-slate-500",
+                    ].join(" ")}
+                  >
+                    {typeof column.header === "string" ? column.header : column.key}
+                  </Typography>
+                  <div className="min-w-0">{column.render(row)}</div>
+                </div>
+              ))}
+
+              {isExpanded && renderExpandedRow ? (
+                <div className={expandedRowClassName}>
+                  {renderExpandedRow(row, absoluteRowIndex)}
+                </div>
+              ) : null}
+            </article>
+          );
+        })}
+      </div>
+
       <div
-        className={headerRowClassName}
+        className={["hidden lg:grid", headerRowClassName].join(" ")}
         style={{ gridTemplateColumns }}
       >
         {columns.map((column) => (
@@ -106,7 +155,7 @@ export default function DynamicTable<T>({
         ))}
       </div>
 
-      <div className={bodyClassName}>
+      <div className={["hidden lg:block", bodyClassName].join(" ")}>
         {paginatedRows.map((row, rowIndex) => {
           const absoluteRowIndex = hasPagination
             ? ((currentPageInRange - 1) * rowsPerPage) + rowIndex
@@ -144,15 +193,18 @@ export default function DynamicTable<T>({
       {hasPagination ? (
         <div
           className={[
-            "flex flex-col gap-3 border-t px-5 py-4 sm:flex-row sm:items-center sm:justify-between",
+            "flex flex-col gap-3 border-t px-3 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5",
             isDarkMode ? "border-slate-800" : "border-slate-200",
           ].join(" ")}
         >
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <Typography
               variant="span"
               Component="span"
-              className={isDarkMode ? "!text-slate-300" : "!text-slate-600"}
+              className={[
+                "text-sm",
+                isDarkMode ? "!text-slate-300" : "!text-slate-600",
+              ].join(" ")}
             >
               Lignes par page
             </Typography>
@@ -175,11 +227,14 @@ export default function DynamicTable<T>({
             </select>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Typography
               variant="span"
               Component="span"
-              className={isDarkMode ? "!text-slate-300" : "!text-slate-600"}
+              className={[
+                "text-sm",
+                isDarkMode ? "!text-slate-300" : "!text-slate-600",
+              ].join(" ")}
             >
               Page {currentPageInRange} / {totalPages}
             </Typography>

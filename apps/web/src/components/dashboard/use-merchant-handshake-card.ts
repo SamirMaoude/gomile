@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 
+import { formatOrderShortId } from "@/app/merchant/dashboard/orders/order.model";
 import { verifyCurrentMerchantPickupHandshake } from "@/app/merchant/dashboard/orders/orders.service";
 import { listCurrentMerchantStores } from "@/app/merchant/dashboard/shops/stores.service";
 import type { StoreListItem } from "@/app/merchant/dashboard/shops/store.model";
@@ -31,6 +32,15 @@ function normalizeHandshakeErrorMessage(error: unknown) {
   }
 
   return error.message;
+}
+
+function escapeHtml(value: string) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
 }
 
 export function useMerchantHandshakeCard() {
@@ -116,9 +126,32 @@ export function useMerchantHandshakeCard() {
 
       setFeedback({
         kind: "success",
-        message: result.message,
+        message: `${result.message} - ${formatOrderShortId(result.orderId)}`,
       });
       setCode("");
+
+      const Swal = (await import("sweetalert2")).default;
+
+      await Swal.fire({
+        icon: "success",
+        title: "Handshake validé",
+        html: `
+          <div style="display:grid;gap:10px;text-align:left;">
+            <p style="margin:0;">${escapeHtml(result.message)}</p>
+            <div style="display:grid;gap:6px;">
+              <span style="font-size:13px;font-weight:700;color:#334155;">Order ID</span>
+              <code style="display:block;overflow-wrap:anywhere;border-radius:12px;padding:10px 12px;background:#0f172a;color:#f8fafc;font-size:13px;">${escapeHtml(result.orderId)}</code>
+            </div>
+            ${
+              result.orderReference
+                ? `<p style="margin:0;font-size:13px;color:#64748b;">Référence : ${escapeHtml(result.orderReference)}</p>`
+                : ""
+            }
+          </div>
+        `,
+        confirmButtonText: "Fermer",
+        confirmButtonColor: "#7ebb2b",
+      });
     } catch (error) {
       setFeedback({
         kind: "error",

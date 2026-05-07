@@ -1,6 +1,7 @@
 import type { RefObject } from "react";
+import Link from "next/link";
+import { CircleHelp, Info, Mail } from "lucide-react";
 
-import Navbar from "@/components/dashboard/navbar";
 import type { DashboardMenuItem } from "@/components/dashboard/navbar-items";
 import Typography from "@/components/ui/design-system/typography";
 import LogoutIcon from "@/components/ui/icons/LogoutIcon";
@@ -19,11 +20,28 @@ type ProfileSlotProps = {
   username: string;
 };
 
+const profileLinks = [
+  {
+    href: "/#contact",
+    label: "Contact",
+    icon: Mail,
+  },
+  {
+    href: "/faq",
+    label: "FAQ",
+    icon: CircleHelp,
+  },
+  {
+    href: "/enSavoirPlus",
+    label: "En savoir plus",
+    icon: Info,
+  },
+];
+
 export default function ProfileSlot({
   avatarLabel,
   isDarkMode,
   isLoggingOut,
-  menuItems,
   menuRef,
   onClose,
   onLogout,
@@ -100,13 +118,39 @@ export default function ProfileSlot({
             </Typography>
           </div>
 
-          <Navbar
-            items={menuItems}
-            compact={true}
-            isDarkMode={isDarkMode}
-            onNavigate={onClose}
-            className={styles.dropdownNav}
-          />
+          <div className={styles.dropdownNav}>
+            {profileLinks.map(({ href, icon: Icon, label }) => (
+              <Link
+                key={label}
+                href={href}
+                onClick={onClose}
+                className={cn(
+                  styles.profileLink,
+                  isDarkMode ? styles.profileLinkDark : styles.profileLinkLight,
+                )}
+              >
+                <span
+                  className={cn(
+                    styles.profileLinkIconWrapper,
+                    isDarkMode
+                      ? styles.profileLinkIconWrapperDark
+                      : styles.profileLinkIconWrapperLight,
+                  )}
+                >
+                  <Icon className={styles.iconMedium} aria-hidden />
+                </span>
+
+                <Typography
+                  variant="span"
+                  Component="span"
+                  weight="semibold"
+                  className="!text-inherit"
+                >
+                  {label}
+                </Typography>
+              </Link>
+            ))}
+          </div>
 
           <div className={styles.dropdownNav}>
             <button

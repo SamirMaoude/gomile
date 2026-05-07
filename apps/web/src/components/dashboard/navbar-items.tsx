@@ -13,6 +13,7 @@ export type DashboardMenuItem = {
 
 type NavbarItemProps = DashboardMenuItem & {
   compact?: boolean;
+  isCollapsed?: boolean;
   onNavigate?: () => void;
   isDarkMode: boolean;
 };
@@ -23,6 +24,7 @@ export default function NavbarItem({
   active,
   icon: Icon,
   compact = false,
+  isCollapsed = false,
   onNavigate,
   isDarkMode,
 }: NavbarItemProps) {
@@ -30,9 +32,15 @@ export default function NavbarItem({
     <Link
       href={href}
       onClick={onNavigate}
+      aria-label={isCollapsed ? label : undefined}
+      title={isCollapsed ? label : undefined}
       className={cn(
         styles.navbarItemBase,
-        compact ? styles.navbarItemCompact : styles.navbarItemDefault,
+        isCollapsed
+          ? styles.navbarItemCollapsed
+          : compact
+            ? styles.navbarItemCompact
+            : styles.navbarItemDefault,
         active
           ? isDarkMode
             ? styles.navbarItemActiveDark
@@ -56,7 +64,9 @@ export default function NavbarItem({
         <Icon className={styles.iconLarge} />
       </span>
 
-      <span>{label}</span>
+      <span className={isCollapsed ? styles.navbarLabelCollapsed : undefined}>
+        {label}
+      </span>
     </Link>
   );
 }

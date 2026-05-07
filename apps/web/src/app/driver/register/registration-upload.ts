@@ -1,7 +1,5 @@
 import {
   presignUpload,
-  updateDriverProfile,
-  uploadDriverDocument,
   uploadFileToSignedUrl,
   type DriverDocumentType,
 } from "@/lib/driver-client";
@@ -19,6 +17,10 @@ type UploadDriverRegistrationAssetsInput = {
   selectedDocumentFields: DriverRegisterDocumentField[];
   onUploadedUrl?: (field: DriverRegisterUploadField, fileUrl: string) => void;
 };
+
+export type UploadedDriverRegistrationUrls = Partial<
+  Record<DriverRegisterUploadField, string>
+>;
 
 const documentTypeByField: Record<
   DriverRegisterDocumentField,
@@ -51,7 +53,7 @@ async function uploadSingleFile(file: File) {
     contentType,
   });
 
-  await uploadFileToSignedUrl(uploadUrl, file);
+  await uploadFileToSignedUrl(uploadUrl, file, contentType);
   return fileUrl;
 }
 
@@ -59,7 +61,7 @@ export async function uploadDriverRegistrationAssets({
   files,
   selectedDocumentFields,
   onUploadedUrl,
-}: UploadDriverRegistrationAssetsInput) {
+}: UploadDriverRegistrationAssetsInput): Promise<UploadedDriverRegistrationUrls> {
   const otherDocumentFields = selectedDocumentFields.filter(
     (field) => documentTypeByField[field] === "OTHER" && files[field],
   );
@@ -70,9 +72,11 @@ export async function uploadDriverRegistrationAssets({
     );
   }
 
+  const uploadedUrls: UploadedDriverRegistrationUrls = {};
+
   if (files.avatarUrl) {
     const avatarUrl = await uploadSingleFile(files.avatarUrl);
-    await updateDriverProfile({ avatarUrl });
+    uploadedUrls.avatarUrl = avatarUrl;
     onUploadedUrl?.("avatarUrl", avatarUrl);
   }
 
@@ -84,10 +88,9 @@ export async function uploadDriverRegistrationAssets({
     }
 
     const url = await uploadSingleFile(file);
-    await uploadDriverDocument({
-      type: documentTypeByField[field],
-      url,
-    });
+    uploadedUrls[field] = url;
     onUploadedUrl?.(field, url);
   }
+
+  return uploadedUrls;
 }

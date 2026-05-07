@@ -54,6 +54,9 @@ function buildStepErrors(
     if (files.avatarUrl && !isImageFile(files.avatarUrl)) {
       errors.avatarUrl = "L'avatar doit etre une image.";
     }
+    if (!files.avatarUrl && !normalizedFormData.avatarUrl) {
+      errors.avatarUrl = "Ajoutez un avatar.";
+    }
     if (!formData.password) {
       errors.password = "Choisissez un mot de passe.";
     } else if (formData.password.length < 8) {
@@ -68,8 +71,26 @@ function buildStepErrors(
     if (normalizedFormData.gender === "UNDEFINED") {
       errors.gender = "Selectionnez votre genre.";
     }
-    if (!normalizedFormData.address) {
-      errors.address = "Renseignez votre adresse.";
+    const hasCompleteAddress = Boolean(normalizedFormData.address);
+    const hasStructuredAddress = Boolean(
+      normalizedFormData.city &&
+        normalizedFormData.zipCode &&
+        normalizedFormData.street,
+    );
+
+    if (!hasCompleteAddress && !hasStructuredAddress) {
+      const message =
+        "Renseignez l'adresse complete ou bien la ville, le code postal et la rue.";
+      errors.address = message;
+      if (!normalizedFormData.city) {
+        errors.city = "Renseignez votre ville.";
+      }
+      if (!normalizedFormData.zipCode) {
+        errors.zipCode = "Renseignez votre code postal.";
+      }
+      if (!normalizedFormData.street) {
+        errors.street = "Renseignez votre rue.";
+      }
     }
   } else if (stepId === 3) {
     if (!normalizedFormData.deliveryCity) {
@@ -131,18 +152,6 @@ export function useRegister() {
       delete nextErrors[field];
       return nextErrors;
     });
-  }
-
-  function updateUploadedUrl(field: DriverRegisterUploadField, url: string) {
-    setFormData((previous) => ({
-      ...previous,
-      [field]: url,
-    }));
-    setFiles((previous) => ({
-      ...previous,
-      [field]: null,
-    }));
-    clearFieldError(field);
   }
 
   function updateField(field: DriverRegisterField, value: string) {
@@ -275,10 +284,9 @@ export function useRegister() {
   }
 
   async function completeDriverAssetUpload() {
-    await uploadDriverRegistrationAssets({
+    return uploadDriverRegistrationAssets({
       files,
       selectedDocumentFields,
-      onUploadedUrl: updateUploadedUrl,
     });
   }
 
@@ -304,11 +312,17 @@ export function useRegister() {
     }
 
     setIsSubmitting(true);
-    let accountCreated = isAccountCreated;
 
     try {
       if (!isAccountCreated) {
-        const session = await registerDriver(buildRegisterDriverInput(formData));
+        const uploadedUrls = await completeDriverAssetUpload();
+        const registrationFormData = {
+          ...formData,
+          ...uploadedUrls,
+        };
+        const session = await registerDriver(
+          buildRegisterDriverInput(registrationFormData),
+        );
 
         if (session.user.role !== "DRIVER") {
           setFormError("Le compte cree n'est pas un compte livreur.");
@@ -316,10 +330,7 @@ export function useRegister() {
         }
 
         setIsAccountCreated(true);
-        accountCreated = true;
       }
-
-      await completeDriverAssetUpload();
 
       const Swal = (await import("sweetalert2")).default;
 
@@ -343,7 +354,7 @@ export function useRegister() {
         router.refresh();
       });
     } catch (submissionError) {
-      if (isAccountCreated || accountCreated) {
+      if (isAccountCreated) {
         setFormError(
           submissionError instanceof Error
             ? `${submissionError.message} Le compte est cree, mais la synchronisation des fichiers n'est pas terminee.`

@@ -16,8 +16,8 @@ import {
 import type { ApiErrorPayload } from "../../../../shared/api-errors";
 import { createApiError } from "../../../../shared/api-errors";
 import {
-  isMissingAuthTokenError,
-  redirectToHomeWithExpiredSessionAlert,
+  isRefreshTokenExpiredError,
+  redirectToLoginWithExpiredSessionAlert,
 } from "./session-expiration";
 
 export type {
@@ -146,8 +146,8 @@ export async function refreshSession() {
       method: "POST",
     });
   } catch (error) {
-    if (isMissingAuthTokenError(error)) {
-      void redirectToHomeWithExpiredSessionAlert();
+    if (isRefreshTokenExpiredError(error)) {
+      void redirectToLoginWithExpiredSessionAlert();
     }
 
     throw error;

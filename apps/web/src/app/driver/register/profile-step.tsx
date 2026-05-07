@@ -1,8 +1,11 @@
 import { APP_GENDERS, type Gender } from "@/lib/auth-client";
+import { Mailbox, Signpost } from "lucide-react";
+import AddressAutocomplete from "@/components/ui/address-autocomplete/address-autocomplete";
 import Input from "@/components/ui/design-system/input/input";
 import Typography from "@/components/ui/design-system/typography";
 import AddressIcon from "@/components/ui/icons/AddressIcon";
 import CalendarIcon from "@/components/ui/icons/CalendarIcon";
+import CityIcon from "@/components/ui/icons/CityIcon";
 import PersonIcon from "@/components/ui/icons/PersonIcon";
 import { styles } from "./styles";
 import type {
@@ -85,7 +88,7 @@ export default function ProfileStep({
           ) : null}
         </div>
 
-        <Input
+        <AddressAutocomplete
           id="driver-address"
           name="address"
           type="text"
@@ -94,7 +97,15 @@ export default function ProfileStep({
           leftIcon={<AddressIcon className={styles.fieldIcon} />}
           error={errors.address}
           value={formData.address}
-          onChange={(event) => onFieldChange("address", event.target.value)}
+          onValueChange={(value) => onFieldChange("address", value)}
+          onAddressSelect={(suggestion) => {
+            const { city, label, name, postcode } = suggestion.properties;
+
+            onFieldChange("address", label ?? "");
+            onFieldChange("city", city ?? "");
+            onFieldChange("zipCode", postcode ?? "");
+            onFieldChange("street", name ?? "");
+          }}
           containerClassName={styles.fieldContainer}
           inputWrapperClassName={styles.fieldWrapper}
           className={styles.fieldInput}
@@ -106,7 +117,8 @@ export default function ProfileStep({
           type="text"
           placeholder="Ville"
           autoComplete="address-level2"
-          leftIcon={<AddressIcon className={styles.fieldIcon} />}
+          leftIcon={<CityIcon className={styles.fieldIcon} />}
+          error={errors.city}
           value={formData.city}
           onChange={(event) => onFieldChange("city", event.target.value)}
           containerClassName={styles.fieldContainer}
@@ -120,7 +132,8 @@ export default function ProfileStep({
           type="text"
           placeholder="Code postal"
           autoComplete="postal-code"
-          leftIcon={<AddressIcon className={styles.fieldIcon} />}
+          leftIcon={<Mailbox className={styles.fieldIcon} />}
+          error={errors.zipCode}
           value={formData.zipCode}
           onChange={(event) => onFieldChange("zipCode", event.target.value)}
           containerClassName={styles.fieldContainer}
@@ -134,7 +147,8 @@ export default function ProfileStep({
           type="text"
           placeholder="Rue"
           autoComplete="address-line1"
-          leftIcon={<AddressIcon className={styles.fieldIcon} />}
+          leftIcon={<Signpost className={styles.fieldIcon} />}
+          error={errors.street}
           value={formData.street}
           onChange={(event) => onFieldChange("street", event.target.value)}
           containerClassName={styles.fieldContainer}

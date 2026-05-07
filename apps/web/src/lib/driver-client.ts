@@ -27,7 +27,7 @@ export type UploadDriverDocumentInput = {
 };
 
 export function presignUpload(input: UploadPresignInput) {
-  return requestWithAutoRefresh<UploadPresignResponse>("/api/driver/me/documents/presign", {
+  return requestWithAutoRefresh<UploadPresignResponse>("/api/uploads/presign", {
     method: "POST",
     body: JSON.stringify(input),
   });
@@ -50,11 +50,15 @@ export function uploadDriverDocument(input: UploadDriverDocumentInput) {
   );
 }
 
-export async function uploadFileToSignedUrl(uploadUrl: string, file: File) {
+export async function uploadFileToSignedUrl(
+  uploadUrl: string,
+  file: File,
+  contentType = file.type || "application/octet-stream",
+) {
   const response = await fetch(uploadUrl, {
     method: "PUT",
     headers: {
-      "content-type": file.type || "application/octet-stream",
+      "content-type": contentType,
     },
     body: file,
   });

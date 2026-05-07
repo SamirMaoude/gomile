@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import "react-international-phone/style.css";
 
 import Background from "@/components/ui/auth/background";
@@ -44,7 +45,10 @@ export default function DriverRegisterPage() {
   const isFinalStep = currentStep.id === 4;
 
   return (
-    <Background backHref="/">
+    <Background
+      backHref="/"
+      containerClassName="!items-start !pt-[4.25rem] !pb-3 sm:!pt-24 sm:!pb-4 lg:!items-center lg:!pt-4"
+    >
       <div className={styles.card}>
         <div className={styles.splitCard}>
           <div className={styles.brandPanel}>
@@ -141,8 +145,9 @@ export default function DriverRegisterPage() {
                     variant="outline"
                     onClick={goToPreviousStep}
                     className={styles.secondaryActionButton}
+                    icon={<ChevronLeft className={styles.actionIcon} aria-hidden />}
                   >
-                    Etape precedente
+                    <span className={styles.actionLabel}>Etape precedente</span>
                   </Button>
                 ) : (
                   <div />
@@ -152,7 +157,7 @@ export default function DriverRegisterPage() {
                   <Button
                     type="submit"
                     disabled={isPending}
-                    className={`${styles.submitButton} ${styles.primaryActionButton}`}
+                    className={`${styles.submitButton} ${styles.finalActionButton}`}
                   >
                     {isPending ? "Creation..." : "Creer mon compte"}
                   </Button>
@@ -165,8 +170,10 @@ export default function DriverRegisterPage() {
                     }}
                     disabled={isPending}
                     className={`${styles.submitButton} ${styles.primaryActionButton}`}
+                    icon={<ChevronRight className={styles.actionIcon} aria-hidden />}
+                    iconPosition="right"
                   >
-                    Etape suivante
+                    <span className={styles.actionLabel}>Etape suivante</span>
                   </Button>
                 )}
               </div>

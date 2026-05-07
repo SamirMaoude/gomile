@@ -407,6 +407,20 @@ export class OrderService {
       where: { id: handshake.orderId },
       data: { status: OrderStatus.PICKED_UP, pickedUpAt: now },
     });
+
+    const deliveryHandshake = await this.prisma.handshake.findUnique({
+      where: { orderId_type: { orderId: handshake.orderId, type: HandshakeType.B } },
+    });
+
+    if (deliveryHandshake) {
+      await this.smsService
+        .sendSms(
+          handshake.order.customerPhone,
+          `Your order is on the way! Show this code to the driver upon delivery: ${deliveryHandshake.code}`,
+        )
+        .catch((err) => this.logger.error('SMS on pickup verify failed', err));
+    }
+
     return {
       orderId: handshake.orderId,
       orderReference: handshake.order.orderReference,

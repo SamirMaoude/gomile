@@ -405,7 +405,7 @@ export default function StoresTable({ isDarkMode }: StoresTableProps) {
             </Typography>
           </div>
         ) : (
-          <div className="min-w-[112rem]">
+          <div className="lg:min-w-[112rem]">
             <DynamicTable
               columns={columns}
               rows={rows}

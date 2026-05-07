@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { attachAddressAutocomplete } from "@/lib/address-autocomplete";
 import type {
   CreateStoreInput,
   ConfigureWebhookInput,
@@ -44,8 +45,6 @@ const CREATE_STORE_FIELD_IDS = {
   address: "swal-store-address",
   description: "swal-store-description",
   domain: "swal-store-domain",
-  latitude: "swal-store-latitude",
-  longitude: "swal-store-longitude",
   name: "swal-store-name",
 };
 const CREATE_STORE_PROVIDER_NAME = "swal-store-provider";
@@ -54,8 +53,6 @@ type StoreFormSeed = {
   address: string;
   description: string;
   domain: string;
-  latitude: string;
-  longitude: string;
   name: string;
   provider: StoreProvider;
 };
@@ -90,8 +87,6 @@ function buildStoreFormSeed(store?: Store | StoreListItem): StoreFormSeed {
     address: store?.address ?? "",
     description: store?.description ?? "",
     domain: store?.domain ?? "",
-    latitude: store ? String(store.latitude) : "",
-    longitude: store ? String(store.longitude) : "",
     provider: store?.provider ?? "OTHER",
   };
 }
@@ -119,14 +114,6 @@ function buildStorePanelHtml(seed: StoreFormSeed) {
       <div style="display:grid;gap:6px;">
         <label for="${CREATE_STORE_FIELD_IDS.domain}" style="font-size:13px;font-weight:600;color:#334155;">Domaine</label>
         <input id="${CREATE_STORE_FIELD_IDS.domain}" class="swal2-input" placeholder="Ex: myshop.com" value="${escapeHtml(seed.domain)}" style="width:100%;margin:0;" />
-      </div>
-      <div style="display:grid;gap:6px;">
-        <label for="${CREATE_STORE_FIELD_IDS.latitude}" style="font-size:13px;font-weight:600;color:#334155;">Latitude</label>
-        <input id="${CREATE_STORE_FIELD_IDS.latitude}" class="swal2-input" placeholder="Ex: 45.188529" inputmode="decimal" value="${escapeHtml(seed.latitude)}" style="width:100%;margin:0;" />
-      </div>
-      <div style="display:grid;gap:6px;">
-        <label for="${CREATE_STORE_FIELD_IDS.longitude}" style="font-size:13px;font-weight:600;color:#334155;">Longitude</label>
-        <input id="${CREATE_STORE_FIELD_IDS.longitude}" class="swal2-input" placeholder="Ex: 5.724524" inputmode="decimal" value="${escapeHtml(seed.longitude)}" style="width:100%;margin:0;" />
       </div>
       <div style="display:grid;gap:6px;">
         <label for="${CREATE_STORE_FIELD_IDS.description}" style="font-size:13px;font-weight:600;color:#334155;">Description</label>
@@ -196,22 +183,10 @@ function parseStorePanelInput(
   const description = readPanelValue(popup, CREATE_STORE_FIELD_IDS.description);
   const domain = readDomainValue(popup);
   const provider = readSelectedProvider(popup);
-  const latitude = Number.parseFloat(
-    readPanelValue(popup, CREATE_STORE_FIELD_IDS.latitude),
-  );
-  const longitude = Number.parseFloat(
-    readPanelValue(popup, CREATE_STORE_FIELD_IDS.longitude),
-  );
 
   if (!name || !address) {
     return {
       error: "Le nom et l'adresse du magasin sont obligatoires.",
-    };
-  }
-
-  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
-    return {
-      error: "La latitude et la longitude doivent etre valides.",
     };
   }
 
@@ -224,8 +199,6 @@ function parseStorePanelInput(
   const basePayload = {
     name,
     address,
-    latitude,
-    longitude,
     ...(description ? { description } : {}),
   };
 
@@ -262,6 +235,7 @@ async function openStorePanel<TPayload extends CreateStoreInput | UpdateStoreInp
 ) {
   const Swal = (await import("sweetalert2")).default;
   const seed = options.initialValue ?? buildStoreFormSeed();
+  let cleanupAddressAutocomplete: (() => void) | null = null;
 
   const result = await Swal.fire<TPayload>({
     title: options.title,
@@ -272,6 +246,16 @@ async function openStorePanel<TPayload extends CreateStoreInput | UpdateStoreInp
     cancelButtonText: "Annuler",
     showLoaderOnConfirm: true,
     allowOutsideClick: () => !Swal.isLoading(),
+    didOpen: (popup) => {
+      cleanupAddressAutocomplete = attachAddressAutocomplete(
+        popup.querySelector<HTMLInputElement>(
+          `#${CREATE_STORE_FIELD_IDS.address}`,
+        ),
+      );
+    },
+    willClose: () => {
+      cleanupAddressAutocomplete?.();
+    },
     preConfirm: async () => {
       const parsed = parseStorePanelInput(Swal.getPopup(), {
         initialValue: seed,

@@ -242,7 +242,7 @@ export default function OrdersTable({ isDarkMode }: OrdersTableProps) {
             </Typography>
           </div>
         ) : (
-          <div className="min-w-[92rem]">
+          <div className="lg:min-w-[92rem]">
             <DynamicTable
               columns={columns}
               rows={rows}

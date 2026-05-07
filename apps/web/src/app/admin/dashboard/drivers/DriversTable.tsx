@@ -2,12 +2,15 @@
 
 import { useMemo, useState } from "react";
 import {
+  Check,
+  Eye,
   Mail,
   MapPin,
   MoreHorizontal,
   Phone,
   Search,
   Star,
+  X,
 } from "lucide-react";
 
 import Avatar from "@/components/ui/design-system/avatar";
@@ -23,11 +26,13 @@ import {
   getDriverName,
   getDriverPhone,
   getDriverRegistrationDate,
+  getDriverKycStatusLabel,
+  getDriverStatusLabel,
   getDriverVehicle,
   getDriverZone,
   getFilteredDrivers,
-  kycLabels,
-  statusLabels,
+  isDriverKycApproved,
+  isDriverKycPending,
   type DriverWithOptionalListFields,
   type KycOption,
   type StatusOption,
@@ -50,6 +55,7 @@ export default function DriversTable({
   const [statusFilter, setStatusFilter] = useState<StatusOption>("all");
   const [kycFilter, setKycFilter] = useState<KycOption>("all");
   const [vehicleFilter, setVehicleFilter] = useState<VehicleOption>("all");
+  const [openActionsDriverId, setOpenActionsDriverId] = useState<string | null>(null);
 
   const filteredDrivers = useMemo(() => {
     return getFilteredDrivers(drivers, {
@@ -130,19 +136,19 @@ export default function DriversTable({
     },
     {
       key: "status",
-      header: "Statut",
+      header: "Statut activite",
       render: (driver) => (
         <span className="admin-drivers-status-text">
-          {statusLabels[driver.status]}
+          {getDriverStatusLabel(driver.status)}
         </span>
       ),
     },
     {
       key: "kyc",
-      header: "Inscription",
+      header: "Statut KYC",
       render: (driver) => (
         <span className="admin-drivers-status-text">
-          {kycLabels[driver.kycStatus]}
+          {getDriverKycStatusLabel(driver.kycStatus)}
         </span>
       ),
     },
@@ -172,11 +178,55 @@ export default function DriversTable({
       header: "Actions",
       headerClassName: "admin-drivers-actions-header",
       cellClassName: "admin-drivers-actions-cell",
-      render: () => (
-        <button type="button" className="admin-drivers-action-button" aria-label="Actions livreur">
-          <MoreHorizontal className="admin-drivers-action-icon" />
-        </button>
-      ),
+      render: (driver) => {
+        const isActionsMenuOpen = openActionsDriverId === driver.userId;
+        const hasDetailsAction = isDriverKycApproved(driver.kycStatus);
+        const hasKycReviewActions = isDriverKycPending(driver.kycStatus);
+        const hasActions = hasDetailsAction || hasKycReviewActions;
+
+        return (
+          <div className="admin-drivers-actions-wrapper">
+            <button
+              type="button"
+              className="admin-drivers-action-button"
+              aria-label="Actions livreur"
+              aria-expanded={isActionsMenuOpen}
+              disabled={!hasActions}
+              onClick={() =>
+                setOpenActionsDriverId((currentDriverId) =>
+                  currentDriverId === driver.userId ? null : driver.userId,
+                )
+              }
+            >
+              <MoreHorizontal className="admin-drivers-action-icon" />
+            </button>
+
+            {isActionsMenuOpen ? (
+              <div className="admin-drivers-actions-menu" role="menu">
+                {hasDetailsAction ? (
+                  <button type="button" className="admin-drivers-menu-item" role="menuitem">
+                    <Eye className="admin-drivers-menu-icon" />
+                    Get details
+                  </button>
+                ) : null}
+
+                {hasKycReviewActions ? (
+                  <>
+                    <button type="button" className="admin-drivers-menu-item" role="menuitem">
+                      <X className="admin-drivers-menu-icon" />
+                      Reject KYC
+                    </button>
+                    <button type="button" className="admin-drivers-menu-item" role="menuitem">
+                      <Check className="admin-drivers-menu-icon" />
+                      Accept KYC
+                    </button>
+                  </>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+        );
+      },
     },
   ];
 
@@ -208,25 +258,25 @@ export default function DriversTable({
             value={statusFilter}
             onChange={(event) => setStatusFilter(event.target.value as StatusOption)}
             className="admin-drivers-select"
-            aria-label="Filtrer par statut"
+            aria-label="Filtrer par statut d'activite"
           >
-            <option value="all">Tous les statuts</option>
-            <option value="approved">Actifs</option>
-            <option value="pending">En attente</option>
-            <option value="denied">Inactifs</option>
+            <option value="all">Tous les statuts activite</option>
+            <option value="AVAILABLE">Disponibles</option>
+            <option value="BUSY">Occupes</option>
+            <option value="OFFLINE">Hors ligne</option>
           </select>
 
           <select
             value={kycFilter}
             onChange={(event) => setKycFilter(event.target.value as KycOption)}
             className="admin-drivers-select"
-            aria-label="Filtrer par inscription"
+            aria-label="Filtrer par statut KYC"
           >
-            <option value="all">Toutes inscriptions</option>
-            <option value="APPROVED">Validees</option>
+            <option value="all">Tous les statuts KYC</option>
+            <option value="ACCEPTED">Validees</option>
             <option value="PENDING">En attente</option>
             <option value="REJECTED">Refusees</option>
-            <option value="NONE">Non verifiees</option>
+            <option value="NOT_SUBMITTED">Non verifiees</option>
           </select>
 
           <select

@@ -13,7 +13,7 @@ export const dashboardMenuItems: DashboardMenuItem[] = [
   { label: "Mes commandes", href: "/merchant/dashboard/orders", icon: CommandeIcon },
   {
     label: "Suivi livraisons",
-    href: "/merchant/dashboard",
+    href: "/merchant/dashboard/deliveries",
     icon: TruckIcon,
   },
   { label: "Parametres", href: "/merchant/dashboard/settings", icon: SettingIcon },
