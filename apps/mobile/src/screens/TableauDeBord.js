@@ -53,6 +53,7 @@ export default function DashboardScreen({ navigation }) {
           const coords = { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
           setCurrentPosition(coords);
           setRegion({ ...coords, latitudeDelta: 0.02, longitudeDelta: 0.02 });
+          // @ Dang on doit taffer sur ça avec @ousmane
           // Toujours envoyer la position — le backend en a besoin pour la query ST_DWithin.
           // Sans lastKnownLocation en base, aucune mission n'est retournée même si le livreur est en ligne.
           await updateDriverLocation(pos.coords.latitude, pos.coords.longitude).catch(() => {});

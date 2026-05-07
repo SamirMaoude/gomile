@@ -77,8 +77,8 @@ export async function notifyNewMissions(newMissions) {
     const first = newMissions[0];
     const title =
       newMissions.length === 1
-        ? '🛵 Nouvelle mission !'
-        : `🛵 ${newMissions.length} nouvelles missions !`;
+        ? 'Nouvelle mission !'
+        : `${newMissions.length} nouvelles missions !`;
     const body =
       newMissions.length === 1
         ? `${first.store} — ${first.distance} (+${first.reward}€)`

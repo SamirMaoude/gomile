@@ -20,11 +20,19 @@ export default function MissionsScreen({ navigation }) {
   const isOnline = useAvailabilityStore((s) => s.isOnline);
 
   // Missions depuis le store Zustand (partagé avec TableauDeBord)
-  const availableMissions = useMissionStore((s) => s.availableMissions);
-  const activeMissions = useMissionStore((s) => s.activeMissions);
-  const historyMissions = useMissionStore((s) => s.historyMissions);
-  const lastRefreshAt = useMissionStore((s) => s.lastRefreshAt);
-  const isLoadingMissions = useMissionStore((s) => s.isLoadingMissions);
+  const availableMissions  = useMissionStore((s) => s.availableMissions);
+  const activeMissions     = useMissionStore((s) => s.activeMissions);
+  const historyMissions    = useMissionStore((s) => s.historyMissions);
+  const lastRefreshAt      = useMissionStore((s) => s.lastRefreshAt);
+  const isLoadingMissions  = useMissionStore((s) => s.isLoadingMissions);
+  const acceptMission = useMissionStore((s) => s.acceptMission);
+
+  const handleResumeMission = (mission) => {
+    // acceptMission est idempotente : ajoute à la queue si absente, focus toujours
+    acceptMission(mission);
+    const parent = navigation.getParent();
+    (parent ?? navigation).navigate('MissionFocus');
+  };
 
   // Polling 10s — fetchAll=true : disponibles + actives + historique
   const { refresh } = useMissionsPoller({ fetchAll: true });
@@ -76,7 +84,11 @@ export default function MissionsScreen({ navigation }) {
               <Text style={styles.emptyText}>Aucune mission active.</Text>
             )}
             {activeMissions.map((item) => (
-              <MissionCard key={item.id} mission={item} onOpenDetails={() => handleOpenMissionDetails(item)} />
+              <ActiveMissionCard
+                key={item.id}
+                mission={item}
+                onResume={() => handleResumeMission(item)}
+              />
             ))}
 
             {/* Missions disponibles */}
@@ -137,6 +149,20 @@ const MissionCard = ({ mission, onOpenDetails }) => (
   </View>
 );
 
+const ActiveMissionCard = ({ mission, onResume }) => (
+  <View style={styles.card}>
+    <View style={styles.cardHeader}>
+      <Text style={styles.storeName}>{mission.store}</Text>
+      <Text style={styles.price}>{mission.reward}€</Text>
+    </View>
+    <View style={styles.cardMeta}>
+      <Text style={styles.metaText}>{mission.distance}</Text>
+      <Text style={styles.metaText}>{mission.type}</Text>
+    </View>
+    <GoMileButton title="REPRENDRE LA MISSION" style={styles.resumeBtn} onPress={onResume} />
+  </View>
+);
+
 const HistoryRow = ({ item }) => (
   <View style={styles.historyRow}>
     <View>
@@ -162,6 +188,7 @@ const styles = StyleSheet.create({
   cardMeta: { flexDirection: 'row', gap: 15, marginVertical: 10 },
   metaText: { fontSize: 12, ...COMMON_STYLE_VALUES.textMuted },
   acceptBtn: { paddingVertical: 10 },
+  resumeBtn: { paddingVertical: 10, backgroundColor: COLORS.secondary },
   historyDivider: { flexDirection: 'row', alignItems: 'center', marginVertical: 30, opacity: 0.5 },
   line: { flex: 1, height: 1, backgroundColor: COLORS.placeholder },
   historyTitle: { marginHorizontal: 10, fontSize: 10, fontWeight: 'bold', color: COLORS.placeholder },

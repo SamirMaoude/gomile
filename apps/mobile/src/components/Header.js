@@ -17,7 +17,7 @@ export default function Header({ title, showAvailabilityToggle = false }) {
   const handleToggleAvailability = async () => {
     if (isToggling) return;
 
-    if (isOnline && useMissionStore.getState().activeMission) {
+    if (isOnline && useMissionStore.getState().missionQueue.length > 0) {
       Alert.alert('Mission en cours', 'Tu ne peux pas passer hors ligne pendant une mission active.');
       return;
     }

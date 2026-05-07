@@ -17,8 +17,7 @@ import { configureDriverPushNotifications, registerDriverPushToken } from '../li
 const Tab = createBottomTabNavigator();
 
 export default function MainTabs() {
-  const activeMission = useMissionStore((state) => state.activeMission);
-  const fetchAllMissions = useMissionStore((state) => state.fetchAllMissions);
+  const hasActiveMissions = useMissionStore((state) => state.missionQueue.length > 0);
 
   useEffect(() => {
     let isMounted = true;
@@ -34,8 +33,7 @@ export default function MainTabs() {
     };
 
     setupNotifications();
-    // Charge les missions dès le mount pour restaurer activeMission si besoin
-    fetchAllMissions();
+    useMissionStore.getState().initStore();
 
     return () => {
       isMounted = false;
@@ -106,7 +104,7 @@ export default function MainTabs() {
         />
       </Tab.Navigator>
 
-      {activeMission && (
+      {hasActiveMissions && (
         <FloatingMissionButton />
       )}
     </View>

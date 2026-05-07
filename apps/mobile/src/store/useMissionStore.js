@@ -4,24 +4,34 @@ import {
   getActiveMissions,
   getMissionHistory,
 } from '../../lib/driver-client';
-import { geocodeAddress } from '../../lib/geocode';
-import { saveActiveMission, loadActiveMission } from '../../lib/mission-storage';
+import { geocodeAddress, reverseGeocodeCoords } from '../../lib/geocode';
+import { saveMissionQueue, loadMissionQueue } from '../../lib/mission-storage';
 
 const DEFAULT_COORDS = { latitude: 45.1885, longitude: 5.7245 };
 
 async function toMissionCard(mission) {
-  let pickup = mission.pickupLocation ?? await geocodeAddress(mission.pickupAddress);
-  let dropoff = mission.dropoffLocation ?? await geocodeAddress(mission.dropOffAddress);
+  // rawPickup/rawDropoff = coords réelles ou null (jamais le fallback statique ici)
+  const rawPickup  = mission.pickupLocation  ?? await geocodeAddress(mission.pickupAddress);
+  const rawDropoff = mission.dropoffLocation ?? await geocodeAddress(mission.dropOffAddress);
 
-  pickup = pickup ?? DEFAULT_COORDS;
-  dropoff = dropoff ?? DEFAULT_COORDS;
+  const pickup  = rawPickup  ?? DEFAULT_COORDS;
+  const dropoff = rawDropoff ?? DEFAULT_COORDS;
+
+  // Reverse geocoding uniquement si on a de vraies coordonnées, pas le fallback
+  const storeAddress = mission.pickupAddress
+    || (rawPickup  ? await reverseGeocodeCoords(rawPickup.latitude,  rawPickup.longitude)  : null)
+    || 'Adresse pick-up indisponible';
+
+  const customerArea = mission.dropOffAddress
+    || (rawDropoff ? await reverseGeocodeCoords(rawDropoff.latitude, rawDropoff.longitude) : null)
+    || 'Adresse livraison indisponible';
 
   return {
     id: mission.id,
     type: mission.type || 'Mission',
     store: mission.store || 'Commerce partenaire',
-    storeAddress: mission.pickupAddress || 'Adresse pick-up indisponible',
-    customerArea: mission.dropOffAddress || 'Adresse livraison indisponible',
+    storeAddress,
+    customerArea,
     reward: String(mission.reward ?? 0),
     distance: `${mission.distanceKm ?? 0} km`,
     eta: '--',
@@ -38,45 +48,92 @@ async function toMissionCard(mission) {
 }
 
 export const useMissionStore = create((set, get) => ({
-  // ── Mission active (en cours de livraison) ──────────────────────────────────
-  activeMission: null,
-  merchantVerified: false,
-  clientVerified: false,
+  // ── File de missions en cours de livraison ─────────────────────────────────
+  missionQueue: [],       // missions acceptées par le livreur
+  focusedMissionId: null, // mission sélectionnée dans MissionFocusScreen
+  missionStates: {},      // { [id]: { merchantVerified: bool, clientVerified: bool } }
 
   acceptMission: (mission) => {
     const m = { ...mission, status: 'active' };
-    saveActiveMission(m);
-    set({ activeMission: m, merchantVerified: false, clientVerified: false });
-  },
-  markMerchantVerified: () => set({ merchantVerified: true }),
-  markClientVerified: () => set({ clientVerified: true }),
-  clearMission: () => {
-    saveActiveMission(null);
-    set({ activeMission: null, merchantVerified: false, clientVerified: false });
-  },
-  initStore: async () => {
-    const saved = await loadActiveMission();
-    if (saved) set({ activeMission: saved });
+    set((state) => {
+      const alreadyIn = state.missionQueue.some((q) => q.id === m.id);
+      return {
+        missionQueue: alreadyIn ? state.missionQueue : [...state.missionQueue, m],
+        focusedMissionId: m.id, // toujours focaliser la mission (même si déjà en queue)
+        missionStates: alreadyIn
+          ? state.missionStates
+          : { ...state.missionStates, [m.id]: { merchantVerified: false, clientVerified: false } },
+      };
+    });
+    const { missionQueue, missionStates, focusedMissionId } = get();
+    saveMissionQueue(missionQueue, missionStates, focusedMissionId);
   },
 
-  // ── Missions refusées ───────────────────────────────────────────────────────
+  setFocusedMission: (id) => set({ focusedMissionId: id }),
+
+  markMerchantVerified: (id) => {
+    set((state) => ({
+      missionStates: {
+        ...state.missionStates,
+        [id]: { ...state.missionStates[id], merchantVerified: true },
+      },
+    }));
+    const { missionQueue, missionStates, focusedMissionId } = get();
+    saveMissionQueue(missionQueue, missionStates, focusedMissionId);
+  },
+
+  markClientVerified: (id) => {
+    set((state) => ({
+      missionStates: {
+        ...state.missionStates,
+        [id]: { ...state.missionStates[id], clientVerified: true },
+      },
+    }));
+    const { missionQueue, missionStates, focusedMissionId } = get();
+    saveMissionQueue(missionQueue, missionStates, focusedMissionId);
+  },
+
+  clearMission: (id) => {
+    set((state) => {
+      const newQueue = state.missionQueue.filter((m) => m.id !== id);
+      const { [id]: _removed, ...newStates } = state.missionStates;
+      const newFocused =
+        state.focusedMissionId === id ? (newQueue[0]?.id ?? null) : state.focusedMissionId;
+      return { missionQueue: newQueue, missionStates: newStates, focusedMissionId: newFocused };
+    });
+    const { missionQueue, missionStates, focusedMissionId } = get();
+    saveMissionQueue(missionQueue, missionStates, focusedMissionId);
+  },
+
+  initStore: async () => {
+    // Ne pas écraser une queue déjà chargée en mémoire
+    if (get().missionQueue.length > 0) return;
+    const saved = await loadMissionQueue();
+    if (saved?.missionQueue?.length > 0) {
+      set({
+        missionQueue: saved.missionQueue,
+        missionStates: saved.missionStates ?? {},
+        focusedMissionId: saved.focusedMissionId ?? saved.missionQueue[0]?.id ?? null,
+      });
+    }
+  },
+
+  // ── Missions refusées ──────────────────────────────────────────────────────
   declinedMissionIds: [],
 
   declineMission: (missionId) =>
     set((state) => ({
       declinedMissionIds: [...state.declinedMissionIds, missionId],
-      // Retrait immédiat de la liste — les deux écrans se mettent à jour instantanément
       availableMissions: state.availableMissions.filter((m) => m.id !== missionId),
     })),
 
-  // ── Missions disponibles (état partagé Dashboard + MissionsScreen) ──────────
+  // ── Missions disponibles (polling) ─────────────────────────────────────────
   availableMissions: [],
   activeMissions: [],
   historyMissions: [],
   lastRefreshAt: null,
   isLoadingMissions: false,
 
-  // Fetch léger : seulement les missions disponibles (Dashboard)
   fetchAvailableMissions: async () => {
     const { declinedMissionIds, availableMissions } = get();
     try {
@@ -88,14 +145,13 @@ export const useMissionStore = create((set, get) => ({
       const newMissions = mapped.filter((m) => !previousIds.has(m.id));
 
       set({ availableMissions: mapped, lastRefreshAt: new Date() });
-      return newMissions; // retourné pour déclencher la notification
+      return newMissions;
     } catch {
       console.warn('[useMissionStore] fetchAvailableMissions failed');
       return [];
     }
   },
 
-  // Fetch complet : disponibles + actives + historique (MissionsScreen)
   fetchAllMissions: async () => {
     const { declinedMissionIds, availableMissions } = get();
     set({ isLoadingMissions: true });
@@ -125,12 +181,6 @@ export const useMissionStore = create((set, get) => ({
         lastRefreshAt: new Date(),
         isLoadingMissions: false,
       });
-
-      // Restaure activeMission depuis l'API si le store est vide (ex: redémarrage app)
-      if (!get().activeMission && mappedActive.length > 0) {
-        saveActiveMission(mappedActive[0]);
-        set({ activeMission: mappedActive[0] });
-      }
 
       return newMissions;
     } catch {

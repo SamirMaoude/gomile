@@ -9,7 +9,7 @@ import SectionTitle from '../components/SectionTitle';
 import GoMileButton from '../components/GoMileButton';
 
 // Thème et constantes
-import { COLORS, SIZES } from '../constants/theme';
+import { COLORS } from '../constants/theme';
 import { COMMON_STYLE_VALUES } from '../styles/commonStyles';
 import {
   getDriverProfile,
@@ -72,18 +72,6 @@ function resolveAvatarSource(avatarUrl) {
   }
 }
 
-function isPlaceholderAvatarUrl(avatarUrl) {
-  const cleanedUrl = typeof avatarUrl === 'string' ? avatarUrl.trim() : '';
-
-  return (
-    !cleanedUrl ||
-    cleanedUrl.includes('placehold.co') ||
-    cleanedUrl.includes('text=GoMile') ||
-    cleanedUrl.includes('text=Gomile')
-  ); // Debug log
-  console.log('isPlaceholderAvatarUrl - avatarUrl:', avatarUrl, 'isPlaceholder:', isPlaceholder);
-  return isPlaceholder;
-}
 
 export default function ProfileScreen({ navigation }) {
   const [profile, setProfile] = useState(null);
@@ -121,7 +109,7 @@ export default function ProfileScreen({ navigation }) {
         getMyKycStatus(),
         getMyReferral(),
       ]);
-      
+
       setProfile(profileData);
       setReferral(referralData);
       const kycNormalizedStatus = String(kycData?.status || 'NOT_SUBMITTED').toLowerCase();
@@ -157,10 +145,7 @@ export default function ProfileScreen({ navigation }) {
     setAvatarLoadFailed(false);
   }, [profile?.avatarUrl]);
 
-  const avatarSourceUrl =
-    !isPlaceholderAvatarUrl(profile?.avatarUrl)
-      ? profile?.avatarUrl
-      : cachedAvatarUrl;
+  const avatarSourceUrl = profile?.avatarUrl || cachedAvatarUrl;
 
   const kycStatusConfig = {
     not_submitted: {
@@ -287,6 +272,7 @@ export default function ProfileScreen({ navigation }) {
         <TouchableOpacity
           style={styles.kycCta}
           activeOpacity={0.85}
+          onPress={() => navigation.navigate('KYC')}
         >
           <Text style={styles.kycCtaText}>{currentKyc.cta}</Text>
           <MaterialCommunityIcons name="chevron-right" size={18} color={COLORS.white} />
@@ -318,10 +304,10 @@ export default function ProfileScreen({ navigation }) {
           label="Historique Gains" 
           onPress={() => navigation.navigate('Portefeuille')} 
         />
-        <MenuTile 
-          icon="file-certificate-outline" 
-          label="Mes Documents" 
-          onPress={() => {}} 
+        <MenuTile
+          icon="file-certificate-outline"
+          label="Mes Documents"
+          onPress={() => navigation.navigate('KYC')}
         />
         <MenuTile 
           icon="shield-lock-outline" 
@@ -336,7 +322,7 @@ export default function ProfileScreen({ navigation }) {
         outline
         style={styles.logoutBtn}
         onPress={async () => {
-          if (useMissionStore.getState().activeMission) {
+          if (useMissionStore.getState().missionQueue.length > 0) {
             Alert.alert('Mission en cours', 'Termine ta mission avant de te déconnecter.');
             return;
           }

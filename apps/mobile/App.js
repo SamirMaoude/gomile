@@ -18,6 +18,7 @@ import RegisterStep4 from './src/screens/RegisterStep4';
 import MainTabs from './src/navigation/MainTabs';
 import MissionDetailsScreen from './src/screens/MissionDetailsScreen';
 import MissionFocusScreen from './src/screens/MissionFocusScreen';
+import KYCScreen from './src/screens/KYCScreen';
 
 const Stack = createNativeStackNavigator(); // Changement ici
 
@@ -51,6 +52,7 @@ export default function App() {
           <Stack.Screen name="MainApp" component={MainTabs} />
           <Stack.Screen name="MissionDetails" component={MissionDetailsScreen} />
           <Stack.Screen name="MissionFocus" component={MissionFocusScreen} />
+          <Stack.Screen name="KYC" component={KYCScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaProvider>
