@@ -1,4 +1,5 @@
 import {
+  getDriver,
   getDriverOrdersList,
   getDriversList,
   type AdminDriverListItem as Driver,
@@ -6,7 +7,7 @@ import {
   type KycStatus,
 } from "@/lib/api-admin";
 
-export { getDriverOrdersList, getDriversList };
+export { getDriver, getDriverOrdersList, getDriversList };
 export type { Driver, DriverStatus, KycStatus };
 
 export async function getAllDriverOrders() {

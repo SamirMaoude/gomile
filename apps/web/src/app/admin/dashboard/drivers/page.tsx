@@ -7,7 +7,7 @@ import Footerlp from "@/components/ui/design-system/header_footer/footerlp";
 import Typography from "@/components/ui/design-system/typography";
 import { Navigation } from "@/components/ui/navigation/navigation";
 
-import { getDriversList, type Driver } from "../admin";
+import { getDriver, getDriversList, type Driver } from "../admin";
 import { getAdminDashboardMenuItems } from "../admin-dashboard-menu";
 import DeliveriesChart from "./deliveriesChart";
 import DriversTable from "./DriversTable";
@@ -22,7 +22,15 @@ export default function AdminDashboardDrivers() {
 
   useEffect(() => {
     getDriversList()
-      .then(setDrivers)
+      .then(async (driversList) => {
+        const driversWithDetails = await Promise.all(
+          driversList.map((driver) =>
+            getDriver(driver.userId).catch(() => driver),
+          ),
+        );
+
+        setDrivers(driversWithDetails);
+      })
       .catch((fetchError: unknown) => {
         setError(fetchError instanceof Error ? fetchError.message : "Erreur");
       })
