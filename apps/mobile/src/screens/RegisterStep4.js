@@ -12,9 +12,9 @@ import { useRegistrationStore } from '../store/useRegistrationStore';
 import { COLORS } from '../constants/theme';
 import { COMMON_STYLE_VALUES } from '../styles/commonStyles';
 import { registerDriver } from '../../lib/auth-client';
-import { uploadLocalFile } from '../../lib/upload-client';
+import { uploadLocalFileAnonymous } from '../../lib/upload-client';
 import { pickImageSource } from '../lib/media-picker';
-import { createMyDocument, updateDriverProfile } from '../../lib/driver-client';
+import { createMyDocument } from '../../lib/driver-client';
 import { setCachedProfileAvatarUrl } from '../../lib/profile-cache';
 
 const FALLBACK_AVATAR_URL = 'https://placehold.co/512x512/png?text=GoMile';
@@ -101,50 +101,29 @@ export default function RegisterStep4({ navigation }) {
         siret: siret ? String(siret).trim() : undefined,
       };
 
-      // Nettoyer: supprimer les undefined ET les URIs locales (pas http/https)
-      const cleanedSignupData = Object.fromEntries(
-        Object.entries(signupData).filter(([_, value]) => {
-          if (value === undefined) return false;
-          // Pour les champs URL, garder seulement les URLs valides (http/https)
-          if (typeof value === 'string' && (value.startsWith('http://') || value.startsWith('https://'))) {
-            return true;
-          }
-          // Pour les autres champs, garder les valeurs non-URL
-          if (typeof value !== 'string' || (!value.includes('://') && !value.includes('ImagePicker'))) {
-            return true;
-          }
-          return false;
-        })
-      );
-
-      // 1) Créer le compte avec un avatar valide pour respecter la contrainte de la base.
-      await registerDriver(cleanedSignupData);
-
-      // 2) Après login automatique, presign + upload des vrais fichiers.
+      // 1) Uploader tous les fichiers avant la création du compte.
+      //    /uploads/presign est public — pas besoin d'être connecté.
       const [cniUrl, justificatifUrl, avatarUrlUploaded, permisUrl, carteGriseUrl, kbisUrl, ribUrl] = await Promise.all([
-        cniFile ? uploadLocalFile(cniFile, 'cni.jpg') : Promise.resolve(undefined),
-        justificatifFile ? uploadLocalFile(justificatifFile, 'justificatif.jpg') : Promise.resolve(undefined),
-        avatarUrl ? uploadLocalFile(avatarUrl, 'avatar.jpg') : Promise.resolve(undefined),
-        permisFile ? uploadLocalFile(permisFile, 'permis.jpg') : Promise.resolve(undefined),
-        carteGriseFile ? uploadLocalFile(carteGriseFile, 'carte-grise.jpg') : Promise.resolve(undefined),
-        kbisFile ? uploadLocalFile(kbisFile, 'kbis.jpg') : Promise.resolve(undefined),
-        ribFile ? uploadLocalFile(ribFile, 'rib.jpg') : Promise.resolve(undefined),
+        cniFile ? uploadLocalFileAnonymous(cniFile, 'cni.jpg') : Promise.resolve(undefined),
+        justificatifFile ? uploadLocalFileAnonymous(justificatifFile, 'justificatif.jpg') : Promise.resolve(undefined),
+        avatarUrl ? uploadLocalFileAnonymous(avatarUrl, 'avatar.jpg') : Promise.resolve(undefined),
+        permisFile ? uploadLocalFileAnonymous(permisFile, 'permis.jpg') : Promise.resolve(undefined),
+        carteGriseFile ? uploadLocalFileAnonymous(carteGriseFile, 'carte-grise.jpg') : Promise.resolve(undefined),
+        kbisFile ? uploadLocalFileAnonymous(kbisFile, 'kbis.jpg') : Promise.resolve(undefined),
+        ribFile ? uploadLocalFileAnonymous(ribFile, 'rib.jpg') : Promise.resolve(undefined),
       ]);
 
       if (avatarUrlUploaded) {
         setCachedProfileAvatarUrl(avatarUrlUploaded);
-
-        try {
-          await updateDriverProfile({ avatarUrl: avatarUrlUploaded });
-        } catch (err) {
-          const msg = String(err?.message || err);
-          if (msg.includes('EMAIL_NOT_VERIFIED') || /verify/i.test(msg)) {
-            // Le backend peut exiger la vérification email avant update profile.
-          } else {
-            throw err;
-          }
-        }
       }
+
+      // 2) Créer le compte avec la vraie URL avatar déjà uploadée.
+      const cleanedSignupData = Object.fromEntries(
+        Object.entries({ ...signupData, avatarUrl: avatarUrlUploaded ?? FALLBACK_AVATAR_URL })
+          .filter(([_, v]) => v !== undefined)
+      );
+
+      await registerDriver(cleanedSignupData);
 
       const documentsToCreate = [
         cniUrl ? { type: 'CNI', url: cniUrl } : null,

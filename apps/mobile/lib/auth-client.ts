@@ -241,6 +241,25 @@ export async function getEmailStatus() {
   );
 }
 
+// Verifies the OTP sent by forgot-password and returns a short-lived reset token.
+export async function verifyOtp(input: { email: string; otp: string }) {
+  return requestApi<{ resetToken: string }>("/auth/verify-otp", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
+// Resets the password using the reset token returned by verify-otp.
+export async function resetPassword(input: {
+  resetToken: string;
+  newPassword: string;
+}) {
+  return requestApi<{ message: string }>("/auth/reset-password", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
 // Exposes the current stored token pair for integration/debugging purposes.
 export async function getStoredTokens() {
   return getAuthTokenStore().getTokens();

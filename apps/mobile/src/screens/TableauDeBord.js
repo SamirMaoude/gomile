@@ -1,149 +1,85 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Dimensions, TouchableOpacity, ScrollView } from 'react-native';
 import MapView, { PROVIDER_GOOGLE, Circle, Marker } from 'react-native-maps';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
-import { useFocusEffect } from '@react-navigation/native';
 
 import Header from '../components/Header';
 import { COLORS } from '../constants/theme';
 import { useAvailabilityStore } from '../store/useAvailabilityStore';
-import { useMissionStore } from '../store/useMissionStore'; 
+import { useMissionStore } from '../store/useMissionStore';
 import { COMMON_STYLE_VALUES } from '../styles/commonStyles';
-import {
-  getDriverDashboard,
-  getAvailableMissions,
-  updateDriverLocation,
-} from '../../lib/driver-client';
+import { useMissionsPoller } from '../hooks/useMissionsPoller';
+import { getDriverDashboard, updateDriverLocation } from '../../lib/driver-client';
 
 const { width, height } = Dimensions.get('window');
 
-// Fonction utilitaire pour parser les coordonnées du backend en toute sécurité
-const parseLocation = (locationObj, fallbackObj) => {
+const parseLocation = (locationObj, fallback) => {
   if (locationObj && typeof locationObj.latitude === 'number' && typeof locationObj.longitude === 'number') {
     return { latitude: locationObj.latitude, longitude: locationObj.longitude };
   }
-  return fallbackObj;
+  return fallback;
 };
 
 export default function DashboardScreen({ navigation }) {
-  const isOnline = useAvailabilityStore((state) => state.isOnline);
-  const setOnlineStatus = useAvailabilityStore((state) => state.setOnlineStatus);
-  const declinedMissionIds = useMissionStore((state) => state.declinedMissionIds); // IMPORT DES REFUS
+  const isOnline = useAvailabilityStore((s) => s.isOnline);
+  const setOnlineStatus = useAvailabilityStore((s) => s.setOnlineStatus);
+
+  // Missions depuis le store Zustand (partagé avec MissionsScreen)
+  const availableMissions = useMissionStore((s) => s.availableMissions);
 
   const [isLocating, setIsLocating] = useState(false);
   const [todayEarnings, setTodayEarnings] = useState(0);
   const [todayTrips, setTodayTrips] = useState(0);
-  const [proposedMissions, setProposedMissions] = useState([]);
-  
+  const [currentPosition, setCurrentPosition] = useState({ latitude: 45.1885, longitude: 5.7245 });
   const [region, setRegion] = useState({
-    latitude: 45.1885,
-    longitude: 5.7245,
-    latitudeDelta: 0.03,
-    longitudeDelta: 0.03,
+    latitude: 45.1885, longitude: 5.7245, latitudeDelta: 0.03, longitudeDelta: 0.03,
   });
 
-  const [currentPosition, setCurrentPosition] = useState({
-    latitude: 45.1885,
-    longitude: 5.7245,
-  });
+  // Polling 10s — fetchAll=false : seulement les missions disponibles
+  useMissionsPoller({ fetchAll: false });
 
+  // Localisation au montage + maj dashboard
   useEffect(() => {
     let isMounted = true;
-    const loadPosition = async () => {
+
+    const init = async () => {
+      setIsLocating(true);
       try {
-        setIsLocating(true);
         const { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== 'granted') return;
-        const position = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-        if (!isMounted) return;
-
-        setCurrentPosition({ latitude: position.coords.latitude, longitude: position.coords.longitude });
-        setRegion({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-          latitudeDelta: 0.02,
-          longitudeDelta: 0.02,
-        });
-
-        if (isOnline) {
-          await updateDriverLocation(position.coords.latitude, position.coords.longitude);
+        if (status === 'granted') {
+          const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+          if (!isMounted) return;
+          const coords = { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
+          setCurrentPosition(coords);
+          setRegion({ ...coords, latitudeDelta: 0.02, longitudeDelta: 0.02 });
+          // Toujours envoyer la position — le backend en a besoin pour la query ST_DWithin.
+          // Sans lastKnownLocation en base, aucune mission n'est retournée même si le livreur est en ligne.
+          await updateDriverLocation(pos.coords.latitude, pos.coords.longitude).catch(() => {});
         }
-      } catch (error) {
+      } catch {
+        // Position non disponible, on garde le fallback
       } finally {
         if (isMounted) setIsLocating(false);
       }
+
+      try {
+        const dashboard = await getDriverDashboard();
+        if (!isMounted) return;
+        setOnlineStatus(Boolean(dashboard?.isOnline));
+        setTodayEarnings(dashboard?.todayEarnings ?? 0);
+        setTodayTrips(dashboard?.todayTrips ?? 0);
+      } catch {
+        // Dashboard non disponible
+      }
     };
-    loadPosition();
+
+    init();
     return () => { isMounted = false; };
   }, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      let isActive = true;
-      let refreshTimer;
-
-      const refreshDashboard = async () => {
-        try {
-          const dashboard = await getDriverDashboard();
-          if (!isActive) return;
-
-          const nextOnline = Boolean(dashboard?.isOnline);
-          setOnlineStatus(nextOnline);
-          setTodayEarnings(dashboard?.todayEarnings || 0);
-          setTodayTrips(dashboard?.todayTrips || 0);
-
-          if (!nextOnline) {
-            setProposedMissions([]);
-            return;
-          }
-
-          const missions = await getAvailableMissions();
-          if (!isActive) return;
-
-          // FILTRAGE ET COORDONNÉES DYNAMIQUES
-          const mappedMissions = (missions || [])
-            .filter(mission => !declinedMissionIds.includes(mission.id))
-            .map((mission) => ({
-              id: mission.id,
-              type: mission.type || 'Mission',
-              store: mission.store || 'Commerce partenaire',
-              storeAddress: mission.pickupAddress || 'Adresse pick-up indisponible',
-              customerArea: mission.dropOffAddress || 'Adresse livraison indisponible',
-              customerName: 'Client GoMile',
-              reward: String(mission.reward ?? 0),
-              distance: `${mission.distanceKm ?? 0} km`,
-              eta: '--',
-              notes: 'Suivre les instructions de livraison.',
-              mapRegion: region,
-              // Utilisation des coordonnées reçues, ou fallback sur la position actuelle
-              pickup: parseLocation(mission.pickupLocation, currentPosition),
-              dropoff: parseLocation(mission.dropoffLocation, currentPosition),
-          }));
-
-          setProposedMissions(mappedMissions);
-        } catch {
-          if (!isActive) return;
-          setProposedMissions([]);
-        }
-      };
-
-      refreshDashboard();
-      refreshTimer = setInterval(refreshDashboard, 10000);
-
-      return () => {
-        isActive = false;
-        if (refreshTimer) {
-          clearInterval(refreshTimer);
-        }
-      };
-    }, [currentPosition.latitude, currentPosition.longitude, setOnlineStatus, declinedMissionIds])
-  );
-
   const openMissionDetails = (mission) => {
-    navigation.navigate('MissionDetails', {
-      mission: { ...mission, currentPosition },
-    });
+    navigation.navigate('MissionDetails', { mission: { ...mission, currentPosition } });
   };
 
   return (
@@ -158,19 +94,17 @@ export default function DashboardScreen({ navigation }) {
         customMapStyle={mapStyle}
       >
         <Marker coordinate={currentPosition} title="Vous" pinColor={COLORS.secondary} />
-
-        {isOnline && proposedMissions.map((mission) => (
+        {isOnline && availableMissions.map((m) => (
           <Marker
-            key={`pickup-${mission.id}`}
-            coordinate={mission.pickup}
-            title={mission.store}
+            key={`pickup-${m.id}`}
+            coordinate={parseLocation(m.pickup, currentPosition)}
+            title={m.store}
             pinColor={COLORS.primary}
-            onPress={() => openMissionDetails(mission)}
+            onPress={() => openMissionDetails(m)}
           />
         ))}
-
         {isOnline && (
-          <Circle center={currentPosition} radius={1000} fillColor="rgba(255, 193, 7, 0.1)" strokeColor={COLORS.primary} />
+          <Circle center={currentPosition} radius={1000} fillColor="rgba(255,193,7,0.1)" strokeColor={COLORS.primary} />
         )}
       </MapView>
 
@@ -190,23 +124,25 @@ export default function DashboardScreen({ navigation }) {
           <Text style={styles.missionsTitle}>Missions proposées</Text>
           {isLocating && <Text style={styles.missionsSub}>Localisation...</Text>}
         </View>
+
         {isOnline ? (
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.missionsScroll}>
-            {proposedMissions.map((mission) => (
-              <TouchableOpacity
-                key={mission.id}
-                style={styles.missionCard}
-                activeOpacity={0.85}
-                onPress={() => openMissionDetails(mission)}
-              >
-                <Text style={styles.missionStore} numberOfLines={1}>{mission.store}</Text>
-                <Text style={styles.missionMeta}>{mission.type} • {mission.distance}</Text>
-                <Text style={styles.missionAddress} numberOfLines={1}>Pick-up: {mission.storeAddress}</Text>
-                <Text style={styles.missionAddress} numberOfLines={1}>Destination: {mission.customerArea}</Text>
-                <Text style={styles.missionReward}>+{mission.reward} EUR</Text>
-                <Text style={styles.missionLink}>Voir détails</Text>
-              </TouchableOpacity>
-            ))}
+            {availableMissions.length === 0 ? (
+              <View style={styles.emptyCard}>
+                <Text style={styles.emptyText}>Aucune mission à proximité</Text>
+              </View>
+            ) : (
+              availableMissions.map((m) => (
+                <TouchableOpacity key={m.id} style={styles.missionCard} activeOpacity={0.85} onPress={() => openMissionDetails(m)}>
+                  <Text style={styles.missionStore} numberOfLines={1}>{m.store}</Text>
+                  <Text style={styles.missionMeta}>{m.type} • {m.distance}</Text>
+                  <Text style={styles.missionAddress} numberOfLines={1}>Pick-up: {m.storeAddress}</Text>
+                  <Text style={styles.missionAddress} numberOfLines={1}>Destination: {m.customerArea}</Text>
+                  <Text style={styles.missionReward}>+{m.reward} EUR</Text>
+                  <Text style={styles.missionLink}>Voir détails</Text>
+                </TouchableOpacity>
+              ))
+            )}
           </ScrollView>
         ) : (
           <View style={styles.offlineMissionsBox}>
@@ -224,10 +160,8 @@ export default function DashboardScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   container: { ...COMMON_STYLE_VALUES.flex1 },
-  map: { width: width, height: height },
-  quickStats: {
-    position: 'absolute', top: 110, left: 20, right: 20, backgroundColor: COLORS.white, ...COMMON_STYLE_VALUES.rowCenter, padding: 15, borderRadius: 15, elevation: 5,
-  },
+  map: { width, height },
+  quickStats: { position: 'absolute', top: 110, left: 20, right: 20, backgroundColor: COLORS.white, ...COMMON_STYLE_VALUES.rowCenter, padding: 15, borderRadius: 15, elevation: 5 },
   statItem: { flex: 1, alignItems: 'center' },
   statValue: { fontWeight: '900', ...COMMON_STYLE_VALUES.textSecondary, fontSize: 16 },
   statLabelMini: { fontSize: 10, ...COMMON_STYLE_VALUES.textMuted, textTransform: 'uppercase' },
@@ -237,6 +171,8 @@ const styles = StyleSheet.create({
   missionsSub: { fontSize: 11, ...COMMON_STYLE_VALUES.textMuted, marginRight: 20 },
   offlineMissionsBox: { marginRight: 16, padding: 14, borderRadius: 14, backgroundColor: COLORS.white, borderWidth: 1, borderColor: COLORS.border },
   offlineMissionsText: { ...COMMON_STYLE_VALUES.textMuted, fontSize: 12, lineHeight: 17 },
+  emptyCard: { paddingHorizontal: 14, paddingVertical: 10 },
+  emptyText: { ...COMMON_STYLE_VALUES.textMuted, fontSize: 12 },
   missionsScroll: { paddingRight: 16, gap: 10 },
   missionCard: { width: 210, backgroundColor: COLORS.white, borderRadius: 14, borderWidth: 1, borderColor: COLORS.border, padding: 12, elevation: 5 },
   missionStore: { ...COMMON_STYLE_VALUES.textSecondary, fontWeight: '800', fontSize: 13 },
@@ -248,4 +184,7 @@ const styles = StyleSheet.create({
   recenterBtnOnline: { bottom: 40 },
 });
 
-const mapStyle = [ { "featureType": "poi", "stylers": [{ "visibility": "off" }] }, { "featureType": "transit", "stylers": [{ "visibility": "simplified" }] } ];
+const mapStyle = [
+  { featureType: 'poi', stylers: [{ visibility: 'off' }] },
+  { featureType: 'transit', stylers: [{ visibility: 'simplified' }] },
+];

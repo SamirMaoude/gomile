@@ -3,10 +3,12 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack'; // Changement ici
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Asset } from 'expo-asset';
+import { useMissionStore } from './src/store/useMissionStore';
 
 // les diverses pages utilisé dans le cadre du projet
 import LoginScreen from './src/screens/LoginScreen';
 import ForgotPasswordScreen from './src/screens/ForgotPasswordScreen';
+import ResetPasswordScreen from './src/screens/ResetPasswordScreen';
 import RegisterStep1 from './src/screens/RegisterStep1';
 import { EmailVerificationScreen } from './src/screens/EmailVerificationScreen';
 import RegisterStep2Identity from './src/screens/RegisterStep2Identity';
@@ -21,12 +23,11 @@ const Stack = createNativeStackNavigator(); // Changement ici
 
 export default function App() {
   useEffect(() => {
+    useMissionStore.getState().initStore();
     Asset.loadAsync([
       require('./assets/background_login.png'),
       require('./assets/livreur.jpg'),
-    ]).catch(() => {
-      // rien pour le moment 
-    });
+    ]).catch(() => {});
   }, []);
 
   return (
@@ -38,6 +39,7 @@ export default function App() {
         >
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+          <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
           <Stack.Screen name="RegisterStep1" component={RegisterStep1} />
           <Stack.Screen name="RegisterStep2Identity" component={RegisterStep2Identity} />
           <Stack.Screen name="EmailVerification" component={EmailVerificationScreen} />

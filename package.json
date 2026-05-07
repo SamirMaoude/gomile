@@ -3,7 +3,7 @@
   "private": true,
   "packageManager": "pnpm@10.30.3",
   "engines": {
-    "node": ">=20 <24"
+    "node": ">=20 <25"
   },
   "scripts": {
     "dev": "corepack pnpm -r --parallel dev",
@@ -13,8 +13,5 @@
     "mobile:start": "corepack pnpm --filter gomileapp start",
     "mobile:lan": "corepack pnpm --filter gomileapp start -- --lan",
     "mobile:tunnel": "corepack pnpm --filter gomileapp start -- --tunnel"
-  },
-  "dependencies": {
-    "axios": "^1.13.6"
   }
 }

@@ -13,7 +13,6 @@ import { useMissionStore } from '../store/useMissionStore';
 import { formatDistanceKm, formatDurationMin, getDrivingRoute } from '../../lib/routing';
 import {
   getMissionPickupCode,
-  verifyMerchantHandshake,
   verifyClientHandshake,
 } from '../../lib/driver-client';
 
@@ -38,15 +37,15 @@ export default function MissionFocusScreen({ navigation }) {
   const normalizedClientCode = typedClientCode.trim();
   const [keyboardOffset, setKeyboardOffset] = useState(0);
 
-  const points = useMemo(() => {
-    if (!activeMission) return [];
-    return [currentPosition, activeMission.pickup, activeMission.dropoff];
-  }, [activeMission, currentPosition]);
-
   const nextTarget = useMemo(() => {
     if (!activeMission) return null;
     return merchantVerified ? activeMission.dropoff : activeMission.pickup;
   }, [activeMission, merchantVerified]);
+
+  const points = useMemo(() => {
+    if (!activeMission || !nextTarget) return [];
+    return [currentPosition, nextTarget].filter(Boolean);
+  }, [activeMission, currentPosition, nextTarget]);
 
   useEffect(() => {
     let isMounted = true;
@@ -173,24 +172,11 @@ export default function MissionFocusScreen({ navigation }) {
   }
 
   const handleValidateMerchant = () => {
-    (async () => {
-      try {
-        const code = String(merchantCode || activeMission.merchantAuthCode || '').trim();
-        if (!code) {
-          Alert.alert('Code indisponible', 'Le code commerçant n\'est pas encore disponible.');
-          return;
-        }
-        await verifyMerchantHandshake(activeMission.id, code);
-        markMerchantVerified();
-        Alert.alert('Commercant verifie', 'Tu peux maintenant recuperer la commande.');
-      } catch (error) {
-        Alert.alert('Erreur', error.message || 'Verification commercant impossible.');
-      }
-    })();
+    markMerchantVerified();
   };
 
   const handleValidateClient = () => {
-    if (normalizedClientCode.length < 4) {
+    if (normalizedClientCode.length < 6) {
       Alert.alert('Code invalide', 'Le code client ne correspond pas.');
       return;
     }
@@ -209,7 +195,7 @@ export default function MissionFocusScreen({ navigation }) {
   };
 
   const handleClientCodeChange = (value) => {
-    const digitsOnly = value.replace(/\D/g, '').slice(0, 4);
+    const digitsOnly = value.replace(/\D/g, '').slice(0, 6);
     setTypedClientCode(digitsOnly);
   };
 
@@ -280,7 +266,7 @@ export default function MissionFocusScreen({ navigation }) {
                   value={typedClientCode}
                   onChangeText={handleClientCodeChange}
                   keyboardType="number-pad"
-                  maxLength={4}
+                  maxLength={6}
                   editable={merchantVerified && !clientVerified}
                 />
                 <GoMileButton

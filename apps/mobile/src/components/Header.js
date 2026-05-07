@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Switch, useWindowDimensions } from 'react-native';
+import { View, Text, StyleSheet, Switch, Alert, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../constants/theme';
 import { useAvailabilityStore } from '../store/useAvailabilityStore';
+import { useMissionStore } from '../store/useMissionStore';
 import { toggleDriverAvailability } from '../../lib/driver-client';
 
 export default function Header({ title, showAvailabilityToggle = false }) {
@@ -15,6 +16,11 @@ export default function Header({ title, showAvailabilityToggle = false }) {
 
   const handleToggleAvailability = async () => {
     if (isToggling) return;
+
+    if (isOnline && useMissionStore.getState().activeMission) {
+      Alert.alert('Mission en cours', 'Tu ne peux pas passer hors ligne pendant une mission active.');
+      return;
+    }
 
     setIsToggling(true);
     try {

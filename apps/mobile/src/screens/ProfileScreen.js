@@ -18,6 +18,7 @@ import {
 } from '../../lib/driver-client';
 import { logout } from '../../lib/auth-client';
 import { useAvailabilityStore } from '../store/useAvailabilityStore';
+import { useMissionStore } from '../store/useMissionStore';
 import {
   clearCachedProfileAvatarUrl,
   getCachedProfileAvatarUrl,
@@ -335,6 +336,10 @@ export default function ProfileScreen({ navigation }) {
         outline
         style={styles.logoutBtn}
         onPress={async () => {
+          if (useMissionStore.getState().activeMission) {
+            Alert.alert('Mission en cours', 'Termine ta mission avant de te déconnecter.');
+            return;
+          }
           try {
             await logout();
           } catch {

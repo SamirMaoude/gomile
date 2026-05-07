@@ -270,6 +270,23 @@ export async function createMyDocument(type: string, url: string) {
   );
 }
 
+export async function presignDocument(filename: string, contentType: string) {
+  return requestDriverApi<{ uploadUrl: string; fileUrl: string }>(
+    "/driver/me/documents/presign",
+    {
+      method: "POST",
+      body: JSON.stringify({ filename, contentType }),
+    },
+  );
+}
+
+export async function deleteDocument(documentId: string) {
+  return requestDriverApi<{ message: string }>(
+    `/driver/me/documents/${documentId}`,
+    { method: "DELETE" },
+  );
+}
+
 export async function getMyReferral() {
   try {
     return await requestDriverApi<{ code: string; totalReferrals: number }>(

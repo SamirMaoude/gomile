@@ -18,6 +18,7 @@ const Tab = createBottomTabNavigator();
 
 export default function MainTabs() {
   const activeMission = useMissionStore((state) => state.activeMission);
+  const fetchAllMissions = useMissionStore((state) => state.fetchAllMissions);
 
   useEffect(() => {
     let isMounted = true;
@@ -33,6 +34,8 @@ export default function MainTabs() {
     };
 
     setupNotifications();
+    // Charge les missions dès le mount pour restaurer activeMission si besoin
+    fetchAllMissions();
 
     return () => {
       isMounted = false;
