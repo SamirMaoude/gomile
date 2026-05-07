@@ -2,6 +2,8 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, Alert, Share } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
+import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 //  composants factorisés
 import FormLayout from '../components/FormLayout';
@@ -25,6 +27,8 @@ import {
 } from '../../lib/profile-cache';
 
 const DEFAULT_AVATAR = require('../../assets/livreur.jpg');
+const SIGNED_AVATAR_CACHE = new Map();
+let avatarS3Client = null;
 
 function resolveApiBaseUrl() {
   return (
@@ -72,6 +76,84 @@ function resolveAvatarSource(avatarUrl) {
   }
 }
 
+function isAbsoluteUrl(url) {
+  return url.startsWith('http://') || url.startsWith('https://') || url.startsWith('file://') || url.startsWith('data:');
+}
+
+function isS3Url(url) {
+  return url.includes('.s3.') && url.includes('amazonaws.com');
+}
+
+function getAvatarS3Client() {
+  if (avatarS3Client) return avatarS3Client;
+
+  const region = process.env.EXPO_PUBLIC_AWS_REGION;
+  const accessKeyId = process.env.EXPO_PUBLIC_AWS_ACCESS_KEY_ID;
+  const secretAccessKey = process.env.EXPO_PUBLIC_AWS_SECRET_ACCESS_KEY;
+
+  if (!region || !accessKeyId || !secretAccessKey) {
+    console.error('Avatar signing env check:', {
+      hasRegion: Boolean(region),
+      hasAccessKey: Boolean(accessKeyId),
+      hasSecret: Boolean(secretAccessKey),
+      apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL || null,
+    });
+    throw new Error('Missing AWS env for avatar signing');
+  }
+
+  console.log('Avatar signing env loaded:', {
+    region,
+    accessKeyPrefix: accessKeyId.slice(0, 4),
+    secretLength: secretAccessKey.length,
+  });
+
+  avatarS3Client = new S3Client({
+    region,
+    credentials: { accessKeyId, secretAccessKey },
+  });
+
+  return avatarS3Client;
+}
+
+function parseS3BucketAndKey(s3Url) {
+  const url = new URL(s3Url);
+  const key = url.pathname.replace(/^\//, '');
+
+  const hostMatch = url.hostname.match(/^(.*?)\.s3\./);
+  const bucket = hostMatch?.[1] || process.env.EXPO_PUBLIC_S3_BUCKET_NAME;
+
+  if (!bucket || !key) {
+    throw new Error('Invalid S3 URL for avatar');
+  }
+
+  return { bucket, key };
+}
+
+async function getSignedAvatarUrl(rawUrl) {
+  const cached = SIGNED_AVATAR_CACHE.get(rawUrl);
+  if (cached && cached.expiresAt > Date.now() + 15_000) {
+    console.log('Avatar signed URL cache hit');
+    return cached.url;
+  }
+
+  const { bucket, key } = parseS3BucketAndKey(rawUrl);
+  console.log('Generating signed avatar URL:', {
+    bucket,
+    keyPrefix: key.split('/').slice(0, 2).join('/'),
+  });
+  const command = new GetObjectCommand({ Bucket: bucket, Key: key });
+  const client = getAvatarS3Client();
+  const expiresIn = 300;
+  const signedUrl = await getSignedUrl(client, command, { expiresIn });
+
+  SIGNED_AVATAR_CACHE.set(rawUrl, {
+    url: signedUrl,
+    expiresAt: Date.now() + expiresIn * 1000,
+  });
+
+  return signedUrl;
+}
+
 
 export default function ProfileScreen({ navigation }) {
   const [profile, setProfile] = useState(null);
@@ -79,6 +161,7 @@ export default function ProfileScreen({ navigation }) {
   const [activeVehicle, setActiveVehicle] = useState('BIKE');
   const [kycStatus, setKycStatus] = useState('not_submitted');
   const [avatarLoadFailed, setAvatarLoadFailed] = useState(false);
+  const [signedAvatarUrl, setSignedAvatarUrl] = useState(null);
   const isOnline = useAvailabilityStore((state) => state.isOnline);
   const setOnlineStatus = useAvailabilityStore((state) => state.setOnlineStatus);
   const cachedAvatarUrl = getCachedProfileAvatarUrl();
@@ -147,6 +230,47 @@ export default function ProfileScreen({ navigation }) {
 
   const avatarSourceUrl = profile?.avatarUrl || cachedAvatarUrl;
 
+  useEffect(() => {
+    let isMounted = true;
+
+    const resolveSignedAvatar = async () => {
+      const rawAvatarUrl = typeof avatarSourceUrl === 'string' ? avatarSourceUrl.trim() : '';
+      console.log('Avatar resolver input:', {
+        hasRawUrl: Boolean(rawAvatarUrl),
+        isAbsolute: rawAvatarUrl ? isAbsoluteUrl(rawAvatarUrl) : false,
+        isS3: rawAvatarUrl ? isS3Url(rawAvatarUrl) : false,
+      });
+
+      if (!rawAvatarUrl) {
+        if (isMounted) setSignedAvatarUrl(null);
+        return;
+      }
+
+      if (
+        !isAbsoluteUrl(rawAvatarUrl) ||
+        !isS3Url(rawAvatarUrl) ||
+        rawAvatarUrl.includes('X-Amz-Signature=')
+      ) {
+        if (isMounted) setSignedAvatarUrl(rawAvatarUrl);
+        return;
+      }
+
+      try {
+        const readUrl = await getSignedAvatarUrl(rawAvatarUrl);
+        if (isMounted) setSignedAvatarUrl(readUrl);
+      } catch (error) {
+        console.error('Failed to generate signed avatar URL:', error);
+        if (isMounted) setSignedAvatarUrl(rawAvatarUrl);
+      }
+    };
+
+    void resolveSignedAvatar();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [avatarSourceUrl]);
+
   const kycStatusConfig = {
     not_submitted: {
       label: 'Non soumis',
@@ -198,11 +322,11 @@ export default function ProfileScreen({ navigation }) {
       <View style={styles.idCard}>
         <View style={styles.cardTop}>
           <Image
-            source={avatarLoadFailed ? DEFAULT_AVATAR : resolveAvatarSource(avatarSourceUrl)}
+            source={avatarLoadFailed ? DEFAULT_AVATAR : resolveAvatarSource(signedAvatarUrl || avatarSourceUrl)}
             style={styles.avatar}
             resizeMode="cover"
             onError={() => {
-              console.error('Image failed to load for URL:', avatarSourceUrl); // Debug log
+              console.error('Image failed to load for URL:', signedAvatarUrl || avatarSourceUrl); // Debug log
               setAvatarLoadFailed(true);
             }}
           />
