@@ -8,6 +8,7 @@ import { NotificationService } from 'src/notification/notification.service';
 import { OutboundWebhookService } from 'src/webhook/outbound-webhook.service';
 import { SmsService } from 'src/sms/sms.service';
 import { ForbiddenException, ConflictException, NotFoundException } from '@nestjs/common';
+import { EventsGateway } from 'src/events/events.gateway';
 import { Role, OrderStatus } from '@prisma/client';
 
 jest.spyOn(Logger.prototype, 'error').mockImplementation(() => {});
@@ -51,6 +52,11 @@ const mockSms = {
   sendSms: jest.fn().mockResolvedValue(undefined),
 };
 
+const mockEventsGateway = {
+  emitOrderStatus: jest.fn(),
+  emitNewOrder: jest.fn(),
+};
+
 const merchantUser = { id: 'merchant1', email: 'merchant@test.com', role: Role.MERCHANT };
 
 describe('OrderService (merchants)', () => {
@@ -81,6 +87,7 @@ describe('OrderService (merchants)', () => {
         { provide: NotificationService, useValue: mockNotification },
         { provide: OutboundWebhookService, useValue: mockWebhook },
         { provide: SmsService, useValue: mockSms },
+        { provide: EventsGateway, useValue: mockEventsGateway },
       ],
     }).compile();
 

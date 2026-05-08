@@ -22,9 +22,9 @@ import { UploadService } from '../upload/upload.service';
 import { SessionVehicleDto } from './dto/session-vehicle.dto';
 import { DashboardResponseDto } from './dto/dashboard-response.dto';
 import { CreateDriverDocumentDto } from './dto/create-driver-document.dto';
-import { KYC_ERRORS } from 'src/kyc/kyc.error';
+import { KYC_ERRORS } from '../kyc/kyc.error';
 import { EventsGateway } from '../events/events.gateway';
-import { ORDER_ERRORS } from 'src/order/order-errors';
+import { ORDER_ERRORS } from '../order/order-errors';
 
 @Injectable()
 export class DriverMeService {
