@@ -12,6 +12,8 @@ import { DeliveryPricingModule } from '../../delivery/delivery-pricing.module';
 import { NotificationModule } from '../../notification/notification.module';
 import { WebhookModule } from '../../webhook/webhook.module';
 import { SmsModule } from '../../sms/sms.module';
+import { EventsGateway } from '../../events/events.gateway';
+import { JwtService } from '@nestjs/jwt';
 
 @Module({
   imports: [DeliveryPricingModule, NotificationModule, WebhookModule, SmsModule],
@@ -24,6 +26,8 @@ import { SmsModule } from '../../sms/sms.module';
     ApiKeyGuard,
     JwtAuthGuard,
     EmailVerifiedGuard,
+    EventsGateway,
+    JwtService
   ],
 })
 export class OrderMerchantsModule {}

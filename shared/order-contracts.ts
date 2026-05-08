@@ -45,12 +45,12 @@ export interface HandshakeInput {
   code: string;
 }
 
-
 export interface CreateOrderResponse {
   orderId: string;
   deliveryCode: string;
   deliveryFee: number;
   distanceKm: number;
+  status: OrderStatus;
   message: string;
 }
 
@@ -61,6 +61,7 @@ export interface ListMerchantOrdersItem {
   customerName: string;
   dropOffAddress: string;
   status: OrderStatus;
+  orderReference: string | null;
   createdAt: string;
 }
 
@@ -72,6 +73,7 @@ export interface GetOrderResponse {
   customerPhone: string;
   dropOffAddress: string;
   status: OrderStatus;
+  orderReference: string | null;
   createdAt: string;
   acceptedAt: string | null;
   pickedUpAt: string | null;
@@ -83,6 +85,30 @@ export interface CancelOrderResponse {
   message: string;
 }
 
+export interface VerifyPickupResponse {
+  orderId: string;
+  orderReference: string | null;
+  message: string;
+}
+
+export interface AcceptOrderResponse {
+  pickupCode: string;
+  message: string;
+}
+
+export interface GetPickupCodeResponse {
+  pickupCode: string;
+}
+
+export interface PickupOrderResponse {
+  orderId: string;
+  message: string;
+}
+
+export interface DeliverOrderResponse {
+  orderId: string;
+  message: string;
+}
 
 export interface ListDriverOrdersItem {
   id: string;

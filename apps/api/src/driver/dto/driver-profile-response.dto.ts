@@ -1,5 +1,22 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { DriverStatus, VehicleType } from '@prisma/client';
+import { DocumentType, DriverStatus, KycStatus, VehicleType } from '@prisma/client';
+
+class DriverDocumentDto {
+  @ApiProperty({ format: 'uuid' })
+  id: string;
+
+  @ApiProperty({ enum: DocumentType })
+  type: DocumentType;
+
+  @ApiProperty()
+  url: string;
+
+  @ApiProperty()
+  verified: boolean;
+
+  @ApiProperty({ nullable: true })
+  rejectionReason: string | null;
+}
 
 export class DriverProfileResponseDto {
   @ApiProperty({ format: 'uuid' })
@@ -37,4 +54,10 @@ export class DriverProfileResponseDto {
 
   @ApiProperty({ enum: DriverStatus, example: DriverStatus.AVAILABLE })
   status: DriverStatus;
+
+  @ApiProperty({ enum: KycStatus })
+  kycStatus: KycStatus;
+
+  @ApiProperty({ type: [DriverDocumentDto] })
+  documents: DriverDocumentDto[];
 }

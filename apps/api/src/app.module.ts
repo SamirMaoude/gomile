@@ -20,6 +20,7 @@ import { SubscriptionModule } from './subscription/subscription.module';
 import { WebhookModule } from './webhook/webhook.module';
 import { NotificationModule } from './notification/notification.module';
 import { SmsModule } from './sms/sms.module';
+import { EventsModule } from './events/events.module';
 
 @Module({
   imports: [
@@ -41,7 +42,8 @@ import { SmsModule } from './sms/sms.module';
     SubscriptionModule,
     WebhookModule,
     NotificationModule,
-    SmsModule
+    SmsModule,
+    EventsModule
   ],
   controllers: [AppController],
   providers: [AppService],

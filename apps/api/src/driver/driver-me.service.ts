@@ -23,12 +23,14 @@ import { SessionVehicleDto } from './dto/session-vehicle.dto';
 import { DashboardResponseDto } from './dto/dashboard-response.dto';
 import { CreateDriverDocumentDto } from './dto/create-driver-document.dto';
 import { KYC_ERRORS } from 'src/kyc/kyc.error';
+import { EventsGateway } from '../events/events.gateway';
 
 @Injectable()
 export class DriverMeService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly uploadService: UploadService,
+    private readonly eventsGateway: EventsGateway
   ) {}
 
   // update postgis location manually
@@ -133,6 +135,8 @@ export class DriverMeService {
         status: newStatus,
       },
     });
+
+    this.eventsGateway.emitDriverStatus(user.id, newStatus)
     return {
       status: newStatus, // returning the current status of the driver after the toggle
     };
@@ -214,11 +218,22 @@ export class DriverMeService {
         activeVehicle: true,
         gomileCode: true,
         status: true,
+        kycStatus: true,
         user: {
           select: {
             email: true,
             phone: true,
           },
+        },
+        driverDocuments: {
+          select: {
+            id: true,
+            type: true,
+            url: true,
+            verified: true,
+            rejectionReason: true,
+          },
+          orderBy: { createdAt: 'desc' },
         },
       },
     });
@@ -241,6 +256,8 @@ export class DriverMeService {
       activeVehicle: driver.activeVehicle,
       gomileCode: driver.gomileCode,
       status: driver.status,
+      kycStatus: driver.kycStatus,
+      documents: driver.driverDocuments,
     };
   }
 

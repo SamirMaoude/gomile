@@ -27,6 +27,7 @@ import { randomInt } from 'crypto';
 import { OpenRouteService } from '../../delivery/openrouteservice.service';
 import { DeliveryPricingService } from '../../delivery/delivery-pricing.service';
 import { SmsService } from '../../sms/sms.service';
+import { EventsGateway } from '../../events/events.gateway';
 
 @Injectable()
 export class OrderService {
@@ -39,6 +40,7 @@ export class OrderService {
     private readonly notificationService: NotificationService,
     private readonly outboundWebhook: OutboundWebhookService,
     private readonly smsService: SmsService,
+    private readonly eventsGateway: EventsGateway
   ) {}
   private handshakeTTL = 12 * 60 * 60 * 1000; // 12h for short deliveries, or maybe less
 
@@ -305,6 +307,7 @@ export class OrderService {
         cancelledAt: new Date(),
       },
     });
+    this.eventsGateway.emitOrderStatus(orderId, OrderStatus.CANCELLED)
     this.outboundWebhook.fireOrderEvent(orderId, OrderStatus.CANCELLED);
     return { message: ORDER_MESSAGE.ORDER_CANCELLED };
   }
@@ -420,7 +423,7 @@ export class OrderService {
         )
         .catch((err) => this.logger.error('SMS on pickup verify failed', err));
     }
-
+    this.eventsGateway.emitOrderStatus(handshake.orderId, OrderStatus.PICKED_UP)
     return {
       orderId: handshake.orderId,
       orderReference: handshake.order.orderReference,

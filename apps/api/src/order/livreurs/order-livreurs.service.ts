@@ -26,6 +26,7 @@ import { ORDER_MESSAGE } from '../order-messages';
 import { SmsService } from '../../sms/sms.service';
 import { OutboundWebhookService } from '../../webhook/outbound-webhook.service';
 import { Logger } from '@nestjs/common';
+import { EventsGateway } from '../../events/events.gateway';
 
 @Injectable()
 export class OrderLivreursService {
@@ -34,6 +35,7 @@ export class OrderLivreursService {
     private readonly sms: SmsService,
     private readonly outboundWebhook: OutboundWebhookService,
     private readonly logger: Logger,
+    private readonly eventsGateway: EventsGateway
   
   ) {}
   private async existsDriver(driverId: string) {
@@ -144,6 +146,7 @@ export class OrderLivreursService {
       );
     }
 
+    this.eventsGateway.emitOrderStatus(orderId, OrderStatus.DRIVER_ACCEPTED)
     this.outboundWebhook.fireOrderEvent(orderId, OrderStatus.DRIVER_ACCEPTED);
 
     // Driver should present to the merchant presenting the pickup code
@@ -320,6 +323,8 @@ export class OrderLivreursService {
       `${driver.firstName} has picked up your order and is on the way ! \n
       Please show the following code to the driver when he arrives: ${deliveryHandshake.code}`,
     ).catch((err) => this.logger.error('SMS on order pickup failed', err));
+    
+    this.eventsGateway.emitOrderStatus(orderId, OrderStatus.PICKED_UP)
     this.outboundWebhook.fireOrderEvent(orderId, OrderStatus.PICKED_UP);
 
     return { orderId: orderId, message: ORDER_MESSAGE.ORDER_PICKED_UP };
@@ -452,7 +457,7 @@ export class OrderLivreursService {
         ]);
       }
     }
-
+    this.eventsGateway.emitOrderStatus(orderId, OrderStatus.DELIVERED)
     this.outboundWebhook.fireOrderEvent(orderId, OrderStatus.DELIVERED);
 
     return { orderId: orderId, message: ORDER_MESSAGE.ORDER_DELIVERED };
