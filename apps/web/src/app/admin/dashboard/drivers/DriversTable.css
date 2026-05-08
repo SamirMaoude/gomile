@@ -194,28 +194,33 @@
   justify-content: flex-end;
 }
 
-.admin-drivers-action-button {
+.admin-drivers-details-button {
   display: inline-flex;
-  width: 2.25rem;
-  height: 2.25rem;
   align-items: center;
   justify-content: center;
-  border: 0;
+  gap: 0.45rem;
+  min-height: 2.25rem;
+  border: 1px solid #cbd5e1;
   border-radius: 0.75rem;
-  background: transparent;
-  color: #64748b;
+  background: #ffffff;
+  padding: 0 0.75rem;
+  color: #334155;
+  font-size: 0.8125rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: background-color 0.2s, color 0.2s;
+  transition: border-color 0.2s, background-color 0.2s, color 0.2s;
+  white-space: nowrap;
 }
 
-.admin-drivers-action-button:hover {
+.admin-drivers-details-button:hover {
+  border-color: #94a3b8;
   background: #f1f5f9;
-  color: #1e293b;
+  color: #0f172a;
 }
 
-.admin-drivers-action-icon {
-  width: 1.25rem;
-  height: 1.25rem;
+.admin-drivers-details-icon {
+  width: 1rem;
+  height: 1rem;
 }
 
 .admin-drivers-feedback,

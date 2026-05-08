@@ -1,0 +1,441 @@
+.admin-driver-detail-back-button,
+.admin-driver-detail-review-button {
+  display: inline-flex;
+  min-height: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  padding: 0 0.9rem;
+  color: #334155;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.2s, background-color 0.2s, color 0.2s;
+}
+
+.admin-driver-detail-back-button:hover,
+.admin-driver-detail-review-button:hover {
+  border-color: #94a3b8;
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.admin-driver-detail-review-button:disabled {
+  border-color: #e2e8f0;
+  background: #f8fafc;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+.admin-driver-detail-button-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.admin-driver-detail-button-label {
+  color: inherit !important;
+  font-size: inherit !important;
+  line-height: inherit !important;
+}
+
+.admin-driver-detail-message {
+  margin-top: 1rem;
+}
+
+.admin-driver-detail-feedback,
+.admin-driver-detail-error,
+.admin-driver-detail-success {
+  margin-top: 1.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  background: #ffffff;
+  padding: 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.admin-driver-detail-feedback {
+  color: #475569;
+}
+
+.admin-driver-detail-error {
+  color: #e11d48;
+}
+
+.admin-driver-detail-success {
+  color: #15803d;
+}
+
+.admin-driver-detail-hero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 1.5rem;
+  background: #ffffff;
+  padding: 1.5rem;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.06);
+}
+
+.admin-driver-detail-profile {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 1rem;
+}
+
+.admin-driver-detail-avatar {
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.18);
+}
+
+.admin-driver-detail-title {
+  color: #020617 !important;
+  font-size: 2rem !important;
+  line-height: 2.35rem !important;
+}
+
+.admin-driver-detail-meta-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem 1rem;
+  margin-top: 0.75rem;
+}
+
+.admin-driver-detail-icon-text {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.45rem;
+  color: #475569;
+  font-size: 0.875rem;
+}
+
+.admin-driver-detail-meta-icon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  color: #64748b;
+}
+
+.admin-driver-detail-statuses {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.admin-driver-detail-chip,
+.admin-driver-detail-decision {
+  display: inline-flex;
+  min-height: 2rem;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0 0.8rem;
+  font-size: 0.8125rem;
+  font-weight: 800;
+}
+
+.admin-driver-detail-chip {
+  min-height: 2rem;
+  color: #334155;
+}
+
+.admin-driver-detail-stats-grid,
+.admin-driver-detail-info-grid {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.admin-driver-detail-stats-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.admin-driver-detail-info-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.admin-driver-detail-stat,
+.admin-driver-detail-panel {
+  border: 1px solid #e2e8f0;
+  border-radius: 1.25rem;
+  background: #ffffff;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.05);
+}
+
+.admin-driver-detail-stat {
+  display: grid;
+  gap: 0.35rem;
+  padding: 1rem;
+}
+
+.admin-driver-detail-stat-label {
+  color: #64748b;
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.admin-driver-detail-stat strong {
+  color: #020617;
+  font-size: 1.35rem;
+  line-height: 1.8rem;
+}
+
+.admin-driver-detail-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.admin-driver-detail-star {
+  width: 1.1rem;
+  height: 1.1rem;
+  fill: #fbbf24;
+  color: #fbbf24;
+}
+
+.admin-driver-detail-wallet {
+  width: 1.1rem;
+  height: 1.1rem;
+  color: #16a34a;
+}
+
+.admin-driver-detail-panel {
+  margin-top: 1rem;
+  padding: 1.25rem;
+}
+
+.admin-driver-detail-info-grid .admin-driver-detail-panel {
+  margin-top: 0;
+}
+
+.admin-driver-detail-chart {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  overflow-x: auto;
+}
+
+.admin-driver-detail-panel-title {
+  margin-bottom: 1rem;
+  color: #020617 !important;
+  font-size: 1.125rem !important;
+}
+
+.admin-driver-detail-list {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.admin-driver-detail-list div {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.admin-driver-detail-list dt,
+.admin-driver-detail-muted {
+  color: #64748b;
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.admin-driver-detail-list dd {
+  color: #0f172a;
+  font-size: 0.925rem;
+  font-weight: 600;
+}
+
+.admin-driver-detail-kyc-history {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.admin-driver-detail-kyc-submission {
+  display: grid;
+  gap: 0.25rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.875rem;
+  padding: 0.85rem;
+}
+
+.admin-driver-detail-kyc-badge {
+  width: fit-content;
+  min-height: 2rem;
+  padding: 0 0.8rem;
+}
+
+.admin-driver-detail-kyc-submission > span {
+  color: #0f172a;
+  font-weight: 800;
+}
+
+.admin-driver-detail-kyc-submission time,
+.admin-driver-detail-kyc-submission-date,
+.admin-driver-detail-kyc-submission p,
+.admin-driver-detail-document-meta,
+.admin-driver-detail-document-note {
+  color: #64748b;
+  font-size: 0.8125rem !important;
+  font-weight: 600;
+}
+
+.admin-driver-detail-section-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.admin-driver-detail-documents {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.admin-driver-detail-document {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  padding: 1rem;
+}
+
+.admin-driver-detail-document-main {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.admin-driver-detail-document-main div {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.admin-driver-detail-document-title {
+  color: #020617;
+  font-size: 0.95rem !important;
+}
+
+.admin-driver-detail-document-icon {
+  width: 1.4rem;
+  height: 1.4rem;
+  flex-shrink: 0;
+  color: #64748b;
+}
+
+.admin-driver-detail-document-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.admin-driver-detail-rejection-field {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.admin-driver-detail-rejection-input {
+  min-height: 5rem;
+  width: 100%;
+  resize: vertical;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.875rem;
+  background: #ffffff;
+  padding: 0.8rem 0.9rem;
+  color: #0f172a;
+  font-size: 0.9rem;
+  font-weight: 600;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.admin-driver-detail-rejection-input:focus {
+  border-color: #94a3b8;
+  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.2);
+}
+
+.admin-driver-detail-rejection-input:disabled {
+  background: #f8fafc;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+.admin-driver-detail-final-decision {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+  padding-top: 1rem;
+}
+
+.admin-driver-detail-decision-pending {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.admin-driver-detail-decision-accepted {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.admin-driver-detail-decision-rejected {
+  background: #ffe4e6;
+  color: #be123c;
+}
+
+.admin-driver-detail-review-accept {
+  border-color: #bbf7d0;
+  color: #166534;
+}
+
+.admin-driver-detail-review-reject {
+  border-color: #fecdd3;
+  color: #be123c;
+}
+
+.admin-driver-detail-review-open {
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+
+@media (max-width: 900px) {
+  .admin-driver-detail-stats-grid,
+  .admin-driver-detail-info-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .admin-driver-detail-profile,
+  .admin-driver-detail-document,
+  .admin-driver-detail-document-actions {
+    align-items: flex-start;
+  }
+
+  .admin-driver-detail-profile {
+    flex-direction: column;
+  }
+
+  .admin-driver-detail-title {
+    font-size: 1.55rem !important;
+    line-height: 2rem !important;
+  }
+
+  .admin-driver-detail-document-actions {
+    justify-content: flex-start;
+  }
+}

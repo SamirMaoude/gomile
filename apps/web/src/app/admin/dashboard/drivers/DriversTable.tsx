@@ -2,13 +2,14 @@
 
 import { useMemo, useState } from "react";
 import {
+  Eye,
   Mail,
   MapPin,
-  MoreHorizontal,
   Phone,
   Search,
   Star,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 import Avatar from "@/components/ui/design-system/avatar";
 import Input from "@/components/ui/design-system/input/input";
@@ -23,11 +24,11 @@ import {
   getDriverName,
   getDriverPhone,
   getDriverRegistrationDate,
+  getDriverKycStatusLabel,
+  getDriverStatusLabel,
   getDriverVehicle,
   getDriverZone,
   getFilteredDrivers,
-  kycLabels,
-  statusLabels,
   type DriverWithOptionalListFields,
   type KycOption,
   type StatusOption,
@@ -50,6 +51,7 @@ export default function DriversTable({
   const [statusFilter, setStatusFilter] = useState<StatusOption>("all");
   const [kycFilter, setKycFilter] = useState<KycOption>("all");
   const [vehicleFilter, setVehicleFilter] = useState<VehicleOption>("all");
+  const router = useRouter();
 
   const filteredDrivers = useMemo(() => {
     return getFilteredDrivers(drivers, {
@@ -130,19 +132,19 @@ export default function DriversTable({
     },
     {
       key: "status",
-      header: "Statut",
+      header: "Statut activite",
       render: (driver) => (
         <span className="admin-drivers-status-text">
-          {statusLabels[driver.status]}
+          {getDriverStatusLabel(driver.status)}
         </span>
       ),
     },
     {
       key: "kyc",
-      header: "Inscription",
+      header: "Statut KYC",
       render: (driver) => (
         <span className="admin-drivers-status-text">
-          {kycLabels[driver.kycStatus]}
+          {getDriverKycStatusLabel(driver.kycStatus)}
         </span>
       ),
     },
@@ -172,11 +174,18 @@ export default function DriversTable({
       header: "Actions",
       headerClassName: "admin-drivers-actions-header",
       cellClassName: "admin-drivers-actions-cell",
-      render: () => (
-        <button type="button" className="admin-drivers-action-button" aria-label="Actions livreur">
-          <MoreHorizontal className="admin-drivers-action-icon" />
-        </button>
-      ),
+      render: (driver) => {
+        return (
+          <button
+            type="button"
+            className="admin-drivers-details-button"
+            onClick={() => router.push(`/admin/dashboard/drivers/${driver.userId}`)}
+          >
+            <Eye className="admin-drivers-details-icon" />
+            Get details
+          </button>
+        );
+      },
     },
   ];
 
@@ -208,25 +217,25 @@ export default function DriversTable({
             value={statusFilter}
             onChange={(event) => setStatusFilter(event.target.value as StatusOption)}
             className="admin-drivers-select"
-            aria-label="Filtrer par statut"
+            aria-label="Filtrer par statut d'activite"
           >
-            <option value="all">Tous les statuts</option>
-            <option value="approved">Actifs</option>
-            <option value="pending">En attente</option>
-            <option value="denied">Inactifs</option>
+            <option value="all">Tous les statuts activite</option>
+            <option value="AVAILABLE">Disponibles</option>
+            <option value="BUSY">Occupes</option>
+            <option value="OFFLINE">Hors ligne</option>
           </select>
 
           <select
             value={kycFilter}
             onChange={(event) => setKycFilter(event.target.value as KycOption)}
             className="admin-drivers-select"
-            aria-label="Filtrer par inscription"
+            aria-label="Filtrer par statut KYC"
           >
-            <option value="all">Toutes inscriptions</option>
-            <option value="APPROVED">Validees</option>
+            <option value="all">Tous les statuts KYC</option>
+            <option value="ACCEPTED">Validees</option>
             <option value="PENDING">En attente</option>
             <option value="REJECTED">Refusees</option>
-            <option value="NONE">Non verifiees</option>
+            <option value="NOT_SUBMITTED">Non verifiees</option>
           </select>
 
           <select
@@ -258,7 +267,7 @@ export default function DriversTable({
               columns={columns}
               rows={filteredDrivers}
               rowKey={(driver) => driver.userId}
-              gridTemplateColumns="1.5fr 1.9fr 1.1fr 1.05fr 1fr 1.05fr 0.8fr 0.7fr 0.6fr"
+              gridTemplateColumns="1.5fr 1.9fr 1.1fr 1.05fr 1fr 1.05fr 0.8fr 0.7fr 0.9fr"
               headerRowClassName="admin-drivers-table-head"
               bodyClassName="admin-drivers-table-body"
               rowClassName="admin-drivers-table-row"

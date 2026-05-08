@@ -1,3 +1,5 @@
+'use client'
+
 import Button from "@/components/ui/design-system/button/button";
 import Typography from "@/components/ui/design-system/typography";
 import Container from "@/components/ui/elements/container";
@@ -5,11 +7,28 @@ import Image from "next/image";
 import Badge from "@/components/ui/design-system/cards/badge";
 import { Package } from 'lucide-react';
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { getAllDriverOrders } from "@/app/admin/dashboard/admin";
+import { get } from "http";
 
+type Stats = {
+    totalDeliveries: number;
+    totalMerchants: number;
+}
 
 export default function HeroSection(){
     const statsStyle = "grid max-w-xl grid-cols-2 gap-6 border-t border-black/10 pt-6 sm:grid-cols-3 sm:gap-8"
     const statStyle = "flex min-w-0 flex-col gap-1"
+    const [stats, setStats] = useState<Stats>({
+        totalDeliveries: 0,
+        totalMerchants: 0
+    });
+    
+    useEffect(() => { getAllDriverOrders().then((data) => {
+        const totalDeliveries = data.length;
+        const totalMerchants = new Set(data.map(order => order.merchantId)).size;
+    setStats({ totalDeliveries, totalMerchants});
+    })}, [])
     return (
             <Container Component="section" size='full' className="hero-container" bg_theme="hero" padding={false}>
                 <div className="mx-auto grid w-full max-w-6xl items-center gap-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(20rem,0.85fr)]">
@@ -36,19 +55,19 @@ export default function HeroSection(){
                     
                         <div className={statsStyle}>
                             <div className={statStyle}>
-                                <Typography variant='h5' weight='bold' theme='primary' Component="span">
-                                    stats
+                                <Typography variant='h3' weight='bold' theme='primary' Component="span">
+                                    {stats.totalDeliveries}
                                 </Typography>
-                                <Typography variant='p' weight='light' theme="grey" Component="p">
-                                    texte
+                                <Typography variant='p' weight='bold' theme="grey" Component="p">
+                                    livraisons effectuées
                                 </Typography>
                             </div>
                             <div className={statStyle}>
-                                <Typography variant='h5' weight='bold' theme='primary' Component="span">
-                                    stats
+                                <Typography variant='h3' weight='bold' theme='primary' Component="span">
+                                    {stats.totalMerchants}
                                 </Typography>
-                                <Typography variant='p' weight='light' theme="grey" Component="p">
-                                    texte
+                                <Typography variant='p' weight='bold' theme="grey" Component="p">
+                                    Marchands nous font confiance
                                 </Typography>
                             </div>
                             <div className={statStyle}>
