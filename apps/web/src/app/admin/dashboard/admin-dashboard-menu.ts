@@ -8,7 +8,8 @@ import UserIcon from "@/components/ui/icons/UserIcon";
 export const adminDashboardMenuItems: DashboardMenuItem[] = [
   { label: "Vue d'ensemble", href: "/admin/dashboard", icon: HomeIcon },
   { label: "Livreurs", href: "/admin/dashboard/drivers", icon: UserIcon },
-  { label: "Marchands", href: "/admin/dashboard/merchants", icon: TruckIcon }
+  { label: "Marchands", href: "/admin/dashboard/merchants", icon: TruckIcon },
+  {label: "administrateurs", href: "/admin/dashboard/admins", icon: SettingIcon},
 ];
 
 export function getAdminDashboardMenuItems(activeLabel: string) {
