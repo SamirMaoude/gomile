@@ -164,7 +164,7 @@ model Merchant {
 model MerchantApiKey {
   id          String    @id @default(uuid()) @db.Uuid
   merchantId  String    @db.Uuid
-  storeId     String    @db.Uuid @unique
+  storeId     String    @db.Uuid
   name        String
   keyHash     String    @unique
   createdAt   DateTime  @default(now())
