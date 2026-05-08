@@ -24,6 +24,7 @@ import { DashboardResponseDto } from './dto/dashboard-response.dto';
 import { CreateDriverDocumentDto } from './dto/create-driver-document.dto';
 import { KYC_ERRORS } from 'src/kyc/kyc.error';
 import { EventsGateway } from '../events/events.gateway';
+import { ORDER_ERRORS } from 'src/order/order-errors';
 
 @Injectable()
 export class DriverMeService {
@@ -85,7 +86,7 @@ export class DriverMeService {
     };
   }
 
-  // Check available orders using postgis
+  // Check available orders using postgis, excluding rejected ones
   async availableOrders(user: AuthenticatedUser) {
     return this.prisma.$queryRaw`
     select
@@ -104,13 +105,32 @@ export class DriverMeService {
     from "Order" o
     join "Store" s on s.id = o."storeId"
     join "Driver" d on d."userId" = ${user.id}
+    left join "DriverOrderRejection" r
+      on r."orderId" = o.id
+      and r."driverId" = ${user.id}
     where o.status = 'SEARCHING_DRIVER'
     and ST_DWithin(
       s.location::geography,
       d."lastKnownLocation"::geography,
       d."deliveryRadius" * 1000
     )
+    and r."orderId" is null
     `;
+  }
+
+  async rejectOrder(user: AuthenticatedUser, orderId: string) {
+    const order = await this.prisma.order.findUnique({ where: { id: orderId } });
+    if (!order) {
+      throw new NotFoundException(createApiError('ORDER_NOT_FOUND', ORDER_ERRORS));
+    }
+
+    await this.prisma.driverOrderRejection.upsert({
+      where: { driverId_orderId: { driverId: user.id, orderId } },
+      create: { driverId: user.id, orderId },
+      update: {},
+    });
+
+    return { message: 'Order rejected' };
   }
 
   // Toggle driver's availabitlity (if a driver is accepting order or not

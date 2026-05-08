@@ -68,6 +68,18 @@ export class DriverMeController {
     return this.driverMeService.availableOrders(user);
   }
 
+  @ApiOperation({ summary: 'Reject an available mission' })
+  @ApiOkResponse({ description: 'Mission rejected' })
+  @ApiNotFoundResponse({ description: 'Order not found' })
+  @Post('missions/:missionId/reject')
+  @HttpCode(HttpStatus.OK)
+  async rejectMission(
+    @Param('missionId') missionId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.driverMeService.rejectOrder(user, missionId);
+  }
+
   @ApiOperation({
     summary: 'Accept an available mission',
     description:
