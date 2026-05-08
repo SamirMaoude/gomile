@@ -3,7 +3,7 @@ import { Logger } from '@nestjs/common';
 import { TasksService } from 'src/tasks/tasks.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { EmailService } from 'src/emails/email.service';
-import { SubscriptionStatus } from '@prisma/client';
+import { OrderStatus, SubscriptionStatus } from '@prisma/client';
 
 jest.spyOn(Logger.prototype, 'log').mockImplementation(() => {});
 
@@ -11,6 +11,9 @@ const mockPrisma = {
   user: { deleteMany: jest.fn() },
   merchant: { findMany: jest.fn(), update: jest.fn() },
   store: { updateMany: jest.fn() },
+  merchantApiKey: { updateMany: jest.fn() },
+  driverOrderRejection: { deleteMany: jest.fn() },
+  handshake: { deleteMany: jest.fn() },
 };
 
 const mockEmail = {
@@ -144,6 +147,110 @@ describe('TasksService', () => {
       mockPrisma.merchant.findMany.mockResolvedValue([]);
       await service.warnExpiringSubscriptions();
       expect(mockEmail.sendSubscriptionRenewing).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('revokeExpiredApiKeys', () => {
+    it('stamps revokedAt on keys past their expiresAt', async () => {
+      mockPrisma.merchantApiKey.updateMany.mockResolvedValue({ count: 2 });
+      await service.revokeExpiredApiKeys();
+      expect(mockPrisma.merchantApiKey.updateMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { revokedAt: null, expiresAt: { lt: expect.any(Date) } },
+          data: { revokedAt: expect.any(Date) },
+        }),
+      );
+    });
+
+    it('logs the number of revoked keys', async () => {
+      mockPrisma.merchantApiKey.updateMany.mockResolvedValue({ count: 3 });
+      await service.revokeExpiredApiKeys();
+      expect(Logger.prototype.log).toHaveBeenCalledWith(expect.stringContaining('3'));
+    });
+  });
+
+  describe('lockOverduePastDueSubscriptions', () => {
+    const overdueMerchant = {
+      userId: 'merchant1',
+      name: 'Shop',
+      user: { email: 'merchant@test.com' },
+    };
+
+    it('locks stores and merchant for overdue PAST_DUE subscriptions', async () => {
+      mockPrisma.merchant.findMany.mockResolvedValue([overdueMerchant]);
+      mockPrisma.store.updateMany.mockResolvedValue({});
+      mockPrisma.merchant.update.mockResolvedValue({});
+      mockEmail.sendAccountLocked.mockResolvedValue(undefined);
+
+      await service.lockOverduePastDueSubscriptions();
+
+      expect(mockPrisma.store.updateMany).toHaveBeenCalledWith(
+        expect.objectContaining({ data: { isLocked: true } }),
+      );
+      expect(mockPrisma.merchant.update).toHaveBeenCalledWith(
+        expect.objectContaining({ data: { subscriptionStatus: SubscriptionStatus.LOCKED } }),
+      );
+      expect(mockEmail.sendAccountLocked).toHaveBeenCalledWith(
+        'merchant@test.com',
+        'Shop',
+        expect.any(String),
+      );
+    });
+
+    it('does nothing when no overdue PAST_DUE merchants', async () => {
+      mockPrisma.merchant.findMany.mockResolvedValue([]);
+      await service.lockOverduePastDueSubscriptions();
+      expect(mockPrisma.store.updateMany).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('purgeOldOrderRejections', () => {
+    it('deletes rejections for orders no longer in SEARCHING_DRIVER', async () => {
+      mockPrisma.driverOrderRejection.deleteMany.mockResolvedValue({ count: 150 });
+      await service.purgeOldOrderRejections();
+      expect(mockPrisma.driverOrderRejection.deleteMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: {
+            order: {
+              status: {
+                in: expect.arrayContaining([
+                  OrderStatus.DRIVER_ACCEPTED,
+                  OrderStatus.DELIVERED,
+                  OrderStatus.CANCELLED,
+                ]),
+              },
+            },
+          },
+        }),
+      );
+    });
+
+    it('logs the number of purged rejections', async () => {
+      mockPrisma.driverOrderRejection.deleteMany.mockResolvedValue({ count: 42 });
+      await service.purgeOldOrderRejections();
+      expect(Logger.prototype.log).toHaveBeenCalledWith(expect.stringContaining('42'));
+    });
+  });
+
+  describe('purgeClosedOrderHandshakes', () => {
+    it('deletes handshakes for delivered and cancelled orders', async () => {
+      mockPrisma.handshake.deleteMany.mockResolvedValue({ count: 20 });
+      await service.purgeClosedOrderHandshakes();
+      expect(mockPrisma.handshake.deleteMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: {
+            order: {
+              status: { in: expect.arrayContaining(['DELIVERED', 'CANCELLED']) },
+            },
+          },
+        }),
+      );
+    });
+
+    it('logs the number of purged handshakes', async () => {
+      mockPrisma.handshake.deleteMany.mockResolvedValue({ count: 8 });
+      await service.purgeClosedOrderHandshakes();
+      expect(Logger.prototype.log).toHaveBeenCalledWith(expect.stringContaining('8'));
     });
   });
 });

@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { SubscriptionStatus } from '@prisma/client';
+import { OrderStatus, SubscriptionStatus } from '@prisma/client';
 import { EmailService } from '../emails/email.service';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -113,6 +113,88 @@ export class TasksService {
       );
     }
     this.logger.log(`Renewal warnings sent to ${merchants.length} merchants`);
+  }
+
+  // API keys with expiresAt in the past but revokedAt still null show up as active in listings.
+  // This nightly job stamps revokedAt on them so the state is consistent.
+  @Cron(CronExpression.EVERY_DAY_AT_2AM)
+  async revokeExpiredApiKeys() {
+    const { count } = await this.prisma.merchantApiKey.updateMany({
+      where: {
+        revokedAt: null,
+        expiresAt: { lt: new Date() },
+      },
+      data: { revokedAt: new Date() },
+    });
+    this.logger.log(`Revoked ${count} expired API keys`);
+  }
+
+  // Stripe fires customer.subscription.deleted when a PAST_DUE subscription is finally killed,
+  // but if that webhook is missed the merchant stays PAST_DUE with stores still active.
+  // We lock any merchant stuck in PAST_DUE for more than 14 days.
+  @Cron(CronExpression.EVERY_DAY_AT_2AM)
+  async lockOverduePastDueSubscriptions() {
+    const cutoff = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+
+    const merchants = await this.prisma.merchant.findMany({
+      where: {
+        subscriptionStatus: SubscriptionStatus.PAST_DUE,
+        currentPeriodEnd: { lt: cutoff },
+      },
+      include: { user: true },
+    });
+
+    for (const merchant of merchants) {
+      await this.prisma.store.updateMany({
+        where: { merchantId: merchant.userId },
+        data: { isLocked: true },
+      });
+      await this.prisma.merchant.update({
+        where: { userId: merchant.userId },
+        data: { subscriptionStatus: SubscriptionStatus.LOCKED },
+      });
+      await this.emailService.sendAccountLocked(
+        merchant.user.email,
+        merchant.name,
+        `${process.env.APP_URL}/upgrade`,
+      );
+    }
+    this.logger.log(`Locked ${merchants.length} overdue PAST_DUE merchants`);
+  }
+
+  // Rejections are only useful while the order is SEARCHING_DRIVER.
+  // Once the order moves to any other status, the rejection rows are dead weight.
+  @Cron(CronExpression.EVERY_WEEKEND) // every Sunday at 3am
+  async purgeOldOrderRejections() {
+    const { count } = await this.prisma.driverOrderRejection.deleteMany({
+      where: {
+        order: {
+          status: {
+            in: [
+              OrderStatus.DRIVER_ACCEPTED,
+              OrderStatus.PICKED_UP,
+              OrderStatus.DELIVERED,
+              OrderStatus.CANCELLED,
+            ],
+          },
+        },
+      },
+    });
+    this.logger.log(`Purged ${count} old order rejections`);
+  }
+
+  // Handshake rows for closed orders are dead weight — they are never queried again
+  // once an order is delivered or cancelled. Weekly purge keeps the table clean.
+  @Cron(CronExpression.EVERY_WEEKEND) // every Sunday at 3am
+  async purgeClosedOrderHandshakes() {
+    const { count } = await this.prisma.handshake.deleteMany({
+      where: {
+        order: {
+          status: { in: [OrderStatus.DELIVERED, OrderStatus.CANCELLED] },
+        },
+      },
+    });
+    this.logger.log(`Purged ${count} handshakes from closed orders`);
   }
 
 }
