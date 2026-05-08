@@ -97,49 +97,6 @@ export class OrderLivreursController {
     return this.orderLivreursService.acceptOrder(user, driverId, orderId);
   }
 
-  @ApiOperation({
-    summary: 'Driver picks up an order',
-    description:
-      'Handshake type A, merchant provides driver a code, driver must enters the code to validate the pick up. Driver only have 3 attempts !',
-  })
-  @ApiOkResponse({
-    description: 'Order picked up successfully',
-    schema: {
-      properties: { orderId: { type: 'string' }, message: { type: 'string' } },
-    },
-  })
-  @ApiUnauthorizedResponse({ description: 'Invalid or missing JWT' })
-  @ApiForbiddenResponse({
-    description: 'Authenticated user does not own this driver account',
-  })
-  @ApiNotFoundResponse({ description: 'Driver or order not found' })
-  @ApiConflictResponse({
-    description: 'Order was already picked up, or was cancelled',
-  })
-  @ApiInternalServerErrorResponse({
-    description:
-      'Order has bad status or handshake not created/found, this should not happen. Ask your backend developer, Khoa, for info !',
-  })
-  @ApiTooManyRequestsResponse({
-    description:
-      'Driver entered too many false handshake code (3 false attempts allowed)',
-  })
-  @Roles(Role.DRIVER)
-  @Post('/orders/:orderId/pickup')
-  @HttpCode(HttpStatus.OK)
-  async pickupOrder(
-    @Param('driverId') driverId: string,
-    @Param('orderId') orderId: string,
-    @Body() dto: HandshakeDto,
-    @CurrentUser() user: AuthenticatedUser,
-  ) {
-    return this.orderLivreursService.pickupOrder(
-      user,
-      driverId,
-      orderId,
-      dto.code,
-    );
-  }
 
   @ApiOperation({
     summary: 'Retrieve OTP pickup code for an order',
