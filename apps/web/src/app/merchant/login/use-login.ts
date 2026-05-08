@@ -98,7 +98,7 @@ export function useLogin() {
         // Best-effort preload so the dashboard can show merchant.name immediately.
       }
 
-      setSuccess("Connexion reussie. Redirection vers votre dashboard...");
+      setSuccess("Connexion réussie. Redirection vers votre dashboard...");
 
       startTransition(() => {
         router.replace("/merchant/dashboard");

@@ -250,7 +250,7 @@ export default function DynamicTable<T>({
                   : "border-slate-200 text-slate-700 hover:bg-slate-50",
               ].join(" ")}
             >
-              Precedent
+              Précédent
             </button>
 
             <button

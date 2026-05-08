@@ -71,7 +71,7 @@ export default function MerchantApiKeysPage() {
         }
       />
 
-      <div className={styles.layout}>
+      <div className={styles.layoutFooterBelowViewport}>
         <DashboardSidebar
           items={apiKeysMenuItems}
           isCollapsed={isSidebarCollapsed}

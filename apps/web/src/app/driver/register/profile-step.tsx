@@ -46,6 +46,7 @@ export default function ProfileStep({
           id="driver-birth-date"
           name="dateOfBirth"
           type="date"
+          label="Date de naissance"
           placeholder="Date de naissance"
           leftIcon={<CalendarIcon className={styles.fieldIcon} />}
           error={errors.dateOfBirth}
@@ -57,6 +58,9 @@ export default function ProfileStep({
         />
 
         <div className={styles.selectContainer}>
+          <label htmlFor="driver-gender" className={styles.selectLabel}>
+            Genre
+          </label>
           <div
             className={cn(
               styles.selectWrapper,
@@ -92,7 +96,7 @@ export default function ProfileStep({
           id="driver-address"
           name="address"
           type="text"
-          placeholder="Adresse complete"
+          placeholder="Adresse complète"
           autoComplete="street-address"
           leftIcon={<AddressIcon className={styles.fieldIcon} />}
           error={errors.address}

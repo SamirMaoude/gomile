@@ -173,7 +173,7 @@ export default function ProfileSlot({
                 weight="semibold"
                 className="!text-inherit"
               >
-                {isLoggingOut ? "Deconnexion..." : "Deconnexion"}
+                {isLoggingOut ? "Déconnexion..." : "Déconnexion"}
               </Typography>
             </button>
           </div>

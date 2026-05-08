@@ -5,7 +5,19 @@ import { useEffect, useRef, useState } from "react";
 
 type LeafletModule = typeof import("leaflet");
 
-const GRENOBLE_CENTER: [number, number] = [45.1885, 5.7245];
+const DEFAULT_MAP_CENTER: [number, number] = [48.8566, 2.3522];
+const DEFAULT_MAP_ZOOM = 5;
+const USER_LOCATION_ZOOM = 14;
+const APPROXIMATE_USER_LOCATION_ZOOM = 10;
+
+type UserLocationKind = "approximate" | "precise";
+
+type IpLocationResponse = {
+  city?: string;
+  country_name?: string;
+  latitude?: number;
+  longitude?: number;
+};
 
 function escapeHtml(value: string) {
   return value
@@ -67,7 +79,7 @@ function markerColors(tone: MerchantMapMarker["tone"]) {
 function buildPopupContent(marker: MerchantMapMarker) {
   const status = marker.status ?? popupToneLabel(marker.tone);
   const destination = marker.destination ?? "Point de livraison";
-  const metaLabel = marker.metaLabel ?? "Mise a jour";
+  const metaLabel = marker.metaLabel ?? "Mise à jour";
   const metaValue = marker.metaValue
     ? `<div class="gomile-map-popup__eta">${escapeHtml(marker.metaValue)}</div>`
     : "";
@@ -87,7 +99,50 @@ function buildPopupContent(marker: MerchantMapMarker) {
   `;
 }
 
-export default function GrenobleDeliveryMap({
+async function fetchApproximateUserLocation(): Promise<{
+  city?: string;
+  country?: string;
+  lat: number;
+  lng: number;
+} | null> {
+  try {
+    const response = await fetch("https://ipapi.co/json/");
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const data = (await response.json()) as IpLocationResponse;
+
+    if (
+      !Number.isFinite(data.latitude)
+      || !Number.isFinite(data.longitude)
+    ) {
+      return null;
+    }
+
+    return {
+      city: data.city,
+      country: data.country_name,
+      lat: data.latitude as number,
+      lng: data.longitude as number,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function buildUserLocationPopup() {
+  return `
+    <div class="gomile-map-popup">
+      <div class="gomile-map-popup__top">
+        <div class="gomile-map-popup__id">Votre position</div>
+      </div>
+    </div>
+  `;
+}
+
+export default function DeliveryMap({
   markers = [],
 }: {
   markers?: MerchantMapMarker[];
@@ -96,12 +151,15 @@ export default function GrenobleDeliveryMap({
 
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<import("leaflet").Map | null>(null);
-  const markerLayerRef = useRef<import("leaflet").LayerGroup | null>(null);
+  const markerLayerRef = useRef<import("leaflet").FeatureGroup | null>(null);
+  const userMarkerRef = useRef<import("leaflet").CircleMarker | null>(null);
   const leafletRef = useRef<LeafletModule | null>(null);
+  const hasCenteredOnUserRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
     let resizeObserver: ResizeObserver | null = null;
+    let watchPositionId: number | null = null;
 
     async function initMap() {
       if (!containerRef.current || mapRef.current) {
@@ -117,8 +175,8 @@ export default function GrenobleDeliveryMap({
       leafletRef.current = L;
 
       const map = L.map(containerRef.current, {
-        center: GRENOBLE_CENTER,
-        zoom: 13,
+        center: DEFAULT_MAP_CENTER,
+        zoom: DEFAULT_MAP_ZOOM,
         zoomControl: true,
         scrollWheelZoom: true,
         minZoom: 2,
@@ -132,10 +190,94 @@ export default function GrenobleDeliveryMap({
 
       map.attributionControl.setPrefix(false);
 
-      const markerLayer = L.layerGroup().addTo(map);
+      const markerLayer = L.featureGroup().addTo(map);
 
       mapRef.current = map;
       markerLayerRef.current = markerLayer;
+
+      function placeUserMarker(
+        coordinates: [number, number],
+        kind: UserLocationKind,
+      ) {
+        if (!hasCenteredOnUserRef.current) {
+          map.setView(
+            coordinates,
+            kind === "precise"
+              ? USER_LOCATION_ZOOM
+              : APPROXIMATE_USER_LOCATION_ZOOM,
+            { animate: true },
+          );
+          hasCenteredOnUserRef.current = true;
+        }
+
+        if (userMarkerRef.current) {
+          userMarkerRef.current.setLatLng(coordinates);
+          userMarkerRef.current.setPopupContent(buildUserLocationPopup());
+          return;
+        }
+
+        userMarkerRef.current = L.circleMarker(
+          coordinates,
+          {
+            radius: kind === "precise" ? 9 : 11,
+            fillColor: kind === "precise" ? "#2563eb" : "#7c3aed",
+            color: "#ffffff",
+            dashArray: kind === "precise" ? undefined : "4 4",
+            weight: 3,
+            fillOpacity: kind === "precise" ? 0.95 : 0.78,
+          },
+        )
+          .bindPopup(
+            buildUserLocationPopup(),
+            {
+            closeButton: true,
+            offset: [0, -8],
+            className: "gomile-leaflet-popup",
+            maxWidth: 280,
+            },
+          )
+          .addTo(map);
+      }
+
+      async function placeApproximateUserMarker() {
+        const approximateLocation = await fetchApproximateUserLocation();
+
+        if (cancelled || !approximateLocation) {
+          return;
+        }
+
+        placeUserMarker(
+          [approximateLocation.lat, approximateLocation.lng],
+          "approximate",
+        );
+      }
+
+      if ("geolocation" in navigator) {
+        watchPositionId = navigator.geolocation.watchPosition(
+          (position) => {
+            if (cancelled) {
+              return;
+            }
+
+            const userCoordinates: [number, number] = [
+              position.coords.latitude,
+              position.coords.longitude,
+            ];
+
+            placeUserMarker(userCoordinates, "precise");
+          },
+          () => {
+            void placeApproximateUserMarker();
+          },
+          {
+            enableHighAccuracy: true,
+            maximumAge: 5_000,
+            timeout: 10_000,
+          },
+        );
+      } else {
+        void placeApproximateUserMarker();
+      }
 
       window.requestAnimationFrame(() => {
         if (cancelled) return;
@@ -161,6 +303,9 @@ export default function GrenobleDeliveryMap({
     return () => {
       cancelled = true;
       resizeObserver?.disconnect();
+      if (watchPositionId !== null && "geolocation" in navigator) {
+        navigator.geolocation.clearWatch(watchPositionId);
+      }
 
       if (mapRef.current) {
         mapRef.current.remove();
@@ -168,7 +313,9 @@ export default function GrenobleDeliveryMap({
       }
 
       markerLayerRef.current = null;
+      userMarkerRef.current = null;
       leafletRef.current = null;
+      hasCenteredOnUserRef.current = false;
       setIsMapReady(false);
     };
   }, []);
@@ -204,6 +351,13 @@ export default function GrenobleDeliveryMap({
 
       leafletMarker.addTo(markerLayer);
     });
+
+    if (!hasCenteredOnUserRef.current && markers.length > 0) {
+      map.fitBounds(markerLayer.getBounds(), {
+        padding: [32, 32],
+        maxZoom: 15,
+      });
+    }
   }, [markers, isMapReady]);
 
   return <div ref={containerRef} className="gomile-leaflet-map h-full w-full" />;

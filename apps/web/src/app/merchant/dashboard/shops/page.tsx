@@ -71,7 +71,7 @@ export default function MerchantShopsPage() {
         }
       />
 
-      <div className={styles.layout}>
+      <div className={styles.layoutFooterBelowViewport}>
         <DashboardSidebar
           items={shopsMenuItems}
           isCollapsed={isSidebarCollapsed}

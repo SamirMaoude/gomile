@@ -54,8 +54,8 @@ export type DriverRegisterStep = {
 export const driverRegisterSteps: DriverRegisterStep[] = [
   {
     id: 1,
-    title: "Identite",
-    description: "Renseignez vos informations de contact et d'acces.",
+    title: "Identité",
+    description: "Renseignez vos informations de contact et d'accès.",
   },
   {
     id: 2,
@@ -65,49 +65,42 @@ export const driverRegisterSteps: DriverRegisterStep[] = [
   {
     id: 3,
     title: "Livraison",
-    description: "Precisez votre zone et votre moyen de transport.",
+    description: "Précisez votre zone et votre moyen de transport.",
   },
   {
     id: 4,
     title: "Documents",
-    description: "Ajoutez uniquement les pieces que vous souhaitez fournir.",
+    description: "Ajoutez vos documents de vérification.",
   },
 ];
 
 export const driverRegisterDocumentOptions: Array<{
   field: DriverRegisterDocumentField;
-  helperText: string;
   label: string;
 }> = [
   {
     field: "cniFile",
-    label: "Carte d'identite",
-    helperText: "Image ou PDF de la piece d'identite.",
+    label: "Carte d'identité",
   },
   {
     field: "justificatifFile",
     label: "Justificatif de domicile",
-    helperText: "Le backend le range dans le type autre.",
   },
   {
     field: "permisFile",
-    label: "Permis de conduire",
-    helperText: "Optionnel, meme pour un transport motorise.",
+    label: "Permis de conduite",
   },
   {
     field: "carteGriseFile",
     label: "Carte grise",
-    helperText: "Optionnelle, meme pour un transport motorise.",
   },
   {
     field: "kbisFile",
     label: "KBIS",
-    helperText: "Le backend le range aussi dans le type autre.",
   },
   {
     field: "ribFile",
     label: "RIB",
-    helperText: "PDF ou image du document bancaire.",
   },
 ];
 

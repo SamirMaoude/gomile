@@ -21,38 +21,46 @@ export function formatDeliveryDate(value: string) {
   return formatOrderDate(value);
 }
 
+export function isDeliveryTrackingStatus(status: OrderStatus) {
+  return (
+    status === "DRIVER_ACCEPTED"
+    || status === "PICKED_UP"
+    || status === "DELIVERED"
+  );
+}
+
 export function resolveDeliveryStatusDate(order: Order) {
   switch (order.status) {
     case "DRIVER_ACCEPTED":
       return {
         date: order.acceptedAt ?? order.createdAt,
-        label: order.acceptedAt ? "Acceptee le" : "Creee le",
+        label: order.acceptedAt ? "Acceptée le" : "Créée le",
       };
     case "PICKED_UP":
       return {
         date: order.pickedUpAt ?? order.acceptedAt ?? order.createdAt,
-        label: order.pickedUpAt ? "Recuperee le" : "Creee le",
+        label: order.pickedUpAt ? "Récupérée le" : "Créée le",
       };
     case "DELIVERED":
       return {
         date: order.deliveredAt ?? order.pickedUpAt ?? order.createdAt,
-        label: order.deliveredAt ? "Livree le" : "Creee le",
+        label: order.deliveredAt ? "Livrée le" : "Créée le",
       };
     case "CANCELLED":
       return {
         date: order.cancelledAt ?? order.createdAt,
-        label: order.cancelledAt ? "Annulee le" : "Creee le",
+        label: order.cancelledAt ? "Annulée le" : "Créée le",
       };
     case "DRIVER_ASSIGNED":
       return {
         date: order.acceptedAt ?? order.createdAt,
-        label: order.acceptedAt ? "Assignee le" : "Creee le",
+        label: order.acceptedAt ? "Assignée le" : "Créée le",
       };
     case "SEARCHING_DRIVER":
     default:
       return {
         date: order.createdAt,
-        label: "Creee le",
+        label: "Créée le",
       };
   }
 }

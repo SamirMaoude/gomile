@@ -8,6 +8,7 @@ export const styles = {
   pageDark: "bg-slate-950 text-slate-100",
 
   layout: "flex flex-1 flex-col lg:flex-row",
+  layoutFooterBelowViewport: "flex min-h-screen flex-col lg:flex-row",
 
   sidebar: "shrink-0 transition-[width] duration-300 lg:flex lg:flex-col lg:border-r",
   sidebarExpanded: "flex w-full flex-col border-b lg:w-[19rem] lg:border-b-0",
@@ -165,6 +166,29 @@ export const styles = {
   handshakeErrorDark: "border-rose-900 bg-rose-950/60 text-rose-300",
   handshakeButton: "!w-full !justify-center !text-sm",
 
+  activityPanelBody: "grid max-h-[36rem] gap-5 overflow-y-auto px-4 py-4",
+  activityTitle: "font-display text-[1.25rem] font-bold sm:text-[1.55rem]",
+  activityGroup: "grid gap-3",
+  activityGroupTitle: "text-base font-bold",
+  activityList: "grid gap-2.5",
+  activityItem:
+    "grid gap-1 rounded-[1rem] border px-3 py-3",
+  notificationItem:
+    "flex gap-3 rounded-[1rem] border px-3 py-3",
+  notificationIcon:
+    "mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full",
+  notificationIconSvg: "h-[1.125rem] w-[1.125rem]",
+  notificationContent: "grid min-w-0 flex-1 gap-1",
+  activityItemHeader: "flex flex-wrap items-center justify-between gap-2",
+  activityPill:
+    "rounded-full bg-white px-2.5 py-1 text-[0.68rem] font-bold uppercase tracking-[0.04em] text-[#5f8f1f]",
+  activityText:
+    "line-clamp-2 text-sm leading-5 !text-inherit",
+  activityMeta: "text-xs leading-5",
+  overviewListsGrid: "mt-6 grid gap-5 xl:grid-cols-2",
+  topListCard: "!p-0 overflow-hidden",
+  topListBody: "px-4 py-4",
+
   deliveriesHeader: "border-b px-5 py-5",
   deliveriesHeaderLight: "border-slate-200",
   deliveriesHeaderDark: "border-slate-800",
@@ -204,6 +228,7 @@ export const styles = {
   statusOnTimeIcon: "text-emerald-500",
 
   deliveriesCard: "mt-6",
+  deliveriesHandshakeBlock: "mb-6",
 
   navbarItemBase:
     "flex items-center gap-3 rounded-[1.05rem] border font-semibold transition",

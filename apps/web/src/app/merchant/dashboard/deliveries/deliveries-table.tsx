@@ -42,7 +42,7 @@ export default function DeliveriesTable({ isDarkMode }: DeliveriesTableProps) {
               isDarkMode ? "!text-slate-400" : "!text-slate-500",
             )}
           >
-            Commande creee le {formatDeliveryDate(delivery.createdAt)}
+            Commande créée le {formatDeliveryDate(delivery.createdAt)}
           </Typography>
         </div>
       ),

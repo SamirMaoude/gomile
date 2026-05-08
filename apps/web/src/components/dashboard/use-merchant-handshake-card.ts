@@ -14,33 +14,24 @@ type MerchantHandshakeFeedback = {
 
 function normalizeHandshakeErrorMessage(error: unknown) {
   if (!(error instanceof Error)) {
-    return "Verification impossible pour le moment.";
+    return "Vérification impossible pour le moment.";
   }
 
   if (
     error.message === "Illegal order state" ||
     error.message === "Statut de commande incorrect pour cette operation"
   ) {
-    return "Cette verification fonctionne uniquement quand la commande est accepté par un livreur!";
+    return "Cette vérification fonctionne uniquement quand la commande est acceptée par un livreur!";
   }
 
   if (
     error.message === "Handshake not found ?!" ||
     error.message === "Code de handshake non trouve"
   ) {
-    return "Aucun code de prise en charge valide n'a ete trouve pour cette boutique. Verifiez que vous utilisez bien le code montre par le livreur.";
+    return "Aucun code de prise en charge valide n'a été trouvé pour cette boutique. Vérifiez que vous utilisez bien le code montré par le livreur.";
   }
 
   return error.message;
-}
-
-function escapeHtml(value: string) {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
 }
 
 export function useMerchantHandshakeCard() {
@@ -103,7 +94,7 @@ export function useMerchantHandshakeCard() {
     if (!selectedStoreId) {
       setFeedback({
         kind: "error",
-        message: "Selectionnez une boutique avant de verifier le code.",
+        message: "Sélectionnez une boutique avant de vérifier le code.",
       });
       return;
     }
@@ -111,7 +102,7 @@ export function useMerchantHandshakeCard() {
     if (!normalizedCode) {
       setFeedback({
         kind: "error",
-        message: "Renseignez le code handshake recu.",
+        message: "Renseignez le code handshake reçu.",
       });
       return;
     }
@@ -123,10 +114,13 @@ export function useMerchantHandshakeCard() {
         selectedStoreId,
         normalizedCode,
       );
+      const orderReference =
+        result.orderReference || formatOrderShortId(result.orderId);
+      const successMessage = `Commande ${orderReference} a été bien délivrée.`;
 
       setFeedback({
         kind: "success",
-        message: `${result.message} - ${formatOrderShortId(result.orderId)}`,
+        message: successMessage,
       });
       setCode("");
 
@@ -134,21 +128,7 @@ export function useMerchantHandshakeCard() {
 
       await Swal.fire({
         icon: "success",
-        title: "Handshake validé",
-        html: `
-          <div style="display:grid;gap:10px;text-align:left;">
-            <p style="margin:0;">${escapeHtml(result.message)}</p>
-            <div style="display:grid;gap:6px;">
-              <span style="font-size:13px;font-weight:700;color:#334155;">Order ID</span>
-              <code style="display:block;overflow-wrap:anywhere;border-radius:12px;padding:10px 12px;background:#0f172a;color:#f8fafc;font-size:13px;">${escapeHtml(result.orderId)}</code>
-            </div>
-            ${
-              result.orderReference
-                ? `<p style="margin:0;font-size:13px;color:#64748b;">Référence : ${escapeHtml(result.orderReference)}</p>`
-                : ""
-            }
-          </div>
-        `,
+        title: successMessage,
         confirmButtonText: "Fermer",
         confirmButtonColor: "#7ebb2b",
       });

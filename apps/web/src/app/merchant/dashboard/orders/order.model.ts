@@ -38,15 +38,15 @@ export function formatOrderStatus(status: OrderStatus) {
     case "SEARCHING_DRIVER":
       return "Recherche livreur";
     case "DRIVER_ASSIGNED":
-      return "Livreur assigne";
+      return "Livreur assigné";
     case "DRIVER_ACCEPTED":
-      return "Livreur accepte";
+      return "Livreur accepté";
     case "PICKED_UP":
-      return "Recuperee";
+      return "Récupérée";
     case "DELIVERED":
-      return "Livree";
+      return "Livrée";
     case "CANCELLED":
-      return "Annulee";
+      return "Annulée";
     default:
       return status;
   }

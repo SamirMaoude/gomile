@@ -89,21 +89,21 @@ async function copyToClipboard(value: string) {
   document.body.removeChild(textarea);
 
   if (!copied) {
-    throw new Error("Impossible de copier la cle automatiquement.");
+    throw new Error("Impossible de copier la clé automatiquement.");
   }
 }
 
 function buildApiKeyCreatedHtml(apiKey: string) {
   return `
     <div style="display:grid;gap:10px;text-align:left;">
-      <p style="margin:0;">Copiez cette cle maintenant. Elle ne sera plus affichee ensuite.</p>
+      <p style="margin:0;">Copiez cette clé maintenant. Elle ne sera plus affichée ensuite.</p>
       <div style="display:grid;grid-template-columns:minmax(0,1fr) 44px;align-items:stretch;gap:8px;">
         <code style="display:block;overflow:auto;border-radius:12px;padding:12px;background:#0f172a;color:#f8fafc;font-size:13px;">${escapeHtml(apiKey)}</code>
         <button
           id="${API_KEY_COPY_BUTTON_ID}"
           type="button"
-          aria-label="Copier la cle API"
-          title="Copier la cle API"
+          aria-label="Copier la clé API"
+          title="Copier la clé API"
           style="display:inline-flex;align-items:center;justify-content:center;width:44px;border:0;border-radius:12px;background:#7ebb2b;color:#ffffff;cursor:pointer;box-shadow:0 10px 24px rgba(126,187,43,0.28);"
         >
           <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -112,7 +112,7 @@ function buildApiKeyCreatedHtml(apiKey: string) {
           </svg>
         </button>
       </div>
-      <p id="swal-api-key-copy-feedback" style="display:none;margin:0;font-size:13px;font-weight:600;color:#4f8f1f;">Cle copiee dans le presse-papiers.</p>
+      <p id="swal-api-key-copy-feedback" style="display:none;margin:0;font-size:13px;font-weight:600;color:#4f8f1f;">Clé copiée dans le presse-papiers.</p>
     </div>
   `;
 }
@@ -169,13 +169,13 @@ function buildCreateApiKeyPanelHtml(seed: ApiKeyFormSeed, stores: StoreListItem[
   return `
     <div style="display:grid;gap:12px;text-align:left;margin-top:12px;">
       <div style="display:grid;gap:6px;">
-        <label for="${API_KEY_FIELD_IDS.name}" style="font-size:13px;font-weight:600;color:#334155;">Nom de la cle</label>
+        <label for="${API_KEY_FIELD_IDS.name}" style="font-size:13px;font-weight:600;color:#334155;">Nom de la clé</label>
         <input id="${API_KEY_FIELD_IDS.name}" class="swal2-input" placeholder="Ex: WooCommerce production" value="${escapeHtml(seed.name)}" style="width:100%;margin:0;" />
       </div>
       <div style="display:grid;gap:6px;">
         <label for="${API_KEY_FIELD_IDS.storeId}" style="font-size:13px;font-weight:600;color:#334155;">Magasin</label>
         <select id="${API_KEY_FIELD_IDS.storeId}" class="swal2-select" style="width:100%;margin:0;">
-          <option value="">Selectionnez un magasin</option>
+          <option value="">Sélectionnez un magasin</option>
           ${buildStoreOptionsHtml(stores, seed.storeId)}
         </select>
       </div>
@@ -191,11 +191,11 @@ function buildUpdateApiKeyPanelHtml(seed: ApiKeyFormSeed) {
   return `
     <div style="display:grid;gap:12px;text-align:left;margin-top:12px;">
       <div style="display:grid;gap:6px;">
-        <label for="${API_KEY_FIELD_IDS.name}" style="font-size:13px;font-weight:600;color:#334155;">Nom de la cle</label>
+        <label for="${API_KEY_FIELD_IDS.name}" style="font-size:13px;font-weight:600;color:#334155;">Nom de la clé</label>
         <input id="${API_KEY_FIELD_IDS.name}" class="swal2-input" placeholder="Ex: WooCommerce production" value="${escapeHtml(seed.name)}" style="width:100%;margin:0;" />
       </div>
       <div style="display:grid;gap:6px;">
-        <label style="font-size:13px;font-weight:600;color:#334155;">Magasin associe</label>
+        <label style="font-size:13px;font-weight:600;color:#334155;">Magasin associé</label>
         <div style="border:1px solid #e2e8f0;border-radius:12px;padding:12px 14px;color:#334155;background:#f8fafc;">
           ${escapeHtml(seed.storeName || "Magasin inconnu")}
         </div>
@@ -234,11 +234,11 @@ function parseCreateApiKeyInput(
   );
 
   if (!name) {
-    return { error: "Le nom de la cle est obligatoire." };
+    return { error: "Le nom de la clé est obligatoire." };
   }
 
   if (!storeId) {
-    return { error: "Choisissez le magasin associe a cette cle." };
+    return { error: "Choisissez le magasin associé à cette clé." };
   }
 
   return {
@@ -259,7 +259,7 @@ function parseUpdateApiKeyInput(
   );
 
   if (!name) {
-    return { error: "Le nom de la cle est obligatoire." };
+    return { error: "Le nom de la clé est obligatoire." };
   }
 
   return {
@@ -300,8 +300,6 @@ export function useApiKeysTable(): UseApiKeysTableResult {
   >({});
   const isMountedRef = useRef(true);
 
-  // We load API keys and stores together because the create panel needs the
-  // list of stores, and the table needs store names instead of only store ids.
   const loadApiKeys = useCallback(async (showLoader = true) => {
     if (!isMountedRef.current) {
       return;
@@ -408,7 +406,7 @@ export function useApiKeysTable(): UseApiKeysTableResult {
           error:
             storeError instanceof Error
               ? storeError.message
-              : "Impossible de charger les details du magasin pour le moment.",
+              : "Impossible de charger les détails du magasin pour le moment.",
           isLoading: false,
           store: null,
         },
@@ -423,7 +421,7 @@ export function useApiKeysTable(): UseApiKeysTableResult {
       await Swal.fire({
         icon: "info",
         title: "Aucun magasin",
-        text: "Creez d'abord un magasin avant de generer une API key.",
+        text: "Créez d'abord un magasin avant de générer une API key.",
         confirmButtonText: "Fermer",
         confirmButtonColor: "#7ebb2b",
       });
@@ -433,15 +431,13 @@ export function useApiKeysTable(): UseApiKeysTableResult {
     setIsCreating(true);
 
     try {
-      // The seed object lets the same SweetAlert form start with known values.
-      // Here we use empty defaults because this is a creation flow.
       const seed = buildApiKeyFormSeed();
       const result = await Swal.fire<CreateApiKeyResult>({
-        title: "Creer une API key",
+        title: "Créer une API key",
         html: buildCreateApiKeyPanelHtml(seed, stores),
         focusConfirm: false,
         showCancelButton: true,
-        confirmButtonText: "Creer",
+        confirmButtonText: "Créer",
         cancelButtonText: "Annuler",
         showLoaderOnConfirm: true,
         allowOutsideClick: () => !Swal.isLoading(),
@@ -459,7 +455,7 @@ export function useApiKeysTable(): UseApiKeysTableResult {
             Swal.showValidationMessage(
               error instanceof Error
                 ? error.message
-                : "Impossible de creer l'API key pour le moment.",
+                : "Impossible de créer l'API key pour le moment.",
             );
             return;
           }
@@ -476,12 +472,11 @@ export function useApiKeysTable(): UseApiKeysTableResult {
 
       await Swal.fire({
         icon: "success",
-        title: "API key creee",
+        title: "API key créée",
         html: buildApiKeyCreatedHtml(payload.apiKey),
         showCancelButton: true,
-        confirmButtonText: "Copier et fermer",
-        confirmButtonColor: "#7ebb2b",
-        showLoaderOnConfirm: true,
+        showConfirmButton: false,
+        cancelButtonText: "Fermer",
         didOpen: (popup) => {
           const copyButton = popup.querySelector<HTMLButtonElement>(
             `#${API_KEY_COPY_BUTTON_ID}`,
@@ -503,50 +498,25 @@ export function useApiKeysTable(): UseApiKeysTableResult {
                   <path d="M20 6 9 17l-5-5"></path>
                 </svg>
               `;
-              copyButton.title = "Cle copiee";
+              copyButton.title = "Clé copiée";
             } catch (error) {
               Swal.showValidationMessage(
                 error instanceof Error
                   ? error.message
-                  : "Impossible de copier la cle automatiquement.",
+                  : "Impossible de copier la clé automatiquement.",
               );
             }
           });
         },
-        preConfirm: async () => {
-          try {
-            await copyToClipboard(payload.apiKey);
-            return true;
-          } catch (error) {
-            Swal.showValidationMessage(
-              error instanceof Error
-                ? error.message
-                : "Impossible de copier la cle automatiquement.",
-            );
-            return false;
-          }
-        },
-      }).then(async (copyResult) => {
-        if (!copyResult.isConfirmed) {
-          return;
-        }
-
-        await Swal.fire({
-          icon: "success",
-          title: "Cle copiee",
-          text: "La cle API a ete copiee dans le presse-papiers.",
-          timer: 1800,
-          showConfirmButton: false,
-        });
       });
     } catch (creationError) {
       await Swal.fire({
         icon: "error",
-        title: "Creation impossible",
+        title: "Création impossible",
         text:
           creationError instanceof Error
             ? creationError.message
-            : "Impossible de creer l'API key pour le moment.",
+            : "Impossible de créer l'API key pour le moment.",
         confirmButtonText: "Fermer",
         confirmButtonColor: "#d95757",
       });
@@ -610,8 +580,8 @@ export function useApiKeysTable(): UseApiKeysTableResult {
 
       await Swal.fire({
         icon: "success",
-        title: "API key modifiee",
-        text: "L'API key a ete mise a jour avec succes.",
+        title: "API key modifiée",
+        text: "L'API key a été mise à jour avec succès.",
         confirmButtonText: "Fermer",
         confirmButtonColor: "#7ebb2b",
       });
@@ -646,10 +616,10 @@ export function useApiKeysTable(): UseApiKeysTableResult {
       const Swal = (await import("sweetalert2")).default;
       const confirmation = await Swal.fire({
         icon: "warning",
-        title: "Revoquer l'API key ?",
-        text: `La cle "${apiKey.name}" sera desactivee definitivement.`,
+        title: "Révoquer l'API key ?",
+        text: `La clé "${apiKey.name}" sera désactivée définitivement.`,
         showCancelButton: true,
-        confirmButtonText: "Revoquer",
+        confirmButtonText: "Révoquer",
         cancelButtonText: "Annuler",
         confirmButtonColor: "#d95757",
         showLoaderOnConfirm: true,
@@ -661,7 +631,7 @@ export function useApiKeysTable(): UseApiKeysTableResult {
             Swal.showValidationMessage(
               error instanceof Error
                 ? error.message
-                : "Impossible de revoquer l'API key pour le moment.",
+                : "Impossible de révoquer l'API key pour le moment.",
             );
           }
         },
@@ -675,8 +645,8 @@ export function useApiKeysTable(): UseApiKeysTableResult {
 
       await Swal.fire({
         icon: "success",
-        title: "API key revoquee",
-        text: "L'API key a ete revoquee avec succes.",
+        title: "API key révoquée",
+        text: "L'API key a été révoquée avec succès.",
         confirmButtonText: "Fermer",
         confirmButtonColor: "#7ebb2b",
       });
@@ -685,11 +655,11 @@ export function useApiKeysTable(): UseApiKeysTableResult {
 
       await Swal.fire({
         icon: "error",
-        title: "Revocation impossible",
+        title: "Révocation impossible",
         text:
           revokeError instanceof Error
             ? revokeError.message
-            : "Impossible de revoquer l'API key pour le moment.",
+            : "Impossible de révoquer l'API key pour le moment.",
         confirmButtonText: "Fermer",
         confirmButtonColor: "#d95757",
       });

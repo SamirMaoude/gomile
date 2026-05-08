@@ -124,7 +124,7 @@ export default function ApiKeysTable({ isDarkMode }: ApiKeysTableProps) {
             theme={isDarkMode ? "white" : "heading"}
             className="text-lg font-bold"
           >
-            Details de la boutique liee a cette API key
+            Détails de la boutique liée à cette API key
           </Typography>
         </div>
 
@@ -134,7 +134,7 @@ export default function ApiKeysTable({ isDarkMode }: ApiKeysTableProps) {
             Component="p"
             className={cn(isDarkMode ? "!text-slate-300" : "!text-slate-600")}
           >
-            Chargement des details du magasin...
+            Chargement des détails du magasin...
           </Typography>
         ) : storeDetailsState.error ? (
           <Typography
@@ -161,7 +161,7 @@ export default function ApiKeysTable({ isDarkMode }: ApiKeysTableProps) {
             Component="p"
             className={cn(isDarkMode ? "!text-slate-300" : "!text-slate-600")}
           >
-            Aucun detail supplementaire n&apos;est disponible pour ce magasin.
+            Aucun détail supplémentaire n&apos;est disponible pour ce magasin.
           </Typography>
         )}
       </div>
@@ -171,7 +171,7 @@ export default function ApiKeysTable({ isDarkMode }: ApiKeysTableProps) {
   const columns: DynamicTableColumn<ApiKeyRow>[] = [
     {
       key: "details",
-      header: "Detail",
+      header: "Détail",
       render: (apiKey) => {
         const isExpanded = expandedApiKeyId === apiKey.id;
 
@@ -247,7 +247,7 @@ export default function ApiKeysTable({ isDarkMode }: ApiKeysTableProps) {
     },
     {
       key: "createdAt",
-      header: "Creation",
+      header: "Création",
       render: (apiKey) => (
         <Typography
           variant="span"
@@ -297,8 +297,8 @@ export default function ApiKeysTable({ isDarkMode }: ApiKeysTableProps) {
             {status === "ACTIVE"
               ? "Active"
               : status === "EXPIRED"
-                ? "Expiree"
-                : "Revoquee"}
+                ? "Expirée"
+                : "Révoquée"}
           </span>
         );
       },
@@ -330,7 +330,7 @@ export default function ApiKeysTable({ isDarkMode }: ApiKeysTableProps) {
               size="sm"
               iconOnly
               icon={<DisableIcon className="h-4 w-4" />}
-              aria-label="Revoquer l'API key"
+              aria-label="Révoquer l'API key"
               disabled={isProcessing || isRevoked}
               className={getApiKeyActionButtonClassName(isDarkMode, "danger")}
               onClick={() => void handleRevokeApiKey(apiKey)}
@@ -373,7 +373,7 @@ export default function ApiKeysTable({ isDarkMode }: ApiKeysTableProps) {
           disabled={isLoading || isCreating || processingApiKeyId !== null}
           onClick={() => void handleCreateApiKey()}
         >
-          {isCreating ? "Creation..." : "Creer une API key"}
+          {isCreating ? "Création..." : "Créer une API key"}
         </Button>
       </div>
 
@@ -405,7 +405,7 @@ export default function ApiKeysTable({ isDarkMode }: ApiKeysTableProps) {
               Component="p"
               className={cn(isDarkMode ? "!text-slate-300" : "!text-slate-600")}
             >
-              Aucune API key n&apos;est encore creee pour ce merchant.
+              Aucune API key n&apos;est encore créée pour ce merchant.
             </Typography>
           </div>
         ) : (

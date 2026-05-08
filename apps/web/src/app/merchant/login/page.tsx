@@ -1,6 +1,8 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
+import animationStyles from "./login.module.css";
 import { styles } from "./styles";
 import Typography from "@/components/ui/design-system/typography";
 import Input from "@/components/ui/design-system/input/input";
@@ -12,7 +14,6 @@ import DeadEyeIcon from "@/components/ui/icons/DeadEyeIcon";
 import Button from "@/components/ui/design-system/button/button";
 import SuccessMessage from "@/components/ui/design-system/messages/successMessage";
 import ErrorMessage from "@/components/ui/design-system/messages/errorMessage";
-import { Logo } from "@/components/Logo/Logo";
 import Background from "@/components/ui/auth/background";
 import { Navigation } from "@/components/ui/navigation/navigation";
 import Footerlp from "@/components/ui/design-system/header_footer/footerlp";
@@ -28,10 +29,17 @@ export default function ClientLoginPage() {
       <Background as="div">
       <div className={styles.card}>
         <div className={styles.splitCard}>
-          <div className={styles.brandPanel}>
+          <div className={`${styles.brandPanel} ${animationStyles.brandPanelAnimated}`}>
             <div className={styles.brandContent}>
               <div className={styles.brandLogoWrapper}>
-                <Logo size="lg" />
+                <Image
+                  src="/images/gomile-logo.png"
+                  alt="GoMile"
+                  width={96}
+                  height={96}
+                  className={styles.brandLogoImage}
+                  priority
+                />
               </div>
 
               <Typography
@@ -142,11 +150,11 @@ export default function ClientLoginPage() {
               </div>
 
               {error ? (
-                <ErrorMessage className={styles.message}>{error}</ErrorMessage>
+                <ErrorMessage>{error}</ErrorMessage>
               ) : null}
 
               {success ? (
-                <SuccessMessage className={styles.message}>
+                <SuccessMessage>
                   {success}
                 </SuccessMessage>
               ) : null}

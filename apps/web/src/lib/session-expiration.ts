@@ -5,7 +5,7 @@ const MISSING_AUTH_TOKEN_MESSAGES = [
 const EXPIRED_REFRESH_TOKEN_MESSAGES = [
   "INVALID_REFRESH_TOKEN",
   "Invalid refresh token",
-  "Jeton de rafraichissement invalide",
+  "Jeton de rafraîchissement invalide",
   "jwt expired",
   "Unauthorized",
 ];
@@ -49,8 +49,8 @@ export async function redirectToLoginWithExpiredSessionAlert() {
 
     await Swal.fire({
       icon: "warning",
-      title: "Session expiree",
-      text: "Votre refresh token a expire. Veuillez vous reconnecter.",
+      title: "Session expirée",
+      text: "Votre refresh token a expiré. Veuillez vous reconnecter.",
       confirmButtonText: "Se connecter",
       confirmButtonColor: "#7ebb2b",
       allowOutsideClick: false,

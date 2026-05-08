@@ -62,7 +62,7 @@ export default function MerchantSettingsCard({
           theme={isDarkMode ? "white" : "heading"}
           className={styles.sectionTitle}
         >
-          Parametres du merchant
+          Paramètres du merchant
         </Typography>
       </div>
 
@@ -131,11 +131,11 @@ export default function MerchantSettingsCard({
                 value={phone}
                 onChange={handlePhoneChange}
                 name="phone"
-                placeholder="Numero de telephone"
+                placeholder="Numéro de téléphone"
                 inputProps={{
                   id: "merchant-settings-phone",
                   autoComplete: "tel",
-                  "aria-label": "Numero de telephone",
+                  "aria-label": "Numéro de téléphone",
                 }}
                 className={cn(
                   "!flex !w-full [--react-international-phone-height:3.75rem] lg:[--react-international-phone-height:4.1rem] [--react-international-phone-border-radius:1.4rem] [--react-international-phone-dropdown-shadow:0_18px_50px_rgba(15,23,42,0.16)]",

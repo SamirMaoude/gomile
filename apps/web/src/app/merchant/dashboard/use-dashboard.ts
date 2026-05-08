@@ -191,8 +191,8 @@ export function useDashboard() {
 
       await Swal.fire({
         icon: "success",
-        title: "Deconnexion reussie",
-        text: "Vous etes déconnecté avec succès.",
+        title: "Déconnexion réussie",
+        text: "Vous êtes déconnecté avec succès.",
         timer: 4000,
         timerProgressBar: true,
         showConfirmButton: false,
@@ -206,11 +206,11 @@ export function useDashboard() {
 
       await Swal.fire({
         icon: "error",
-        title: "Deconnexion impossible",
+        title: "Déconnexion impossible",
         text:
           error instanceof Error
             ? error.message
-            : "Une erreur est survenue pendant la deconnexion.",
+            : "Une erreur est survenue pendant la déconnexion.",
         confirmButtonText: "Fermer",
         confirmButtonColor: "#d95757",
       });

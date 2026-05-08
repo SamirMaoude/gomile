@@ -29,7 +29,7 @@ export default function MerchantSettingsPage() {
     username,
   } = useDashboard();
 
-  const settingsMenuItems = getDashboardMenuItems("Parametres");
+  const settingsMenuItems = getDashboardMenuItems("Paramètres");
 
   return (
     <div
@@ -71,7 +71,7 @@ export default function MerchantSettingsPage() {
         }
       />
 
-      <div className={styles.layout}>
+      <div className={styles.layoutFooterBelowViewport}>
         <DashboardSidebar
           items={settingsMenuItems}
           isCollapsed={isSidebarCollapsed}
