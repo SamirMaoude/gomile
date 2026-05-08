@@ -1,13 +1,13 @@
 export const styles = {
   card:
-    "w-full max-w-[22rem] overflow-hidden rounded-[1.8rem] shadow-[0_26px_90px_rgba(24,58,92,0.18)] sm:max-w-[34rem] lg:max-w-[72rem]",
+    "w-full max-w-[22rem] overflow-hidden rounded-[1.8rem] shadow-[0_26px_90px_rgba(24,58,92,0.5)] sm:max-w-[34rem] lg:max-w-[72rem]",
   splitCard: "grid lg:grid-cols-[0.92fr_1.08fr]",
 
   brandPanel:
-    "hidden bg-[linear-gradient(180deg,#7ebb2b_0%,#5ea320_100%)] lg:flex",
+    "relative isolate hidden overflow-hidden lg:flex",
   brandContent: "flex min-h-full flex-col justify-center px-10 py-12 xl:px-12",
-  brandLogoWrapper:
-    "mb-8 inline-flex w-fit rounded-[1.4rem] bg-white/12 p-4 backdrop-blur-sm",
+  brandLogoWrapper: "mb-8 inline-flex w-fit",
+  brandLogoImage: "h-28 w-28 object-contain xl:h-32 xl:w-32",
   brandTitle:
     "text-left text-[2.35rem] leading-[1.05] !text-white xl:text-[2.9rem]",
   brandTitleBreak: "mt-1 block !text-white",

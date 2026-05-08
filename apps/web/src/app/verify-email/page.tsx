@@ -28,7 +28,7 @@ function VerifyEmailContent() {
             theme="heading"
             className={styles.title}
           >
-            Verification email
+            Vérification e-mail
           </Typography>
 
           <Typography
@@ -62,7 +62,7 @@ function VerifyEmailContent() {
             fullWidth
             className={styles.submitButton}
           >
-            Aller a la connexion
+            Aller à la connexion
           </Button>
         </div>
       </div>

@@ -98,7 +98,7 @@ export default function DocumentsStep({
             type="text"
             value={formData.siret}
             onChange={(event) => onFieldChange("siret", event.target.value)}
-            placeholder="Numero SIRET (optionnel)"
+            placeholder="Numéro SIRET (optionnel)"
             className={styles.nativeInput}
           />
         </div>
@@ -143,7 +143,6 @@ export default function DocumentsStep({
               accept=".pdf,image/*"
               fileName={selectedFileNames[option.field]}
               error={errors[option.field]}
-              helperText={option.helperText}
               placeholder={option.label}
               onChange={(event) => onDocumentFileChange(option.field, event)}
             />

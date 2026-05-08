@@ -19,7 +19,7 @@ export default function Background({
   as: Component = "main",
   children,
   backHref,
-  backLabel = "Retour a l'accueil",
+  backLabel = "Retour à l'accueil",
   containerClassName = "",
 }: BackgroundProps) {
   return (

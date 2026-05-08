@@ -36,7 +36,7 @@ function buildStepErrors(
 
   if (stepId === 1) {
     if (!normalizedFormData.firstName) {
-      errors.firstName = "Renseignez votre prenom.";
+      errors.firstName = "Renseignez votre prénom.";
     }
     if (!normalizedFormData.lastName) {
       errors.lastName = "Renseignez votre nom.";
@@ -47,12 +47,12 @@ function buildStepErrors(
       errors.email = "Renseignez une adresse e-mail valide.";
     }
     if (!normalizedFormData.phone) {
-      errors.phone = "Renseignez votre numero de telephone.";
+      errors.phone = "Renseignez votre numéro de téléphone.";
     } else if (normalizedFormData.phone.replace(/\D/g, "").length < 6) {
-      errors.phone = "Renseignez un numero de telephone valide.";
+      errors.phone = "Renseignez un numéro de téléphone valide.";
     }
     if (files.avatarUrl && !isImageFile(files.avatarUrl)) {
-      errors.avatarUrl = "L'avatar doit etre une image.";
+      errors.avatarUrl = "L'avatar doit être une image.";
     }
     if (!files.avatarUrl && !normalizedFormData.avatarUrl) {
       errors.avatarUrl = "Ajoutez un avatar.";
@@ -60,7 +60,7 @@ function buildStepErrors(
     if (!formData.password) {
       errors.password = "Choisissez un mot de passe.";
     } else if (formData.password.length < 8) {
-      errors.password = "Le mot de passe doit contenir au moins 8 caracteres.";
+      errors.password = "Le mot de passe doit contenir au moins 8 caractères.";
     }
   }
 
@@ -69,7 +69,7 @@ function buildStepErrors(
       errors.dateOfBirth = "Renseignez votre date de naissance.";
     }
     if (normalizedFormData.gender === "UNDEFINED") {
-      errors.gender = "Selectionnez votre genre.";
+      errors.gender = "Sélectionnez votre genre.";
     }
     const hasCompleteAddress = Boolean(normalizedFormData.address);
     const hasStructuredAddress = Boolean(
@@ -80,7 +80,7 @@ function buildStepErrors(
 
     if (!hasCompleteAddress && !hasStructuredAddress) {
       const message =
-        "Renseignez l'adresse complete ou bien la ville, le code postal et la rue.";
+        "Renseignez l'adresse complète ou bien la ville, le code postal et la rue.";
       errors.address = message;
       if (!normalizedFormData.city) {
         errors.city = "Renseignez votre ville.";
@@ -101,11 +101,11 @@ function buildStepErrors(
     } else {
       const radius = Number.parseInt(normalizedFormData.deliveryRadius, 10);
       if (!Number.isInteger(radius) || radius < 1) {
-        errors.deliveryRadius = "Le rayon de livraison doit etre un entier positif.";
+        errors.deliveryRadius = "Le rayon de livraison doit être un entier positif.";
       }
     }
     if (!normalizedFormData.transportType) {
-      errors.transportType = "Selectionnez votre moyen de transport.";
+      errors.transportType = "Sélectionnez votre moyen de transport.";
     }
   } else if (stepId === 4) {
     const hasJustificatif =
@@ -325,7 +325,7 @@ export function useRegister() {
         );
 
         if (session.user.role !== "DRIVER") {
-          setFormError("Le compte cree n'est pas un compte livreur.");
+          setFormError("Le compte créé n'est pas un compte livreur.");
           return;
         }
 
@@ -337,7 +337,7 @@ export function useRegister() {
       await Swal.fire({
         icon: "success",
         title: "Valide ton compte mail",
-        text: "Consulte ta boite mail pour activer ton compte livreur.",
+        text: "Consulte ta boîte mail pour activer ton compte livreur.",
         timer: 2000,
         timerProgressBar: true,
         showConfirmButton: false,
@@ -357,8 +357,8 @@ export function useRegister() {
       if (isAccountCreated) {
         setFormError(
           submissionError instanceof Error
-            ? `${submissionError.message} Le compte est cree, mais la synchronisation des fichiers n'est pas terminee.`
-            : "Le compte est cree, mais la synchronisation des fichiers a echoue.",
+            ? `${submissionError.message} Le compte est créé, mais la synchronisation des fichiers n'est pas terminée.`
+            : "Le compte est créé, mais la synchronisation des fichiers a échoué.",
         );
       } else {
         setFormError(

@@ -4,31 +4,33 @@ import Typography from "@/components/ui/design-system/typography";
 import Background from "@/components/ui/design-system/background/background";
 import Container from "@/components/ui/elements/container";
 import { Navigation } from "@/components/ui/navigation/navigation";
+import animationStyles from "./auth.module.css";
+import { styles } from "./style";
 
 export default function AuthPage() {
   return (
     <Background className="min-h-dvh">
-      <div className="flex min-h-dvh flex-col">
+      <div className={styles.pageShell}>
         <Navigation theme="landingpage" />
 
-        <main className="flex flex-1 flex-col items-center justify-center px-3 py-4 sm:px-5 sm:py-5 md:py-8 lg:px-6">
-          <div className="mx-auto flex w-full max-w-6xl flex-none flex-col items-center justify-center gap-3 rounded-card border-2 border-gray-200 bg-bg-card p-3 shadow-lg sm:gap-4 sm:p-4 md:rounded-2xl md:p-5 xl:min-h-[34rem]">
-            <Typography
-              variant="h1"
-              weight="bold"
-              theme="black"
-              className="text-center text-[clamp(1.4rem,4.5vw,3rem)] leading-tight"
-            >
-              Bienvenue sur GoMile
-            </Typography>
+        <main className={styles.main}>
+          <Typography
+            variant="h1"
+            weight="bold"
+            theme="black"
+            className={`${styles.title} ${animationStyles.animatedTitle}`}
+          >
+            Bienvenue sur GoMile
+          </Typography>
 
-            <div className="grid w-full gap-2 sm:gap-4 md:grid-cols-2">
+          <div className={styles.content}>
+            <div className={styles.optionsGrid}>
               <Container
-                className="flex min-h-[9.5rem] flex-col items-center justify-center gap-2 rounded-card border-2 border-gray-200 bg-white p-3 shadow sm:min-h-[13rem] sm:gap-4 md:min-h-[20rem]"
+                className={`${styles.optionCard} ${animationStyles.optionCardAnimated}`}
                 size="full"
               >
                 <div
-                  className="aspect-square w-[clamp(5.5rem,26vw,16rem)] bg-cover bg-center sm:w-40 md:w-56 lg:w-64"
+                  className={styles.optionImage}
                   style={{ backgroundImage: "url('/images/commercant.png')" }}
                 />
 
@@ -36,18 +38,18 @@ export default function AuthPage() {
                   variant="filled"
                   size="md"
                   href="/merchant/register"
-                  className="w-full max-w-64 px-3 text-center text-xs sm:text-sm md:text-base [&>span]:min-w-0 [&>span]:break-words"
+                  className={styles.merchantButton}
                 >
-                  Je suis un commerçant
+                  Je suis commerçant
                 </Button>
               </Container>
 
               <Container
-                className="flex min-h-[9.5rem] flex-col items-center justify-center gap-2 rounded-card border-2 border-gray-200 bg-white p-3 shadow sm:min-h-[13rem] sm:gap-4 md:min-h-[20rem]"
+                className={`${styles.optionCard} ${animationStyles.optionCardAnimated}`}
                 size="full"
               >
                 <div
-                  className="aspect-square w-[clamp(5.5rem,26vw,16rem)] bg-cover bg-center sm:w-40 md:w-56 lg:w-64"
+                  className={styles.optionImage}
                   style={{ backgroundImage: "url('/images/livreur.png')" }}
                 />
 
@@ -55,7 +57,7 @@ export default function AuthPage() {
                   variant="filled"
                   size="md"
                   href="/driver/register"
-                  className="w-full max-w-64 px-3 text-center text-xs sm:text-sm md:text-base [&>span]:min-w-0 [&>span]:break-words"
+                  className={styles.driverButton}
                 >
                   Je suis livreur
                 </Button>

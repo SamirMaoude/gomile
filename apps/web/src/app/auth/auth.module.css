@@ -1,0 +1,62 @@
+.animatedTitle {
+  animation:
+    auth-title-shimmer 5s ease-in-out infinite,
+    auth-title-float 4s ease-in-out infinite;
+  background: linear-gradient(90deg, #0f5fa8 0%, #6da91f 45%, #0f5fa8 100%);
+  background-clip: text;
+  background-size: 220% auto;
+  color: transparent;
+  filter: drop-shadow(0 10px 24px rgba(15, 95, 168, 0.18));
+  -webkit-background-clip: text;
+}
+
+.optionCardAnimated::before {
+  animation: auth-card-gradient 5s ease-in-out infinite;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 1), transparent 70%),
+    linear-gradient(135deg, rgba(223, 163, 95, 0.94), rgba(132, 192, 48, 0.94) 48%, rgba(94, 170, 227, 0.9));
+  background-size: 180% 180%;
+  content: "";
+  inset: 0;
+  opacity: 0.42;
+  position: absolute;
+  transition: opacity 220ms ease;
+  z-index: -1;
+}
+
+.optionCardAnimated:hover::before {
+  opacity: 0.9;
+}
+
+@keyframes auth-title-shimmer {
+  0%,
+  100% {
+    background-position: 0% center;
+  }
+
+  50% {
+    background-position: 100% center;
+  }
+}
+
+@keyframes auth-card-gradient {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes auth-title-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-0.3rem);
+  }
+}

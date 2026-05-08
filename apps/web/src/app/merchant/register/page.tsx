@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import Background from "@/components/ui/auth/background";
 import Typography from "@/components/ui/design-system/typography";
@@ -12,9 +13,9 @@ import DeadEyeIcon from "@/components/ui/icons/DeadEyeIcon";
 import UserIcon from "@/components/ui/icons/UserIcon";
 import Button from "@/components/ui/design-system/button/button";
 import ErrorMessage from "@/components/ui/design-system/messages/errorMessage";
-import { Logo } from "@/components/Logo/Logo";
 import { PhoneInput } from "react-international-phone";
 import "react-international-phone/style.css";
+import animationStyles from "../login/login.module.css";
 import { styles } from "../login/styles";
 import { useRegister } from "./use-register";
 
@@ -33,10 +34,17 @@ export default function MerchantRegisterPage() {
     <Background backHref="/">
       <div className={styles.card}>
         <div className={styles.splitCard}>
-          <div className={styles.brandPanel}>
+          <div className={`${styles.brandPanel} ${animationStyles.brandPanelAnimated}`}>
             <div className={styles.brandContent}>
               <div className={styles.brandLogoWrapper}>
-                <Logo size="lg" />
+                <Image
+                  src="/images/gomile-logo.png"
+                  alt="GoMile"
+                  width={128}
+                  height={128}
+                  className={styles.brandLogoImage}
+                  priority
+                />
               </div>
 
               <Typography
@@ -45,7 +53,7 @@ export default function MerchantRegisterPage() {
                 theme="white"
                 className={styles.brandTitle}
               >
-                Creez votre espace
+                Créez votre espace
 
                 <Typography
                   variant="h6"
@@ -53,7 +61,7 @@ export default function MerchantRegisterPage() {
                   theme="white"
                   className={styles.brandTitleBreak}
                 >
-                  marchand GoMile
+                  Merchant GoMile
                 </Typography>
               </Typography>
             </div>
@@ -67,15 +75,6 @@ export default function MerchantRegisterPage() {
                 className={styles.title}
               >
                 Inscription
-              </Typography>
-
-              <Typography
-                variant="p"
-                Component="p"
-                theme="body"
-                className={styles.loginDescription}
-              >
-                Creez votre compte marchand.
               </Typography>
             </div>
 
@@ -112,11 +111,11 @@ export default function MerchantRegisterPage() {
                   value={phone}
                   onChange={handlePhoneChange}
                   name="phone"
-                  placeholder="Numero de telephone"
+                  placeholder="Numéro de téléphone"
                   inputProps={{
                     id: "merchant-phone",
                     autoComplete: "tel",
-                    "aria-label": "Numero de telephone",
+                    "aria-label": "Numéro de téléphone",
                   }}
                   className={styles.phoneInputRoot}
                   inputClassName={styles.phoneInputField}
@@ -159,7 +158,7 @@ export default function MerchantRegisterPage() {
                   Component="span"
                   className={styles.forgotLinkText}
                 >
-                  Minimum 8 caracteres.
+                  Minimum 8 caractères.
                 </Typography>
               </div>
 
@@ -173,7 +172,7 @@ export default function MerchantRegisterPage() {
                 fullWidth
                 className={styles.submitButton}
               >
-                {isPending ? "Inscription..." : "Creer mon compte"}
+                {isPending ? "Inscription..." : "Créer mon compte"}
               </Button>
             </Form>
 
@@ -183,7 +182,7 @@ export default function MerchantRegisterPage() {
                 Component="p"
                 className={styles.footerText}
               >
-                Vous avez deja un compte?{" "}
+                Vous avez déjà un compte?{" "}
                 <Link href="/merchant/login" className={styles.registerLink}>
                   Se connecter
                 </Link>

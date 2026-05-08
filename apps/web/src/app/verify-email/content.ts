@@ -4,7 +4,7 @@ export const verifyEmailDescriptionByStatus: Record<
   VerifyEmailStatus,
   string
 > = {
-  loading: "Patientez pendant la verification de votre compte.",
-  success: "Votre lien a ete traite et votre compte peut maintenant etre utilise.",
-  error: "Le lien n'a pas pu etre valide.",
+  loading: "Patientez pendant la vérification de votre compte.",
+  success: "Votre lien a été traité et votre compte peut maintenant être utilisé.",
+  error: "Le lien n'a pas pu être validé.",
 };

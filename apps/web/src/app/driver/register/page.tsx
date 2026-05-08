@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import "react-international-phone/style.css";
@@ -9,12 +10,12 @@ import Button from "@/components/ui/design-system/button/button";
 import Form from "@/components/ui/design-system/forms/form";
 import ErrorMessage from "@/components/ui/design-system/messages/errorMessage";
 import Typography from "@/components/ui/design-system/typography";
-import { Logo } from "@/components/Logo/Logo";
 import DeliveryStep from "./delivery-step";
 import DocumentsStep from "./documents-step";
 import IdentityStep from "./identity-step";
 import ProfileStep from "./profile-step";
 import StepIndicator from "./step-indicator";
+import animationStyles from "../../merchant/login/login.module.css";
 import { styles } from "./styles";
 import { useRegister } from "./use-register";
 
@@ -51,10 +52,17 @@ export default function DriverRegisterPage() {
     >
       <div className={styles.card}>
         <div className={styles.splitCard}>
-          <div className={styles.brandPanel}>
+          <div className={`${styles.brandPanel} ${animationStyles.brandPanelAnimated}`}>
             <div className={styles.brandContent}>
               <div className={styles.brandLogoWrapper}>
-                <Logo size="lg" />
+                <Image
+                  src="/images/gomile-logo.png"
+                  alt="GoMile"
+                  width={128}
+                  height={128}
+                  className={styles.brandLogoImage}
+                  priority
+                />
               </div>
 
               <Typography
@@ -147,7 +155,7 @@ export default function DriverRegisterPage() {
                     className={styles.secondaryActionButton}
                     icon={<ChevronLeft className={styles.actionIcon} aria-hidden />}
                   >
-                    <span className={styles.actionLabel}>Etape precedente</span>
+                    <span className={styles.actionLabel}>Étape précédente</span>
                   </Button>
                 ) : (
                   <div />
@@ -159,7 +167,7 @@ export default function DriverRegisterPage() {
                     disabled={isPending}
                     className={`${styles.submitButton} ${styles.finalActionButton}`}
                   >
-                    {isPending ? "Creation..." : "Creer mon compte"}
+                    {isPending ? "Création..." : "Créer mon compte"}
                   </Button>
                 ) : (
                   <Button
@@ -173,7 +181,7 @@ export default function DriverRegisterPage() {
                     icon={<ChevronRight className={styles.actionIcon} aria-hidden />}
                     iconPosition="right"
                   >
-                    <span className={styles.actionLabel}>Etape suivante</span>
+                    <span className={styles.actionLabel}>Étape suivante</span>
                   </Button>
                 )}
               </div>
@@ -185,9 +193,9 @@ export default function DriverRegisterPage() {
                 Component="p"
                 className={styles.footerText}
               >
-                Vous avez deja fini votre dossier?{" "}
+                Vous avez déjà fini votre dossier?{" "}
                 <Link href="/" className={styles.footerLink}>
-                  Retour a l&apos;accueil
+                  Retour à l&apos;accueil
                 </Link>
               </Typography>
             </div>
