@@ -27,7 +27,8 @@
       "corepack": true,
       "pnpm": "10.30.3",
       "android": {
-        "buildType": "apk"
+        "buildType": "apk",
+        "config": "android-build.yml"
       }
     },
     "production": {
