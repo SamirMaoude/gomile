@@ -135,7 +135,7 @@ export default function TarifsPage() {
       }
 
       const data = await requestWithAutoRefresh<{ checkoutUrl: string }>(
-        `/api/subscriptions/checkout?plan=${plan.checkoutPlan}`,
+        `/api/subscriptions/checkout?plan=${plan.checkoutPlan}&billing=${billingMode}`,
         { method: "POST" },
       );
 

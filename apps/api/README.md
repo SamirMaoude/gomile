@@ -45,16 +45,48 @@ docker compose -f infra/docker-compose.yml exec redis redis-cli FLUSHALL
 
 ## Environnement
 
-Copier `apps/api/.env.example` vers `apps/api/.env` puis renseigner au minimum :
+Copier `apps/api/.env.example` vers `apps/api/.env` puis renseigner :
 
 ```env
+# Base de données
 DATABASE_URL="postgresql://gomile:gomile@localhost:5432/gomile?schema=public"
+
+# Cache
 REDIS_URL="redis://localhost:6379"
+
+# API
 PORT=3000
+APP_URL="http://localhost:3001"
+
+# Auth JWT
 JWT_ACCESS_SECRET="change-me-access-secret"
 JWT_REFRESH_SECRET="change-me-refresh-secret"
-ORS_API_KEY="your-openrouteservice-key"
+
+# OpenRouteService (geocoding + routing)
+ORS_API_KEY="your-openrouteservice-api-key"
 ORS_BASE_URL="https://api.openrouteservice.org"
+
+# AWS (KYC – stockage documents)
+AWS_REGION=eu-north-1
+AWS_ACCESS_KEY_ID="your-access-key-id"
+AWS_SECRET_ACCESS_KEY="your-secret-access-key"
+S3_BUCKET_NAME="your-s3-bucket-name"
+
+# Resend (emails transactionnels)
+RESEND_API_KEY="your-resend-api-key"
+
+# Stripe (abonnements)
+STRIPE_SECRET_KEY="your-stripe-secret-key"
+STRIPE_WEBHOOK_SECRET="your-stripe-webhook-secret"
+STRIPE_PRO_PRICE_ID="your-stripe-pro-monthly-price-id"
+STRIPE_PRO_ANNUAL_PRICE_ID="your-stripe-pro-annual-price-id"
+STRIPE_BUSINESS_PRICE_ID="your-stripe-business-monthly-price-id"
+STRIPE_BUSINESS_ANNUAL_PRICE_ID="your-stripe-business-annual-price-id"
+
+# Twilio (SMS)
+TWILIO_ACCOUNT_SID="your-twilio-account-sid"
+TWILIO_AUTH_TOKEN="your-twilio-auth-token"
+TWILIO_PHONE_NUMBER="your-twilio-phone-number"
 ```
 
 ### Prisma
@@ -103,3 +135,4 @@ Une fois l'API démarrée :
 
 - Le module livraison utilise OpenRouteService.
 - Redis est utilisé pour cacher le géocodage et les routes ORS.
+- Le module abonnement utilise Stripe. Chaque plan (PRO, BUSINESS) a deux price IDs Stripe distincts : un mensuel et un annuel.

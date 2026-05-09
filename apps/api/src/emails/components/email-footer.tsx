@@ -48,7 +48,7 @@ export function EmailFooter({ email }: EmailFooterProps) {
         </Column>
         <Column align="right">
           <Text style={footerLinks}>
-            <a href="/faq" style={footerLink}>FAQ</a>
+            <a href="{process.env.APP_URL}/faq" style={footerLink}>FAQ</a>
           </Text>
         </Column>
       </Row>

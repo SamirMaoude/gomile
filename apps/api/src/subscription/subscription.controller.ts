@@ -42,8 +42,9 @@ export class SubscriptionController {
   checkout(
     @CurrentUser() user: AuthenticatedUser,
     @Query('plan') plan: Tier,
+    @Query('billing') billing: 'monthly' | 'annual' = 'monthly'
   ): Promise<{ checkoutUrl: string }> {
-    return this.subscriptionService.createCheckoutSession(user.id, plan);
+    return this.subscriptionService.createCheckoutSession(user.id, plan, billing);
   }
 
   @Post('portal')

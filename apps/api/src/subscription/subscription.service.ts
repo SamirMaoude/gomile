@@ -23,7 +23,7 @@ export class SubscriptionService {
   }
 
   // Create a checkout session url, merchants will be taken to Stripe site where payment will be held
-  async createCheckoutSession(userId: string, plan: Tier): Promise<{ checkoutUrl: string }> {
+  async createCheckoutSession(userId: string, plan: Tier, billing: 'monthly' | 'annual'): Promise<{ checkoutUrl: string }> {
     const merchant = await this.prisma.merchant.findUnique({
       where: { userId },
       include: { user: true },
@@ -52,7 +52,7 @@ export class SubscriptionService {
       customer: customerId,
       client_reference_id: userId,
       mode: 'subscription',
-      line_items: [{ price: this.getPriceId(plan), quantity: 1 }],
+      line_items: [{ price: this.getPriceId(plan, billing), quantity: 1 }],
       success_url: `${process.env.APP_URL}/merchant/dashboard`,
       cancel_url: `${process.env.APP_URL}/subscription`,
     });
@@ -244,19 +244,21 @@ export class SubscriptionService {
   }
 
   // Price ID from tier
-  private getPriceId(plan: Tier): string {
-    const id =
-      plan === Tier.PRO
-        ? process.env.STRIPE_PRO_PRICE_ID
-        : process.env.STRIPE_BUSINESS_PRICE_ID;
-    if (!id) throw new Error(`Missing Stripe price ID for plan: ${plan}`);
+  private getPriceId(plan: Tier, billing: 'monthly' | 'annual'): string {
+    const map: Record<Tier, Record<'monthly' | 'annual', string| undefined>>= {
+      [Tier.FREE]: {monthly: undefined, annual: undefined},
+      [Tier.PRO] : {monthly: process.env.STRIPE_PRO_PRICE_ID, annual: process.env.STRIPE_PRO_ANNUAL_PRICE_ID},
+      [Tier.BUSINESS]: {monthly: process.env.STRIPE_BUSINESS_PRICE_ID, annual: process.env.STRIPE_BUSINESS_ANNUAL_PRICE_ID}
+    };
+    const id = map[plan]?.[billing];
+    if (!id) throw new Error(`Missing Stripe price id for ${plan}/${billing}`)
     return id;
   }
 
   // Parse tier object from stripe priceId 
   private getTierFromPriceId(priceId: string): Tier | null {
-    if (priceId === process.env.STRIPE_PRO_PRICE_ID) return Tier.PRO;
-    if (priceId === process.env.STRIPE_BUSINESS_PRICE_ID) return Tier.BUSINESS;
+    if (priceId === (process.env.STRIPE_PRO_PRICE_ID || priceId === process.env.STRIPE_PRO_ANNUAL_PRICE_ID)) return Tier.PRO;
+    if (priceId === (process.env.STRIPE_BUSINESS_PRICE_ID || priceId === process.env.STRIPE_BUSINESS_ANNUAL_PRICE_ID)) return Tier.BUSINESS;
     return null;
   }
 }
