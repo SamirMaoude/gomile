@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "22b6ef6f-ef0e-48f8-8d78-f9a5091f2d32"
+      }
+    },
+    "android": {
+      "package": "com.gomile_app.gomile"
+    }
+  }
+}

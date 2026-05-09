@@ -10,8 +10,8 @@
     "build": "corepack pnpm -r build",
     "lint": "corepack pnpm -r lint",
     "typecheck": "corepack pnpm -r typecheck",
-    "mobile:start": "corepack pnpm --filter gomileapp start",
-    "mobile:lan": "corepack pnpm --filter gomileapp start -- --lan",
-    "mobile:tunnel": "corepack pnpm --filter gomileapp start -- --tunnel"
+    "mobile:start": "pnpm --dir apps/mobile start",
+    "mobile:lan": "pnpm --dir apps/mobile start --lan",
+    "mobile:tunnel": "pnpm --dir apps/mobile start --tunnel"
   }
 }

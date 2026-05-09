@@ -7,7 +7,6 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
-      "corepack": true,
       "pnpm": "10.30.3",
       "ios": {
         "simulator": false
@@ -16,7 +15,6 @@
     "simulator": {
       "developmentClient": true,
       "distribution": "internal",
-      "corepack": true,
       "pnpm": "10.30.3",
       "ios": {
         "simulator": true
@@ -24,16 +22,12 @@
     },
     "preview": {
       "distribution": "internal",
-      "corepack": true,
       "pnpm": "10.30.3",
-      "prebuildCommand": "corepack enable && corepack prepare pnpm@10.30.3 --activate && pnpm --version",
-      "installCommand": "corepack enable && corepack prepare pnpm@10.30.3 --activate && pnpm install --frozen-lockfile",
       "android": {
         "buildType": "apk"
       }
     },
     "production": {
-      "corepack": true,
       "pnpm": "10.30.3",
       "autoIncrement": true
     }
