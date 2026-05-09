@@ -16,7 +16,7 @@ export const dashboardMenuItems: DashboardMenuItem[] = [
     href: "/merchant/dashboard/deliveries",
     icon: TruckIcon,
   },
-  { label: "Parametres", href: "/merchant/dashboard/settings", icon: SettingIcon },
+  { label: "Paramètres", href: "/merchant/dashboard/settings", icon: SettingIcon },
 ];
 
 export function getDashboardMenuItems(activeLabel: string) {

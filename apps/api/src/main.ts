@@ -41,7 +41,15 @@ async function bootstrap() {
   SwaggerModule.setup('docs', app, swaggerDocument, {
     jsonDocumentUrl: 'openapi.json',
   });
-
+  
+  app.enableCors({
+    origin: [
+      process.env.API_BASE_URL,
+      process.env.APP_URL
+    ],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    credentials: true
+  });
   await app.listen(process.env.PORT ?? 3000);
 }
 void bootstrap();

@@ -4,11 +4,11 @@ import { type ReactNode } from "react";
 
 import DashboardSidebar from "@/components/dashboard/dashboard-sidebar";
 import SidebarToggle from "@/components/dashboard/sidebar-toggle";
-import ActiveDeliveries from "@/components/dashboard/active-delivery";
-import MerchantHandshakeCard from "@/components/dashboard/merchant-handshake-card";
+import DeliveryActivityPanel from "@/components/dashboard/delivery-activity-panel";
+import DeliveryTopList from "@/components/dashboard/delivery-top-list";
 import Footerlp from "@/components/ui/design-system/header_footer/footerlp";
 import { Navigation } from "@/components/ui/navigation/navigation";
-import GrenobleDeliveryMap from "@/components/dashboard/grenoble-delivery-map";
+import DeliveryMap from "@/components/dashboard/delivery-map";
 import Typography from "@/components/ui/design-system/typography";
 import { getDashboardMenuItems } from "./dashboard-menu";
 import HeaderActions from "./header-actions";
@@ -57,10 +57,12 @@ export default function MerchantDashboardPage() {
     username,
   } = useDashboard();
   const {
-    activeDeliveries,
+    createdDeliveries,
+    deliveryNotifications,
     isLoadingOverview,
     mapMarkers,
     overviewError,
+    recentStatusChanges,
   } = useDashboardOverview();
   const overviewMenuItems = getDashboardMenuItems("Vue d'ensemble");
 
@@ -136,25 +138,50 @@ export default function MerchantDashboardPage() {
                       </Typography>
                     </div>
                   ) : (
-                    <GrenobleDeliveryMap markers={mapMarkers} />
+                    <DeliveryMap markers={mapMarkers} />
                   )}
                 </section>
 
-                <MerchantHandshakeCard isDarkMode={isDarkMode} />
+                <DeliveryActivityPanel
+                  error={overviewError}
+                  isDarkMode={isDarkMode}
+                  isLoading={isLoadingOverview}
+                  notifications={deliveryNotifications}
+                />
               </div>
             </SurfaceCard>
 
-            <SurfaceCard
-              className={styles.deliveriesCard}
-              isDarkMode={isDarkMode}
-            >
-              <ActiveDeliveries
-                deliveries={activeDeliveries}
-                error={overviewError}
+            <div className={styles.overviewListsGrid}>
+              <SurfaceCard
+                className={styles.topListCard}
                 isDarkMode={isDarkMode}
-                isLoading={isLoadingOverview}
-              />
-            </SurfaceCard>
+              >
+                <DeliveryTopList
+                  emptyLabel="Aucune commande créée récemment."
+                  error={overviewError}
+                  isDarkMode={isDarkMode}
+                  isLoading={isLoadingOverview}
+                  items={createdDeliveries}
+                  title="Suivi des commandes"
+                  type="created"
+                />
+              </SurfaceCard>
+
+              <SurfaceCard
+                className={styles.topListCard}
+                isDarkMode={isDarkMode}
+              >
+                <DeliveryTopList
+                  emptyLabel="Aucun changement de statut récent."
+                  error={overviewError}
+                  isDarkMode={isDarkMode}
+                  isLoading={isLoadingOverview}
+                  items={recentStatusChanges}
+                  title="Suivi des livraisons"
+                  type="status"
+                />
+              </SurfaceCard>
+            </div>
           </main>
         </div>
       </div>

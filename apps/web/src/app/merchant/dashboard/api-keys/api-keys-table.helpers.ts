@@ -57,8 +57,8 @@ export function getApiKeyActionButtonClassName(
 
 export function getApiKeyDetailsToggleLabel(isExpanded: boolean) {
   return isExpanded
-    ? "Masquer les details du magasin"
-    : "Afficher les details du magasin";
+    ? "Masquer les détails du magasin"
+    : "Afficher les détails du magasin";
 }
 
 export function buildStoreDetailItems(store: Store): StoreDetailItem[] {
@@ -73,7 +73,7 @@ export function buildStoreDetailItems(store: Store): StoreDetailItem[] {
       key: "status",
       label: "Statut",
       type: "text",
-      value: store.isActive ? "Actif" : "Desactive",
+      value: store.isActive ? "Actif" : "Désactivé",
     },
     {
       key: "provider",
@@ -107,13 +107,13 @@ export function buildStoreDetailItems(store: Store): StoreDetailItem[] {
     },
     {
       key: "coordinates",
-      label: "Coordonnees",
+      label: "Coordonnées",
       type: "text",
       value: `${store.latitude}, ${store.longitude}`,
     },
     {
       key: "createdAt",
-      label: "Cree le",
+      label: "Créé le",
       type: "text",
       value: formatStoreDate(store.createdAt),
     },

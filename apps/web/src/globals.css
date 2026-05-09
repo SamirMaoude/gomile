@@ -128,7 +128,7 @@ body {
 }
 
 .grid-3-cols {
-  @apply grid w-full grid-cols-1 items-stretch gap-6 md:grid-cols-2 xl:grid-cols-3;
+  @apply grid w-full grid-cols-1 items-stretch gap-10 md:grid-cols-2 xl:grid-cols-3;
 }
 
 .section-container {

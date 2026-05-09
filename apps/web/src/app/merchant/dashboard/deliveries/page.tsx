@@ -1,6 +1,7 @@
 "use client";
 
 import DashboardSidebar from "@/components/dashboard/dashboard-sidebar";
+import MerchantHandshakeCard from "@/components/dashboard/merchant-handshake-card";
 import SidebarToggle from "@/components/dashboard/sidebar-toggle";
 import Footerlp from "@/components/ui/design-system/header_footer/footerlp";
 import { Navigation } from "@/components/ui/navigation/navigation";
@@ -71,7 +72,7 @@ export default function MerchantDeliveriesPage() {
         }
       />
 
-      <div className={styles.layout}>
+      <div className={styles.layoutFooterBelowViewport}>
         <DashboardSidebar
           items={deliveriesMenuItems}
           isCollapsed={isSidebarCollapsed}
@@ -82,6 +83,9 @@ export default function MerchantDeliveriesPage() {
 
         <div className={styles.mainPanel}>
           <main className={styles.main}>
+            <div className={styles.deliveriesHandshakeBlock}>
+              <MerchantHandshakeCard isDarkMode={isDarkMode} />
+            </div>
             <DeliveriesTable isDarkMode={isDarkMode} />
           </main>
         </div>

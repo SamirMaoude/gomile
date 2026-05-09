@@ -274,7 +274,7 @@ async function openStorePanel<TPayload extends CreateStoreInput | UpdateStoreInp
         Swal.showValidationMessage(
           error instanceof Error
             ? error.message
-            : "Impossible de creer la boutique pour le moment.",
+            : "Impossible de créer la boutique pour le moment.",
         );
         return;
       }
@@ -369,6 +369,17 @@ export function useStoresTable(): UseStoresTableResult {
         cancelButtonText: "Annuler",
         showLoaderOnConfirm: true,
         allowOutsideClick: () => !Swal.isLoading(),
+        didOpen: (popup) => {
+          const input = popup.querySelector<HTMLInputElement>(".swal2-input");
+
+          if (!input) {
+            return;
+          }
+
+          input.style.display = "block";
+          input.style.width = "min(100%, 28rem)";
+          input.style.margin = "1rem auto 0";
+        },
         inputValidator: (value) => {
           const trimmedValue = value.trim();
 
@@ -409,14 +420,6 @@ export function useStoresTable(): UseStoresTableResult {
       await Swal.fire({
         icon: "success",
         title: "Webhook configuré",
-        html: `
-          <div style="display:grid;gap:10px;text-align:left;">
-            <p>L'URL du webhook a été enregistrée.</p>
-            <p style="margin:0;">Secret de signature :</p>
-            <code style="display:block;overflow-wrap:anywhere;padding:10px 12px;border-radius:12px;background:#0f172a;color:#f8fafc;">${result.value.webhookSecret}</code>
-            <p style="margin:0;font-size:13px;color:#64748b;">Ce secret n'est affiché qu'une seule fois. Conservez-le côté boutique.</p>
-          </div>
-        `,
         confirmButtonText: "Fermer",
         confirmButtonColor: "#7ebb2b",
       });
@@ -446,8 +449,8 @@ export function useStoresTable(): UseStoresTableResult {
 
     try {
       const isConfirmed = await openStorePanel<CreateStoreInput>({
-        title: "Creer une boutique",
-        confirmButtonText: "Creer",
+        title: "Créer une boutique",
+        confirmButtonText: "Créer",
         mode: "create",
         submit: async (input) => {
           await createCurrentMerchantStore(input);
@@ -464,8 +467,8 @@ export function useStoresTable(): UseStoresTableResult {
 
       await Swal.fire({
         icon: "success",
-        title: "Boutique creee",
-        text: "La boutique a ete creee avec succes.",
+        title: "Boutique créée",
+        text: "La boutique a été créée avec succès.",
         confirmButtonText: "Fermer",
         confirmButtonColor: "#7ebb2b",
       });
@@ -474,11 +477,11 @@ export function useStoresTable(): UseStoresTableResult {
 
       await Swal.fire({
         icon: "error",
-        title: "Creation impossible",
+        title: "Création impossible",
         text:
           creationError instanceof Error
             ? creationError.message
-            : "Impossible de creer la boutique pour le moment.",
+            : "Impossible de créer la boutique pour le moment.",
         confirmButtonText: "Fermer",
         confirmButtonColor: "#d95757",
       });
@@ -517,8 +520,8 @@ export function useStoresTable(): UseStoresTableResult {
 
       await Swal.fire({
         icon: "success",
-        title: "Boutique modifiee",
-        text: "La boutique a ete mise a jour avec succes.",
+        title: "Boutique modifiée",
+        text: "La boutique a été mise à jour avec succès.",
         confirmButtonText: "Fermer",
         confirmButtonColor: "#7ebb2b",
       });
@@ -559,10 +562,10 @@ export function useStoresTable(): UseStoresTableResult {
 
       await Swal.fire({
         icon: "success",
-        title: store.isActive ? "Boutique desactivee" : "Boutique reactivee",
+        title: store.isActive ? "Boutique désactivée" : "Boutique réactivée",
         text: store.isActive
-          ? "La boutique a ete desactivee avec succes."
-          : "La boutique a ete reactivee avec succes.",
+          ? "La boutique a été désactivée avec succès."
+          : "La boutique a été réactivée avec succès.",
         confirmButtonText: "Fermer",
         confirmButtonColor: "#7ebb2b",
       });
@@ -571,7 +574,7 @@ export function useStoresTable(): UseStoresTableResult {
 
       await Swal.fire({
         icon: "error",
-        title: store.isActive ? "Desactivation impossible" : "Reactivation impossible",
+        title: store.isActive ? "Désactivation impossible" : "Réactivation impossible",
         text:
           toggleError instanceof Error
             ? toggleError.message
@@ -624,8 +627,8 @@ export function useStoresTable(): UseStoresTableResult {
 
       await Swal.fire({
         icon: "success",
-        title: "Boutique supprimee",
-        text: "La boutique a ete supprimee avec succes.",
+        title: "Boutique supprimée",
+        text: "La boutique a été supprimée avec succès.",
         confirmButtonText: "Fermer",
         confirmButtonColor: "#7ebb2b",
       });

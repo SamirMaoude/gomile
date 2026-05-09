@@ -12,7 +12,7 @@ export type ForgotPasswordStep = "email" | "otp" | "reset" | "done";
 
 function normalizeForgotPasswordError(error: unknown) {
   if (!(error instanceof Error)) {
-    return "Operation impossible pour le moment.";
+    return "Opération impossible pour le moment.";
   }
 
   if (error.message === "property email should not exist") {
@@ -59,7 +59,7 @@ export function useForgotPassword() {
 
     if (step === "email") {
       if (!trimmedEmail) {
-        setErrorMessage("Veuillez renseigner votre adresse email.");
+        setErrorMessage("Veuillez renseigner votre adresse e-mail.");
         return;
       }
 
@@ -70,7 +70,7 @@ export function useForgotPassword() {
         setStep("otp");
         setSuccessMessage(
           response.message ||
-            "Si un compte existe avec cette adresse, un code OTP a ete envoye.",
+            "Si un compte existe avec cette adresse, un code OTP a été envoyé.",
         );
       } catch (error) {
         setErrorMessage(normalizeForgotPasswordError(error));
@@ -85,7 +85,7 @@ export function useForgotPassword() {
       const trimmedOtp = otp.trim();
 
       if (trimmedOtp.length !== 6) {
-        setErrorMessage("Veuillez renseigner le code OTP a 6 chiffres.");
+        setErrorMessage("Veuillez renseigner le code OTP à 6 chiffres.");
         return;
       }
 
@@ -98,7 +98,7 @@ export function useForgotPassword() {
         });
         setResetToken(response.resetToken);
         setStep("reset");
-        setSuccessMessage("OTP verifie. Vous pouvez maintenant changer le mot de passe.");
+        setSuccessMessage("OTP vérifié. Vous pouvez maintenant changer le mot de passe.");
       } catch (error) {
         setErrorMessage(normalizeForgotPasswordError(error));
       } finally {
@@ -117,7 +117,7 @@ export function useForgotPassword() {
     }
 
     if (trimmedPassword.length < 8) {
-      setErrorMessage("Le mot de passe doit contenir au moins 8 caracteres.");
+      setErrorMessage("Le mot de passe doit contenir au moins 8 caractères.");
       return;
     }
 
@@ -127,7 +127,7 @@ export function useForgotPassword() {
     }
 
     if (!resetToken) {
-      setErrorMessage("Le jeton de reinitialisation est manquant. Recommencez le flow OTP.");
+      setErrorMessage("Le jeton de réinitialisation est manquant. Recommencez le flow OTP.");
       return;
     }
 
@@ -141,7 +141,7 @@ export function useForgotPassword() {
       });
       setStep("done");
       setSuccessMessage(
-        response.message || "Votre mot de passe a ete reinitialise avec succes.",
+        response.message || "Votre mot de passe a été réinitialisé avec succès.",
       );
       setOtp("");
       setNewPassword("");

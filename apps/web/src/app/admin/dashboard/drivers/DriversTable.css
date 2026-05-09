@@ -194,75 +194,31 @@
   justify-content: flex-end;
 }
 
-.admin-drivers-actions-wrapper {
-  position: relative;
+.admin-drivers-details-button {
   display: inline-flex;
-  justify-content: flex-end;
-}
-
-.admin-drivers-action-button {
-  display: inline-flex;
-  width: 2.25rem;
-  height: 2.25rem;
   align-items: center;
   justify-content: center;
-  border: 0;
-  border-radius: 0.75rem;
-  background: transparent;
-  color: #64748b;
-  cursor: pointer;
-  transition: background-color 0.2s, color 0.2s;
-}
-
-.admin-drivers-action-button:hover {
-  background: #f1f5f9;
-  color: #1e293b;
-}
-
-.admin-drivers-action-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.45;
-}
-
-.admin-drivers-action-icon {
-  width: 1.25rem;
-  height: 1.25rem;
-}
-
-.admin-drivers-actions-menu {
-  position: absolute;
-  right: 0;
-  top: calc(100% + 0.35rem);
-  z-index: 20;
-  min-width: 10rem;
-  overflow: hidden;
-  border: 1px solid #e2e8f0;
+  gap: 0.45rem;
+  min-height: 2.25rem;
+  border: 1px solid #cbd5e1;
   border-radius: 0.75rem;
   background: #ffffff;
-  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.16);
-}
-
-.admin-drivers-menu-item {
-  display: flex;
-  width: 100%;
-  align-items: center;
-  gap: 0.55rem;
-  border: 0;
-  background: transparent;
-  padding: 0.7rem 0.85rem;
+  padding: 0 0.75rem;
   color: #334155;
-  font-size: 0.875rem;
-  font-weight: 600;
-  text-align: left;
+  font-size: 0.8125rem;
+  font-weight: 700;
   cursor: pointer;
+  transition: border-color 0.2s, background-color 0.2s, color 0.2s;
+  white-space: nowrap;
 }
 
-.admin-drivers-menu-item:hover {
-  background: #f8fafc;
+.admin-drivers-details-button:hover {
+  border-color: #94a3b8;
+  background: #f1f5f9;
   color: #0f172a;
 }
 
-.admin-drivers-menu-icon {
+.admin-drivers-details-icon {
   width: 1rem;
   height: 1rem;
 }

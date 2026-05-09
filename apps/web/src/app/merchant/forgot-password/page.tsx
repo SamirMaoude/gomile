@@ -73,8 +73,8 @@ export default function ForgotPasswordPage() {
                 id="email"
                 name="email"
                 type="email"
-                label="Adresse email"
-                placeholder="Entrez votre adresse email"
+                label="Adresse e-mail"
+                placeholder="Entrez votre adresse e-mail"
                 value={email}
                 onChange={handleEmailChange}
                 autoComplete="email"
@@ -177,7 +177,7 @@ export default function ForgotPasswordPage() {
         <div className={styles.footer}>
           <Link href="/merchant/login" className={styles.link}>
             <Typography variant="span" Component="span" theme="link">
-              {step === "done" ? "Aller a la connexion" : "Retour a la connexion"}
+              {step === "done" ? "Aller à la connexion" : "Retour à la connexion"}
             </Typography>
           </Link>
         </div>

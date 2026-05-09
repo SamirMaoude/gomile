@@ -56,16 +56,14 @@ export class AuthController {
     return this.authService.registerMerchant(dto);
   }
 
-  // @ApiOperation({
-  //   summary: 'Start driver registration - first step with basic info only. Email verification will be sent.',
-  // })
-  // @ApiBody({ type: StartDriverRegistrationDto })
-  // @ApiCreatedResponse({ type: AuthResponseDto })
-  // @ApiConflictResponse({ description: 'Email ou téléphone déjà utilisé' })
-  // @Post('register/driver/start')
-  // startDriverRegistration(@Body() dto: StartDriverRegistrationDto): Promise<AuthResponse> {
-  //   return this.authService.startDriverRegistration(dto);
-  // }
+  @Get('ws-token')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('access-token')
+  async getWsToken(
+    @CurrentUser() user: AuthenticatedUser
+  ) {
+    return this.authService.generateWsToken(user);
+  }
 
   @ApiOperation({
     summary:

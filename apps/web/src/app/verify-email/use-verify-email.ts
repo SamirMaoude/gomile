@@ -12,7 +12,7 @@ export function useVerifyEmail() {
   const token = searchParams.get("token");
   const [status, setStatus] = useState<VerifyEmailStatus>("loading");
   const [message, setMessage] = useState(
-    "Verification de votre adresse email en cours...",
+    "Vérification de votre adresse e-mail en cours...",
   );
 
   useEffect(() => {
@@ -22,7 +22,7 @@ export function useVerifyEmail() {
       if (!token) {
         if (isActive) {
           setStatus("error");
-          setMessage("Le lien de verification est invalide ou incomplet.");
+          setMessage("Le lien de vérification est invalide ou incomplet.");
         }
         return;
       }
@@ -35,7 +35,7 @@ export function useVerifyEmail() {
         }
 
         setStatus("success");
-        setMessage(response.message || "Email verifie avec succes.");
+        setMessage(response.message || "E-mail vérifié avec succès.");
       } catch (error) {
         if (!isActive) {
           return;
@@ -45,7 +45,7 @@ export function useVerifyEmail() {
         setMessage(
           error instanceof Error
             ? error.message
-            : "Verification de l'email impossible pour le moment.",
+            : "Vérification de l'e-mail impossible pour le moment.",
         );
       }
     }

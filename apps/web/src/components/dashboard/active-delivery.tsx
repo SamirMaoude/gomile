@@ -128,7 +128,7 @@ export default function ActiveDeliveries({
     },
     {
       key: "time",
-      header: "Creee le",
+      header: "Créée le",
       cellClassName: styles.deliveryEtaWrap,
       render: (delivery) => (
         <div>

@@ -3,27 +3,49 @@
 import { useEffect, useRef, useState } from "react";
 
 import type {
+  MerchantCreatedDeliveryItem,
   MerchantDeliveryItem,
   MerchantMapMarker,
+  MerchantNotificationItem,
+  MerchantStatusChangeItem,
 } from "@/components/dashboard/dashboard-overview.model";
 import {
+  buildCreatedDeliveryItems,
+  buildDeliveryNotificationItems,
   buildMerchantDeliveryItems,
   buildMerchantMapMarkers,
+  buildRecentStatusChangeItems,
 } from "./dashboard-overview.helpers";
-import { listCurrentMerchantOrders } from "./orders/orders.service";
+import { listCurrentMerchantApiKeys } from "./api-keys/api-keys.service";
+import {
+  getCurrentMerchantOrder,
+  listCurrentMerchantOrders,
+} from "./orders/orders.service";
 import { listCurrentMerchantStores } from "./shops/stores.service";
 
 type UseDashboardOverviewResult = {
   activeDeliveries: MerchantDeliveryItem[];
+  createdDeliveries: MerchantCreatedDeliveryItem[];
+  deliveryNotifications: MerchantNotificationItem[];
   isLoadingOverview: boolean;
   mapMarkers: MerchantMapMarker[];
   overviewError: string | null;
+  recentStatusChanges: MerchantStatusChangeItem[];
 };
 
 const OVERVIEW_REFRESH_INTERVAL_MS = 30_000;
 
 export function useDashboardOverview(): UseDashboardOverviewResult {
   const [activeDeliveries, setActiveDeliveries] = useState<MerchantDeliveryItem[]>([]);
+  const [createdDeliveries, setCreatedDeliveries] = useState<
+    MerchantCreatedDeliveryItem[]
+  >([]);
+  const [recentStatusChanges, setRecentStatusChanges] = useState<
+    MerchantStatusChangeItem[]
+  >([]);
+  const [deliveryNotifications, setDeliveryNotifications] = useState<
+    MerchantNotificationItem[]
+  >([]);
   const [mapMarkers, setMapMarkers] = useState<MerchantMapMarker[]>([]);
   const [overviewError, setOverviewError] = useState<string | null>(null);
   const [isLoadingOverview, setIsLoadingOverview] = useState(true);
@@ -41,17 +63,44 @@ export function useDashboardOverview(): UseDashboardOverviewResult {
     setOverviewError(null);
 
     try {
-      const [orders, stores] = await Promise.all([
+      const [orders, stores, apiKeys] = await Promise.all([
         listCurrentMerchantOrders(),
         listCurrentMerchantStores(),
+        listCurrentMerchantApiKeys(),
       ]);
 
       if (!isMountedRef.current) {
         return;
       }
 
-      setActiveDeliveries(buildMerchantDeliveryItems(orders, stores));
-      setMapMarkers(buildMerchantMapMarkers(orders, stores));
+      const orderDetailResults = await Promise.allSettled(
+        orders.slice(0, 30).map((order) => getCurrentMerchantOrder(order.id)),
+      );
+      const orderDetails = orderDetailResults
+        .filter((result) => result.status === "fulfilled")
+        .map((result) => result.value);
+      const deliveryItems = buildMerchantDeliveryItems(orders, stores);
+      const createdDeliveryItems = buildCreatedDeliveryItems(orders, stores);
+      const recentStatusChangeItems = buildRecentStatusChangeItems(
+        orderDetails,
+        stores,
+      );
+      const deliveryNotificationItems = buildDeliveryNotificationItems(
+        orderDetails,
+        stores,
+        apiKeys,
+      );
+      const markers = await buildMerchantMapMarkers(orders);
+
+      if (!isMountedRef.current) {
+        return;
+      }
+
+      setActiveDeliveries(deliveryItems);
+      setCreatedDeliveries(createdDeliveryItems);
+      setRecentStatusChanges(recentStatusChangeItems);
+      setDeliveryNotifications(deliveryNotificationItems);
+      setMapMarkers(markers);
     } catch (loadError) {
       if (!isMountedRef.current) {
         return;
@@ -63,6 +112,9 @@ export function useDashboardOverview(): UseDashboardOverviewResult {
           : "Impossible de synchroniser le dashboard pour le moment.",
       );
       setActiveDeliveries([]);
+      setCreatedDeliveries([]);
+      setRecentStatusChanges([]);
+      setDeliveryNotifications([]);
       setMapMarkers([]);
     } finally {
       if (isMountedRef.current && showLoader) {
@@ -90,8 +142,11 @@ export function useDashboardOverview(): UseDashboardOverviewResult {
 
   return {
     activeDeliveries,
+    createdDeliveries,
+    deliveryNotifications,
     isLoadingOverview,
     mapMarkers,
     overviewError,
+    recentStatusChanges,
   };
 }

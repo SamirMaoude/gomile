@@ -6,6 +6,7 @@ import { attachAddressAutocomplete } from "@/lib/address-autocomplete";
 import type { StoreListItem } from "../shops/store.model";
 import type {
   CreateOrderResult,
+  Order,
   OrderListItem,
   OrderRow,
 } from "./order.model";
@@ -22,18 +23,34 @@ import {
 import {
   cancelCurrentMerchantOrder,
   createCurrentMerchantOrder,
+  getCurrentMerchantOrder,
   listCurrentMerchantOrders,
   listCurrentMerchantStores,
 } from "./orders.service";
 
 type UseOrdersTableResult = {
+  expandedOrderId: string | null;
   error: string | null;
+  getOrderDetailsState: (orderId: string) => OrderDetailsState;
   handleCancelOrder: (order: OrderRow) => Promise<void>;
   handleCreateOrder: () => Promise<void>;
+  handleToggleOrderDetails: (order: OrderRow) => Promise<void>;
   isCreating: boolean;
   isLoading: boolean;
   processingOrderId: string | null;
   rows: OrderRow[];
+};
+
+type OrderDetailsState = {
+  error: string | null;
+  isLoading: boolean;
+  order: Order | null;
+};
+
+const EMPTY_ORDER_DETAILS_STATE: OrderDetailsState = {
+  error: null,
+  isLoading: false,
+  order: null,
 };
 
 function mapOrdersToRows(
@@ -64,7 +81,7 @@ function buildCreateOrderSuccessHtml(result: CreateOrderResult) {
   return `
     <div style="display:grid;gap:12px;text-align:left;margin-top:8px;">
       <div style="display:grid;gap:4px;">
-        <strong>Commande creee</strong>
+        <strong>Commande créée</strong>
         <span>${escapeHtml(result.message)}</span>
       </div>
       <div style="display:grid;gap:4px;">
@@ -72,7 +89,7 @@ function buildCreateOrderSuccessHtml(result: CreateOrderResult) {
         <span>${result.deliveryFee.toFixed(2)} EUR</span>
       </div>
       <div style="display:grid;gap:4px;">
-        <strong>Distance estimee</strong>
+        <strong>Distance estimée</strong>
         <span>${result.distanceKm.toFixed(2)} km</span>
       </div>
     </div>
@@ -85,7 +102,11 @@ export function useOrdersTable(): UseOrdersTableResult {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
+  const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
   const [processingOrderId, setProcessingOrderId] = useState<string | null>(null);
+  const [orderDetailsById, setOrderDetailsById] = useState<
+    Record<string, OrderDetailsState>
+  >({});
   const isMountedRef = useRef(true);
 
   // The orders table needs both orders and stores:
@@ -140,6 +161,67 @@ export function useOrdersTable(): UseOrdersTableResult {
     };
   }, []);
 
+  function getOrderDetailsState(orderId: string): OrderDetailsState {
+    return orderDetailsById[orderId] ?? EMPTY_ORDER_DETAILS_STATE;
+  }
+
+  async function handleToggleOrderDetails(order: OrderRow) {
+    if (expandedOrderId === order.id) {
+      setExpandedOrderId(null);
+      return;
+    }
+
+    setExpandedOrderId(order.id);
+
+    const currentState = orderDetailsById[order.id];
+
+    if (currentState?.order || currentState?.isLoading) {
+      return;
+    }
+
+    setOrderDetailsById((previous) => ({
+      ...previous,
+      [order.id]: {
+        error: null,
+        isLoading: true,
+        order: null,
+      },
+    }));
+
+    try {
+      const orderDetails = await getCurrentMerchantOrder(order.id);
+
+      if (!isMountedRef.current) {
+        return;
+      }
+
+      setOrderDetailsById((previous) => ({
+        ...previous,
+        [order.id]: {
+          error: null,
+          isLoading: false,
+          order: orderDetails,
+        },
+      }));
+    } catch (detailsError) {
+      if (!isMountedRef.current) {
+        return;
+      }
+
+      setOrderDetailsById((previous) => ({
+        ...previous,
+        [order.id]: {
+          error:
+            detailsError instanceof Error
+              ? detailsError.message
+              : "Impossible de charger les détails de la commande pour le moment.",
+          isLoading: false,
+          order: null,
+        },
+      }));
+    }
+  }
+
   async function handleCreateOrder() {
     const Swal = (await import("sweetalert2")).default;
 
@@ -147,7 +229,7 @@ export function useOrdersTable(): UseOrdersTableResult {
       await Swal.fire({
         icon: "warning",
         title: "Aucun magasin disponible",
-        text: "Ajoutez d'abord un magasin avant de creer une commande.",
+        text: "Ajoutez d'abord un magasin avant de créer une commande.",
         confirmButtonText: "Fermer",
         confirmButtonColor: "#d4a017",
       });
@@ -161,11 +243,11 @@ export function useOrdersTable(): UseOrdersTableResult {
       let cleanupAddressAutocomplete: (() => void) | null = null;
 
       const result = await Swal.fire({
-        title: "Creer une commande",
+        title: "Créer une commande",
         html: buildCreateOrderPanelHtml(buildOrderFormSeed(stores), stores),
         focusConfirm: false,
         showCancelButton: true,
-        confirmButtonText: "Creer",
+        confirmButtonText: "Créer",
         cancelButtonText: "Annuler",
         showLoaderOnConfirm: true,
         allowOutsideClick: () => !Swal.isLoading(),
@@ -197,7 +279,7 @@ export function useOrdersTable(): UseOrdersTableResult {
             Swal.showValidationMessage(
               creationError instanceof Error
                 ? creationError.message
-                : "Impossible de creer la commande pour le moment.",
+                : "Impossible de créer la commande pour le moment.",
             );
             return;
           }
@@ -212,7 +294,7 @@ export function useOrdersTable(): UseOrdersTableResult {
 
       await Swal.fire({
         icon: "success",
-        title: "Commande creee",
+        title: "Commande créée",
         html: buildCreateOrderSuccessHtml(createdOrder),
         confirmButtonText: "Fermer",
         confirmButtonColor: "#7ebb2b",
@@ -220,11 +302,11 @@ export function useOrdersTable(): UseOrdersTableResult {
     } catch (creationError) {
       await Swal.fire({
         icon: "error",
-        title: "Creation impossible",
+        title: "Création impossible",
         text:
           creationError instanceof Error
             ? creationError.message
-            : "Impossible de creer la commande pour le moment.",
+            : "Impossible de créer la commande pour le moment.",
         confirmButtonText: "Fermer",
         confirmButtonColor: "#d95757",
       });
@@ -264,7 +346,7 @@ export function useOrdersTable(): UseOrdersTableResult {
 
       await Swal.fire({
         icon: "success",
-        title: "Commande annulee",
+        title: "Commande annulée",
         text: result.message,
         confirmButtonText: "Fermer",
         confirmButtonColor: "#7ebb2b",
@@ -288,9 +370,12 @@ export function useOrdersTable(): UseOrdersTableResult {
   }
 
   return {
+    expandedOrderId,
     error,
+    getOrderDetailsState,
     handleCancelOrder,
     handleCreateOrder,
+    handleToggleOrderDetails,
     isCreating,
     isLoading,
     processingOrderId,

@@ -67,10 +67,13 @@ export class ApiKeyService {
       throw new ForbiddenException(createApiError('STORE_LOCKED', SUBSCRIPTION_ERRORS));
     }
 
-    const existing = await this.prisma.merchantApiKey.findUnique({
-      where: { storeId },
+    const existing = await this.prisma.merchantApiKey.findFirst({
+      where: { 
+        storeId: storeId,
+        revokedAt: null,
+      },
     });
-    if (existing && !existing.revokedAt) {
+    if (existing) {
       throw new ConflictException(
         createApiError('API_KEY_ALREADY_EXISTS', AUTH_ERRORS),
       );

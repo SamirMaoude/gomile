@@ -41,7 +41,7 @@ export default function IdentityStep({
   return (
     <section className={styles.stepSection}>
       <Typography variant="h4" Component="h4" className={styles.stepHeading}>
-        Identite et contact
+        Identité et contact
       </Typography>
 
       <div className={styles.stepGrid}>
@@ -49,7 +49,7 @@ export default function IdentityStep({
           id="driver-first-name"
           name="firstName"
           type="text"
-          placeholder="Prenom"
+          placeholder="Prénom"
           autoComplete="given-name"
           leftIcon={<UserIcon className={styles.fieldIcon} />}
           error={errors.firstName}
@@ -96,11 +96,11 @@ export default function IdentityStep({
             value={formData.phone}
             onChange={(value) => onFieldChange("phone", value)}
             name="phone"
-            placeholder="Numero de telephone"
+            placeholder="Numéro de téléphone"
             inputProps={{
               id: "driver-phone",
               autoComplete: "tel",
-              "aria-label": "Numero de telephone",
+              "aria-label": "Numéro de téléphone",
             }}
             className={[
               styles.phoneInputRoot,

@@ -3,7 +3,7 @@
 import clsx from "clsx"
 import Image from "next/image"
 import Link from "next/link"
-import { House, Menu, X } from "lucide-react"
+import { House, LayoutDashboard, Menu, X } from "lucide-react"
 import { useEffect, useState, type ReactNode } from "react"
 import Typography from "../design-system/typography"
 import Container from "../elements/container"
@@ -27,6 +27,7 @@ interface Props {
   showPublicLinks?: boolean
   showAuthLinks?: boolean
   contentClassName?: string
+  dashboardHref?: string | null
 }
 
 const textThemeClasses = {
@@ -78,6 +79,18 @@ async function restoreSessionSilently() {
   return restoredSessionRequest;
 }
 
+function getDashboardHref(session: AuthSession | null) {
+  if (session?.user.role === "ADMIN") {
+    return "/admin/dashboard";
+  }
+
+  if (session?.user.role === "MERCHANT") {
+    return "/merchant/dashboard";
+  }
+
+  return null;
+}
+
 export const Navigation = ({
   text_theme = "white",
   theme = "landingpage",
@@ -92,10 +105,14 @@ export const Navigation = ({
   showPublicLinks = true,
   showAuthLinks = true,
   contentClassName,
+  dashboardHref,
 }: Props) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [restoredUsername, setRestoredUsername] = useState<string | null>(() =>
     restoredSession ? buildDashboardUsername(restoredSession.user.email) : null
+  );
+  const [restoredDashboardHref, setRestoredDashboardHref] = useState<string | null>(() =>
+    getDashboardHref(restoredSession)
   );
   const [sessionRestoreStatus, setSessionRestoreStatus] = useState<"pending" | "checked">(
     () => (isAuthenticated || !showAuthLinks || restoredSession ? "checked" : "pending")
@@ -105,6 +122,10 @@ export const Navigation = ({
     "rounded-xl px-4 py-3 text-sm font-semibold text-white/95 transition-colors hover:bg-white/15 sm:text-base";
   const isSessionAuthenticated = isAuthenticated || Boolean(restoredUsername)
   const displayUsername = username ?? restoredUsername
+  const displayDashboardHref =
+    dashboardHref === undefined
+      ? restoredDashboardHref ?? (isAuthenticated ? "/merchant/dashboard" : null)
+      : dashboardHref
   const isRestoringSession = showAuthLinks && !isAuthenticated && sessionRestoreStatus === "pending"
   const shouldShowAuthLinks = showAuthLinks && !isSessionAuthenticated && !isRestoringSession
   const shouldShowModeToggle = Boolean(mode && onModeChange)
@@ -133,10 +154,12 @@ export const Navigation = ({
 
         if (!session) {
           setRestoredUsername(null);
+          setRestoredDashboardHref(null);
           return;
         }
 
         setRestoredUsername(buildDashboardUsername(session.user.email));
+        setRestoredDashboardHref(getDashboardHref(session));
       })
       .finally(() => {
         if (!isActive) {
@@ -241,14 +264,25 @@ export const Navigation = ({
           ) : null}
 
           {isSessionAuthenticated && displayUsername && !rightSlot ? (
-            <Typography
-              theme={text_theme}
-              weight="medium"
-              variant="h6"
-              className="hidden rounded-full bg-white/15 px-4 py-2 text-sm sm:text-base lg:block lg:text-lg"
-            >
-              {displayUsername}
-            </Typography>
+            <div className="hidden min-w-0 items-center gap-2 lg:flex xl:gap-3">
+              <Typography
+                theme={text_theme}
+                weight="medium"
+                variant="h6"
+                className="max-w-48 truncate rounded-full bg-white/15 px-4 py-2 text-sm sm:text-base lg:max-w-56 lg:text-lg xl:max-w-72"
+              >
+                {displayUsername}
+              </Typography>
+              {displayDashboardHref ? (
+                <Link
+                  href={displayDashboardHref}
+                  className="inline-flex shrink-0 items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-primary-green transition-colors hover:bg-white/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white lg:text-base"
+                >
+                  <LayoutDashboard className="h-4 w-4" aria-hidden />
+                  <span>Dashboard</span>
+                </Link>
+              ) : null}
+            </div>
           ) : null}
 
           {rightSlot}
@@ -332,9 +366,21 @@ export const Navigation = ({
             ) : null}
 
             {isSessionAuthenticated && displayUsername ? (
-              <span className="mt-2 rounded-xl bg-white/15 px-4 py-3 text-sm font-semibold text-white sm:text-base">
-                {displayUsername}
-              </span>
+              <>
+                <span className="mt-2 break-all rounded-xl bg-white/15 px-4 py-3 text-sm font-semibold text-white sm:text-base">
+                  {displayUsername}
+                </span>
+                {displayDashboardHref ? (
+                  <Link
+                    href={displayDashboardHref}
+                    className={clsx(drawerLinkClasses, "inline-flex items-center gap-2")}
+                    onClick={closeMobileMenu}
+                  >
+                    <LayoutDashboard className="h-4 w-4 shrink-0" aria-hidden />
+                    Dashboard
+                  </Link>
+                ) : null}
+              </>
             ) : null}
           </nav>
         </>

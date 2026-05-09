@@ -1,0 +1,24 @@
+.brandPanelAnimated::before {
+  animation: merchant-login-brand-gradient 8s ease-in-out infinite;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.7), transparent 30%),
+    linear-gradient(135deg, rgba(213, 239, 164, 0.94), rgba(132, 192, 48, 0.94) 48%, rgba(94, 170, 227, 0.9));
+  background-size: 180% 180%;
+  content: "";
+  inset: 0;
+  opacity: 0.92;
+  position: absolute;
+  transition: opacity 220ms ease;
+  z-index: -1;
+}
+
+@keyframes merchant-login-brand-gradient {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+}

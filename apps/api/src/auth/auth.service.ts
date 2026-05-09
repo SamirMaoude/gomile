@@ -25,6 +25,7 @@ import { AUTH_MESSAGES } from './auth-messages';
 import { AUTH_ERRORS } from './auth-errors';
 import { EmailService } from '../emails/email.service';
 import { UploadService } from '../upload/upload.service';
+import type { AuthenticatedUser } from './auth.types';
 
 const DEFAULT_APP_URL = 'http://localhost:3001';
 
@@ -72,6 +73,21 @@ export class AuthService {
     await this.emailService.sendVerificationEmail(user.email, 'Admin', verifyUrl);
 
     return { message: 'Admin account created. A verification email has been sent.' };
+  }
+
+  // Websocket token
+  async generateWsToken(user: AuthenticatedUser) {
+    const wsToken = await this.jwtService.signAsync(
+      {
+        sub: user.id, role: user.role
+      },
+      {
+        secret: process.env.JWT_ACCESS_SECRET, expiresIn: '2m'
+      }
+    );
+  return { 
+    wsToken
+  };
   }
 
   // Merchant created will have a trial period of 30 days

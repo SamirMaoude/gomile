@@ -4,6 +4,7 @@ import { OrderLivreursService } from 'src/order/livreurs/order-livreurs.service'
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SmsService } from 'src/sms/sms.service';
 import { OutboundWebhookService } from 'src/webhook/outbound-webhook.service';
+import { EventsGateway } from 'src/events/events.gateway';
 import {
   ConflictException,
   ForbiddenException,
@@ -25,6 +26,7 @@ const mockPrisma = {
 
 const mockSms = { sendSms: jest.fn().mockResolvedValue(undefined) };
 const mockWebhook = { fireOrderEvent: jest.fn() };
+const mockEventsGateway = { emitOrderStatus: jest.fn(), emitDriverStatus: jest.fn() };
 const mockLogger = { log: jest.fn(), error: jest.fn(), warn: jest.fn() };
 
 const driverUser = { id: 'driver1', email: 'driver@test.com', role: Role.DRIVER };
@@ -42,6 +44,7 @@ describe('OrderLivreursService', () => {
         { provide: PrismaService, useValue: mockPrisma },
         { provide: SmsService, useValue: mockSms },
         { provide: OutboundWebhookService, useValue: mockWebhook },
+        { provide: EventsGateway, useValue: mockEventsGateway },
         { provide: Logger, useValue: mockLogger },
       ],
     }).compile();

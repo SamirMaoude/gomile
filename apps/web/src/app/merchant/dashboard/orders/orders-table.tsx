@@ -1,9 +1,12 @@
 "use client";
 
+import type { ReactNode } from "react";
+
 import Button from "@/components/ui/design-system/button/button";
 import type { DynamicTableColumn } from "@/components/ui/design-system/table/dynamic-table";
 import DynamicTable from "@/components/ui/design-system/table/dynamic-table";
 import Typography from "@/components/ui/design-system/typography";
+import ChevronDownIcon from "@/components/ui/icons/ChevronDownIcon";
 import DisableIcon from "@/components/ui/icons/DisableIcon";
 import PlusIcon from "@/components/ui/icons/PlusIcon";
 import { cn, styles } from "../style";
@@ -15,25 +18,164 @@ import {
   isOrderCancellable,
   type OrderRow,
 } from "./order.model";
-import { getOrderActionButtonClassName } from "./orders-table.helpers";
+import {
+  buildOrderDetailItems,
+  getOrderActionButtonClassName,
+} from "./orders-table.helpers";
 import { useOrdersTable } from "./use-orders-table";
 
 type OrdersTableProps = {
   isDarkMode: boolean;
 };
 
+type OrderDetailFieldProps = {
+  isDarkMode: boolean;
+  label: string;
+  value: ReactNode;
+};
+
+function OrderDetailField({
+  isDarkMode,
+  label,
+  value,
+}: OrderDetailFieldProps) {
+  return (
+    <div
+      className={cn(
+        "rounded-2xl border p-4",
+        isDarkMode
+          ? "border-slate-800 bg-slate-950/40"
+          : "border-slate-200 bg-slate-50/80",
+      )}
+    >
+      <Typography
+        variant="span"
+        Component="span"
+        className={cn(
+          "mb-2 block text-xs font-semibold uppercase tracking-[0.08em]",
+          isDarkMode ? "!text-slate-400" : "!text-slate-500",
+        )}
+      >
+        {label}
+      </Typography>
+
+      <div className={cn("break-words", isDarkMode ? "text-slate-100" : "text-slate-800")}>
+        {value}
+      </div>
+    </div>
+  );
+}
+
 export default function OrdersTable({ isDarkMode }: OrdersTableProps) {
   const {
+    expandedOrderId,
     rows,
     error,
+    getOrderDetailsState,
     isCreating,
     isLoading,
     processingOrderId,
     handleCancelOrder,
     handleCreateOrder,
+    handleToggleOrderDetails,
   } = useOrdersTable();
 
+  function renderExpandedOrderDetails(order: OrderRow) {
+    const orderDetailsState = getOrderDetailsState(order.id);
+
+    return (
+      <div
+        className={cn(
+          "mx-5 mb-5 rounded-[1.4rem] border p-5",
+          isDarkMode
+            ? "border-slate-800 bg-slate-900/70"
+            : "border-slate-200 bg-slate-50/90",
+        )}
+      >
+        <div className="mb-4 flex flex-col gap-1">
+          <Typography
+            variant="h4"
+            Component="h4"
+            theme={isDarkMode ? "white" : "heading"}
+            className="text-lg font-bold"
+          >
+            Détails de la commande
+          </Typography>
+        </div>
+
+        {orderDetailsState.isLoading ? (
+          <Typography
+            variant="p"
+            Component="p"
+            className={cn(isDarkMode ? "!text-slate-300" : "!text-slate-600")}
+          >
+            Chargement des détails de la commande...
+          </Typography>
+        ) : orderDetailsState.error ? (
+          <Typography
+            variant="p"
+            Component="p"
+            className={cn(isDarkMode ? "!text-rose-300" : "!text-rose-600")}
+          >
+            {orderDetailsState.error}
+          </Typography>
+        ) : orderDetailsState.order ? (
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {buildOrderDetailItems(orderDetailsState.order, order).map((item) => (
+              <OrderDetailField
+                key={item.key}
+                isDarkMode={isDarkMode}
+                label={item.label}
+                value={
+                  <Typography variant="span" Component="span">
+                    {item.value}
+                  </Typography>
+                }
+              />
+            ))}
+          </div>
+        ) : (
+          <Typography
+            variant="p"
+            Component="p"
+            className={cn(isDarkMode ? "!text-slate-300" : "!text-slate-600")}
+          >
+            Aucun détail supplémentaire n&apos;est disponible pour cette commande.
+          </Typography>
+        )}
+      </div>
+    );
+  }
+
   const columns: DynamicTableColumn<OrderRow>[] = [
+    {
+      key: "details",
+      header: "Détail",
+      render: (order) => {
+        const isExpanded = expandedOrderId === order.id;
+
+        return (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            iconOnly
+            icon={
+              <ChevronDownIcon
+                className={cn(
+                  "h-4 w-4 transition-transform",
+                  isExpanded ? "rotate-180" : "",
+                )}
+              />
+            }
+            aria-label={isExpanded ? "Masquer les détails de la commande" : "Afficher les détails de la commande"}
+            aria-expanded={isExpanded}
+            className={getOrderActionButtonClassName(isDarkMode, "neutral")}
+            onClick={() => void handleToggleOrderDetails(order)}
+          />
+        );
+      },
+    },
     {
       key: "id",
       header: "Commande",
@@ -55,7 +197,7 @@ export default function OrdersTable({ isDarkMode }: OrdersTableProps) {
               isDarkMode ? "!text-slate-400" : "!text-slate-500",
             )}
           >
-            Creee le {formatOrderDate(order.createdAt)}
+            Créée le {formatOrderDate(order.createdAt)}
           </Typography>
         </div>
       ),
@@ -163,7 +305,7 @@ export default function OrdersTable({ isDarkMode }: OrdersTableProps) {
               iconOnly
               icon={<DisableIcon className="h-4 w-4" />}
               aria-label="Annuler la commande"
-              title={canCancel ? "Annuler la commande" : "Cette commande ne peut plus etre annulee"}
+              title={canCancel ? "Annuler la commande" : "Cette commande ne peut plus être annulée"}
               disabled={isProcessing || !canCancel}
               className={getOrderActionButtonClassName(isDarkMode, "danger")}
               onClick={() => void handleCancelOrder(order)}
@@ -206,7 +348,7 @@ export default function OrdersTable({ isDarkMode }: OrdersTableProps) {
           disabled={isLoading || isCreating || processingOrderId !== null}
           onClick={() => void handleCreateOrder()}
         >
-          {isCreating ? "Creation..." : "Ajouter une commande"}
+          {isCreating ? "Création..." : "Ajouter une commande"}
         </Button>
       </div>
 
@@ -250,7 +392,10 @@ export default function OrdersTable({ isDarkMode }: OrdersTableProps) {
               rowsPerPageOptions={[10, 20, 50]}
               defaultRowsPerPage={10}
               isDarkMode={isDarkMode}
-              gridTemplateColumns="1fr 1fr 1.1fr 1.8fr 1fr 0.7fr"
+              isRowExpanded={(order) => expandedOrderId === order.id}
+              renderExpandedRow={(order) => renderExpandedOrderDetails(order)}
+              expandedRowClassName="pt-0"
+              gridTemplateColumns="0.7fr 1fr 1fr 1.1fr 1.8fr 1fr 0.7fr"
               headerRowClassName={cn(
                 styles.deliveriesTableHead,
                 isDarkMode

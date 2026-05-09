@@ -2,16 +2,14 @@
 
 import { useMemo, useState } from "react";
 import {
-  Check,
   Eye,
   Mail,
   MapPin,
-  MoreHorizontal,
   Phone,
   Search,
   Star,
-  X,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 import Avatar from "@/components/ui/design-system/avatar";
 import Input from "@/components/ui/design-system/input/input";
@@ -31,8 +29,6 @@ import {
   getDriverVehicle,
   getDriverZone,
   getFilteredDrivers,
-  isDriverKycApproved,
-  isDriverKycPending,
   type DriverWithOptionalListFields,
   type KycOption,
   type StatusOption,
@@ -55,7 +51,7 @@ export default function DriversTable({
   const [statusFilter, setStatusFilter] = useState<StatusOption>("all");
   const [kycFilter, setKycFilter] = useState<KycOption>("all");
   const [vehicleFilter, setVehicleFilter] = useState<VehicleOption>("all");
-  const [openActionsDriverId, setOpenActionsDriverId] = useState<string | null>(null);
+  const router = useRouter();
 
   const filteredDrivers = useMemo(() => {
     return getFilteredDrivers(drivers, {
@@ -179,52 +175,15 @@ export default function DriversTable({
       headerClassName: "admin-drivers-actions-header",
       cellClassName: "admin-drivers-actions-cell",
       render: (driver) => {
-        const isActionsMenuOpen = openActionsDriverId === driver.userId;
-        const hasDetailsAction = isDriverKycApproved(driver.kycStatus);
-        const hasKycReviewActions = isDriverKycPending(driver.kycStatus);
-        const hasActions = hasDetailsAction || hasKycReviewActions;
-
         return (
-          <div className="admin-drivers-actions-wrapper">
-            <button
-              type="button"
-              className="admin-drivers-action-button"
-              aria-label="Actions livreur"
-              aria-expanded={isActionsMenuOpen}
-              disabled={!hasActions}
-              onClick={() =>
-                setOpenActionsDriverId((currentDriverId) =>
-                  currentDriverId === driver.userId ? null : driver.userId,
-                )
-              }
-            >
-              <MoreHorizontal className="admin-drivers-action-icon" />
-            </button>
-
-            {isActionsMenuOpen ? (
-              <div className="admin-drivers-actions-menu" role="menu">
-                {hasDetailsAction ? (
-                  <button type="button" className="admin-drivers-menu-item" role="menuitem">
-                    <Eye className="admin-drivers-menu-icon" />
-                    Get details
-                  </button>
-                ) : null}
-
-                {hasKycReviewActions ? (
-                  <>
-                    <button type="button" className="admin-drivers-menu-item" role="menuitem">
-                      <X className="admin-drivers-menu-icon" />
-                      Reject KYC
-                    </button>
-                    <button type="button" className="admin-drivers-menu-item" role="menuitem">
-                      <Check className="admin-drivers-menu-icon" />
-                      Accept KYC
-                    </button>
-                  </>
-                ) : null}
-              </div>
-            ) : null}
-          </div>
+          <button
+            type="button"
+            className="admin-drivers-details-button"
+            onClick={() => router.push(`/admin/dashboard/drivers/${driver.userId}`)}
+          >
+            <Eye className="admin-drivers-details-icon" />
+            Get details
+          </button>
         );
       },
     },
@@ -308,7 +267,7 @@ export default function DriversTable({
               columns={columns}
               rows={filteredDrivers}
               rowKey={(driver) => driver.userId}
-              gridTemplateColumns="1.5fr 1.9fr 1.1fr 1.05fr 1fr 1.05fr 0.8fr 0.7fr 0.6fr"
+              gridTemplateColumns="1.5fr 1.9fr 1.1fr 1.05fr 1fr 1.05fr 0.8fr 0.7fr 0.9fr"
               headerRowClassName="admin-drivers-table-head"
               bodyClassName="admin-drivers-table-body"
               rowClassName="admin-drivers-table-row"

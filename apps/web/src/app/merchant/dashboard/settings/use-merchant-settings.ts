@@ -104,12 +104,12 @@ export function useMerchantSettings(): UseMerchantSettingsResult {
 
       setName(profile.name);
       setPhone(profile.phone ?? "");
-      setSuccess("Vos informations ont ete mises a jour.");
+      setSuccess("Vos informations ont été mises à jour.");
     } catch (saveError) {
       setError(
         saveError instanceof Error
           ? saveError.message
-          : "Impossible de mettre a jour vos informations pour le moment.",
+          : "Impossible de mettre à jour vos informations pour le moment.",
       );
     } finally {
       setIsSaving(false);

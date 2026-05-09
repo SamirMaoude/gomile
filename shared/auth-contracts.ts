@@ -82,3 +82,7 @@ export interface LoginInput {
   identifier: string;
   password: string;
 }
+
+export interface WsTokenResponse {
+  wsToken: string;
+}

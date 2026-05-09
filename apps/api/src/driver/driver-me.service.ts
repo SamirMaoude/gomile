@@ -22,15 +22,16 @@ import { UploadService } from '../upload/upload.service';
 import { SessionVehicleDto } from './dto/session-vehicle.dto';
 import { DashboardResponseDto } from './dto/dashboard-response.dto';
 import { CreateDriverDocumentDto } from './dto/create-driver-document.dto';
-import { KYC_ERRORS } from 'src/kyc/kyc.error';
-import { OpenRouteService } from '../delivery/openrouteservice.service';
+import { KYC_ERRORS } from '../kyc/kyc.error';
+import { EventsGateway } from '../events/events.gateway';
+import { ORDER_ERRORS } from '../order/order-errors';
 
 @Injectable()
 export class DriverMeService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly uploadService: UploadService,
-    private readonly openRouteService: OpenRouteService,
+    private readonly eventsGateway: EventsGateway
   ) {}
 
   // update postgis location manually
@@ -85,75 +86,51 @@ export class DriverMeService {
     };
   }
 
-  // Check available orders using postgis
+  // Check available orders using postgis, excluding rejected ones
   async availableOrders(user: AuthenticatedUser) {
-    const orders = await this.prisma.$queryRaw<
-      Array<{
-        id: string;
-        status: string;
-        type: string;
-        packageSize: string;
-        weight: number;
-        reward: number;
-        distanceKm: number;
-        dropOffAddress: string;
-        customerName: string;
-        createdAt: Date;
-        store: string;
-        pickupAddress: string;
-      }>
-    >`
-      select
-        o.id,
-        o.status,
-        o.type,
-        o."packageSize",
-        o.weight,
-        o.reward,
-        o."distanceKm",
-        o."dropOffAddress",
-        o."customerName",
-        o."createdAt",
-        s.name as store,
-        s.address as "pickupAddress"
-      from "Order" o
-      join "Store" s on s.id = o."storeId"
-      join "Driver" d on d."userId" = ${user.id}
-      where o.status = 'SEARCHING_DRIVER'
-      and ST_DWithin(
-        s.location::geography,
-        d."lastKnownLocation"::geography,
-        d."deliveryRadius" * 1000
-      )
+    return this.prisma.$queryRaw`
+    select
+      o.id,
+      o.status,
+      o.type,
+      o."packageSize",
+      o.weight,
+      o.reward,
+      o."distanceKm",
+      o."dropOffAddress",
+      o."customerName",
+      o."createdAt",
+      s.name as store,
+      s.address as "pickupAddress"
+    from "Order" o
+    join "Store" s on s.id = o."storeId"
+    join "Driver" d on d."userId" = ${user.id}
+    left join "DriverOrderRejection" r
+      on r."orderId" = o.id
+      and r."driverId" = ${user.id}
+    where o.status = 'SEARCHING_DRIVER'
+    and ST_DWithin(
+      s.location::geography,
+      d."lastKnownLocation"::geography,
+      d."deliveryRadius" * 1000
+    )
+    and r."orderId" is null
     `;
+  }
 
-    return Promise.all(
-      orders.map(async (order) => {
-        const [pickupResolution, dropoffResolution] = await Promise.allSettled([
-          this.openRouteService.resolveAddress({
-            fullAddress: order.pickupAddress,
-          }),
-          this.openRouteService.resolveAddress({
-            fullAddress: order.dropOffAddress,
-          }),
-        ]);
+  async rejectOrder(user: AuthenticatedUser, orderId: string) {
+    const order = await this.prisma.order.findUnique({ where: { id: orderId } });
+    if (!order) {
+      throw new NotFoundException(createApiError('ORDER_NOT_FOUND', ORDER_ERRORS));
+    }
 
-        const pickupLocation =
-          pickupResolution.status === 'fulfilled'
-            ? pickupResolution.value
-            : null;
-        const dropoffLocation =
-          dropoffResolution.status === 'fulfilled'
-            ? dropoffResolution.value
-            : null;
+    await this.prisma.driverOrderRejection.upsert({
+      where: { driverId_orderId: { driverId: user.id, orderId } },
+      create: { driverId: user.id, orderId },
+      update: {},
+    });
 
-        return {
-          ...order,
-          pickupLocation,
-          dropoffLocation,
-        };
-      }),
-    );
+    return { message: 'Order rejected' };
   }
 
   // Toggle driver's availabitlity (if a driver is accepting order or not
@@ -178,6 +155,8 @@ export class DriverMeService {
         status: newStatus,
       },
     });
+
+    this.eventsGateway.emitDriverStatus(user.id, newStatus)
     return {
       status: newStatus, // returning the current status of the driver after the toggle
     };
@@ -259,11 +238,22 @@ export class DriverMeService {
         activeVehicle: true,
         gomileCode: true,
         status: true,
+        kycStatus: true,
         user: {
           select: {
             email: true,
             phone: true,
           },
+        },
+        driverDocuments: {
+          select: {
+            id: true,
+            type: true,
+            url: true,
+            verified: true,
+            rejectionReason: true,
+          },
+          orderBy: { createdAt: 'desc' },
         },
       },
     });
@@ -286,6 +276,8 @@ export class DriverMeService {
       activeVehicle: driver.activeVehicle,
       gomileCode: driver.gomileCode,
       status: driver.status,
+      kycStatus: driver.kycStatus,
+      documents: driver.driverDocuments,
     };
   }
 

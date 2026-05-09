@@ -38,7 +38,7 @@ export function useRegister() {
     }
 
     if (password.length < 8) {
-      setError("Le mot de passe doit contenir au moins 8 caracteres.");
+      setError("Le mot de passe doit contenir au moins 8 caractères.");
       return;
     }
 
@@ -56,7 +56,7 @@ export function useRegister() {
       }
 
       if (session.user.role !== "MERCHANT") {
-        setError("Le compte cree n'est pas un compte merchand.");
+        setError("Le compte créé n'est pas un compte marchand.");
         return;
       }
 
