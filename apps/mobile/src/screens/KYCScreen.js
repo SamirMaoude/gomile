@@ -180,7 +180,7 @@ export default function KYCScreen({ navigation }) {
   const uploadedCount = DOC_SLOTS.filter((s) => getDocForSlot(s) !== null).length;
   const totalCount = DOC_SLOTS.length;
   const progressPct = uploadedCount / totalCount;
-  const canSubmit = canModify && uploadedCount > 0;
+  const canSubmit = canModify && uploadedCount === totalCount;
 
   // ── Amélioration 1 : gestion du slot IDENTITY (CNI ou PASSPORT) ──────────
   const pickIdentityType = (existingDoc, onChosen) => {
@@ -517,7 +517,7 @@ export default function KYCScreen({ navigation }) {
               />
               {!canSubmit && (
                 <Text style={styles.submitHint}>
-                  Ajoute au moins un document pour soumettre ta demande.
+                  {totalCount - uploadedCount} document{totalCount - uploadedCount > 1 ? 's' : ''} manquant{totalCount - uploadedCount > 1 ? 's' : ''} avant de pouvoir soumettre.
                 </Text>
               )}
             </View>
