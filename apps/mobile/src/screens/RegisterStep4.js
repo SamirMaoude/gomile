@@ -14,7 +14,6 @@ import { COMMON_STYLE_VALUES } from '../styles/commonStyles';
 import { registerDriver } from '../../lib/auth-client';
 import { uploadLocalFileAnonymous } from '../../lib/upload-client';
 import { pickImageSource } from '../lib/media-picker';
-import { createMyDocument } from '../../lib/driver-client';
 import { setCachedProfileAvatarUrl } from '../../lib/profile-cache';
 
 const FALLBACK_AVATAR_URL = 'https://placehold.co/512x512/png?text=GoMile';
@@ -23,13 +22,13 @@ export default function RegisterStep4({ navigation }) {
   const [isLoading, setIsLoading] = useState(false);
   
   // Extraction des données du store
-  const { 
+  const {
     updateField, siret, kbisFile, ribFile,
     firstName, lastName, email, phone, avatarUrl,
     birthDate, gender, address, city, zipCode, street, deliveryCity, deliveryRadius, transportType,
     cniFile, justificatifFile, password,
     permisFile, carteGriseFile,
-    resetForm,
+    setPendingDocuments,
   } = useRegistrationStore();
 
   const pickDoc = async (field) => {
@@ -125,35 +124,21 @@ export default function RegisterStep4({ navigation }) {
 
       await registerDriver(cleanedSignupData);
 
-      const documentsToCreate = [
-        cniUrl ? { type: 'CNI', url: cniUrl } : null,
-        justificatifUrl ? { type: 'OTHER', url: justificatifUrl } : null,
-        permisUrl ? { type: 'DRIVING_LICENSE', url: permisUrl } : null,
-        carteGriseUrl ? { type: 'REGISTRATION_CARD', url: carteGriseUrl } : null,
-        kbisUrl ? { type: 'OTHER', url: kbisUrl } : null,
-        ribUrl ? { type: 'RIB', url: ribUrl } : null,
+      // Sauvegarder les URLs S3 dans le store pour les créer après vérification email.
+      // createMyDocument échoue si l'email n'est pas encore vérifié, donc on diffère.
+      const pendingDocuments = [
+        cniUrl          ? { type: 'CNI',               url: cniUrl }          : null,
+        justificatifUrl ? { type: 'OTHER',              url: justificatifUrl } : null,
+        permisUrl       ? { type: 'DRIVING_LICENSE',    url: permisUrl }       : null,
+        carteGriseUrl   ? { type: 'REGISTRATION_CARD',  url: carteGriseUrl }   : null,
+        kbisUrl         ? { type: 'OTHER',              url: kbisUrl }         : null,
+        ribUrl          ? { type: 'RIB',                url: ribUrl }          : null,
       ].filter(Boolean);
 
-      for (const document of documentsToCreate) {
-        try {
-          await createMyDocument(document.type, document.url);
-        } catch (err) {
-          const msg = String(err?.message || err);
-          if (msg.includes('EMAIL_NOT_VERIFIED') || /verify/i.test(msg)) {
-            // Le backend peut exiger la vérification email avant création document.
-          } else {
-            throw err;
-          }
-        }
-      }
+      setPendingDocuments(pendingDocuments);
+      // resetForm() sera appelé par EmailVerificationScreen après création des documents.
 
-      resetForm();
-
-      Alert.alert(
-        "Félicitations !",
-        "Ton compte GoMile a été créé avec succès.",
-        [{ text: "C'est parti !", onPress: () => navigation.replace('MainApp') }]
-      );
+      navigation.replace('EmailVerification');
 
     } catch (error) {
       Alert.alert("Erreur d'inscription", error.message);

@@ -32,12 +32,18 @@ export const useRegistrationStore = create((set) => ({
   kbisFile: null,
   ribFile: null,
 
-  // Fonction pour tout réinitialiser 
+  // Documents en attente de création (après vérification email)
+  // Structure : [{ type: 'CNI', url: 'https://...' }, ...]
+  pendingDocuments: [],
+  setPendingDocuments: (docs) => set({ pendingDocuments: docs }),
+
+  // Fonction pour tout réinitialiser
   resetForm: () => set({
     firstName: '', lastName: '', email: '', phone: '', password: '', confirmPassword: '', avatarUrl: null, birthDate: '', gender: '',
     address: '', city: '', zipCode: '', street: '', deliveryCity: '', deliveryRadius: '', transportType: '',
     cniFile: null, justificatifFile: null, permisFile: null, carteGriseFile: null,
-    siret: '', kbisFile: null, ribFile: null
+    siret: '', kbisFile: null, ribFile: null,
+    pendingDocuments: [],
   }),
 
 

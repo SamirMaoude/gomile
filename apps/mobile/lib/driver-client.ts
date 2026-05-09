@@ -4,6 +4,7 @@ import type { ApiErrorPayload } from "./api-errors";
 import { createApiError } from "./api-errors";
 import { refreshSession } from "./auth-client";
 import { getAuthTokenStore } from "./auth-storage";
+import { navigationRef } from "../src/navigation/navigationRef";
 
 const DEFAULT_API_BASE_URL = "http://localhost:3000";
 
@@ -101,6 +102,15 @@ async function requestDriverApi<T>(
 
   if (!response.ok) {
     const err = await parseError(response);
+    if (
+      response.status === 403 &&
+      (err.includes("EMAIL_NOT_VERIFIED") || err.includes("verify your email"))
+    ) {
+      if (navigationRef.isReady()) {
+        navigationRef.navigate("EmailVerification" as never);
+      }
+      throw new Error("EMAIL_NOT_VERIFIED");
+    }
     throw new Error(`${path} - ${err}`);
   }
 

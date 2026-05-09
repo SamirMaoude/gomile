@@ -59,6 +59,13 @@ const DOC_SLOTS = [
     icon: 'bank-outline',
     typeLabels: { RIB: 'Relevé bancaire' },
   },
+  {
+    slot: 'KBIS',
+    types: ['OTHER'],
+    label: 'Extrait KBIS',
+    icon: 'file-certificate-outline',
+    typeLabels: { OTHER: 'Extrait KBIS / Déclaration auto-entrepreneur' },
+  },
 ];
 
 const STATUS_CONFIG = {
