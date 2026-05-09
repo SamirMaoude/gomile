@@ -26,6 +26,7 @@
       "distribution": "internal",
       "corepack": true,
       "pnpm": "10.30.3",
+      "prebuildCommand": "corepack enable && corepack prepare pnpm@10.30.3 --activate",
       "android": {
         "buildType": "apk"
       }
