@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Alert, Share } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, Alert, Share, Linking } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import Constants from 'expo-constants';
@@ -358,9 +358,7 @@ export default function ProfileScreen({ navigation }) {
       {/* --- CHANGEMENT DE VÉHICULE (Action rapide) --- */}
       <SectionTitle style={{ marginTop: 25 }}>Véhicule pour cette session</SectionTitle>
       <View style={styles.dropdownContainer}>
-        <View
-          style={styles.dropdownTrigger}
-        >
+        <View style={styles.dropdownTrigger}>
           <View style={styles.dropdownTriggerLeft}>
             <MaterialCommunityIcons name={vehicleIcon} size={18} color={COLORS.secondary} />
             <Text style={styles.dropdownTriggerText}>{vehicleLabel}</Text>
@@ -406,9 +404,10 @@ export default function ProfileScreen({ navigation }) {
       <SectionTitle style={{ marginTop: 25 }}>Ma Logistique</SectionTitle>
       
       <View style={styles.menuGrid}>
-        <MenuTile 
-          icon="shopping-outline" 
-          label="Boutique Équipement"  
+        <MenuTile
+          icon="shopping-outline"
+          label="Boutique Équipement"
+          onPress={() => Linking.openURL('https://store.pgn2vid.com/')}
         />
         <MenuTile 
           icon="cash-multiple" 
