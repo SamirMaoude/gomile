@@ -1,6 +1,7 @@
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 import { putDriverPushToken } from '../../lib/driver-client';
+import { navigationRef } from '../navigation/navigationRef';
 
 function resolveProjectId() {
   return (
@@ -46,7 +47,8 @@ export async function configureDriverPushNotifications() {
 
   Notifications.setNotificationHandler({
     handleNotification: async () => ({
-      shouldShowAlert: true,
+      shouldShowBanner: true,
+      shouldShowList: true,
       shouldPlaySound: true,
       shouldSetBadge: true,
     }),
@@ -65,8 +67,7 @@ export async function configureDriverPushNotifications() {
   return () => {};
 }
 
-// Notification locale déclenchée par le polling quand de nouvelles missions arrivent.
-// Fonctionne en Expo Go (notifications locales) et en dev build (push remote).
+// Notification locale déclenchée lors de la réception d'une nouvelle mission via socket.
 export async function notifyNewMissions(newMissions) {
   if (!newMissions || newMissions.length === 0) return;
   if (Platform.OS === 'web') return;
@@ -97,4 +98,23 @@ export async function notifyNewMissions(newMissions) {
   } catch {
     console.warn('[push-notifications] scheduleNotificationAsync failed');
   }
+}
+
+/**
+ * Écoute les taps sur les notifications push (app en fond ou fermée).
+ * Navigue vers l'onglet Missions quand l'utilisateur appuie.
+ * Retourne une fonction de nettoyage à appeler au démontage.
+ */
+export async function setupNotificationTapHandler() {
+  if (Platform.OS === 'web') return () => {};
+
+  const Notifications = await import('expo-notifications');
+
+  const subscription = Notifications.addNotificationResponseReceivedListener(() => {
+    if (navigationRef.isReady()) {
+      navigationRef.navigate('MainApp', { screen: 'Missions' });
+    }
+  });
+
+  return () => subscription.remove();
 }

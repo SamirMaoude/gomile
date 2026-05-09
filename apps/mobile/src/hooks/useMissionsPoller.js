@@ -1,19 +1,16 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useIsFocused } from '@react-navigation/native';
-import * as Location from 'expo-location';
 import { useMissionStore } from '../store/useMissionStore';
 import { useAvailabilityStore } from '../store/useAvailabilityStore';
 import { notifyNewMissions } from '../lib/push-notifications';
-import { updateDriverLocation } from '../../lib/driver-client';
-
-const POLL_INTERVAL_MS = 10_000;
 
 /**
- * Hook de polling partagé entre TableauDeBord et MissionsScreen.
+ * Hook partagé entre TableauDeBord et MissionsScreen.
  *
- * - Démarre le timer seulement si le livreur est en ligne ET l'écran est visible.
- * - S'arrête automatiquement si l'écran perd le focus ou si le livreur passe hors ligne.
- * - Déclenche une notification locale quand de nouvelles missions apparaissent.
+ * - Fait un fetch unique quand l'écran gagne le focus ET que le livreur est en ligne.
+ * - Le polling périodique est supprimé : les nouvelles missions arrivent via WebSocket
+ *   (géré dans MainTabs). Ce hook sert uniquement au chargement initial par écran
+ *   et au bouton "Rafraîchir" manuel.
  *
  * @param {{ fetchAll?: boolean }} options
  *   fetchAll=false → getAvailableMissions uniquement (Dashboard)
@@ -24,21 +21,10 @@ export function useMissionsPoller({ fetchAll = false } = {}) {
   const isOnline = useAvailabilityStore((s) => s.isOnline);
   const fetchAvailableMissions = useMissionStore((s) => s.fetchAvailableMissions);
   const fetchAllMissions = useMissionStore((s) => s.fetchAllMissions);
-  const intervalRef = useRef(null);
 
   const fetch = fetchAll ? fetchAllMissions : fetchAvailableMissions;
 
   const poll = useCallback(async () => {
-    // Rafraîchir la position avant de chercher les missions :
-    // ST_DWithin retourne NULL si lastKnownLocation est NULL → aucune mission visible.
-    try {
-      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-      await updateDriverLocation(pos.coords.latitude, pos.coords.longitude);
-    } catch (err) {
-      console.warn('[useMissionsPoller] location update failed', err?.message ?? err);
-      // Position non disponible, on tente quand même le fetch
-    }
-
     try {
       const newMissions = await fetch();
       if (newMissions?.length > 0) {
@@ -49,26 +35,11 @@ export function useMissionsPoller({ fetchAll = false } = {}) {
     }
   }, [fetch]);
 
+  // Fetch unique à l'entrée sur l'écran (ou au passage en ligne)
   useEffect(() => {
-    if (!isFocused || !isOnline) {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-      return;
-    }
-
-    poll(); // premier appel immédiat
-    intervalRef.current = setInterval(poll, POLL_INTERVAL_MS);
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-    };
+    if (!isFocused || !isOnline) return;
+    poll();
   }, [isFocused, isOnline, poll]);
 
-  // Exposé pour le bouton "Rafraîchir" manuel
   return { refresh: poll };
 }

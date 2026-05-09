@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack'; // 
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Asset } from 'expo-asset';
 import { useMissionStore } from './src/store/useMissionStore';
+import { navigationRef } from './src/navigation/navigationRef';
 
 // les diverses pages utilisé dans le cadre du projet
 import LoginScreen from './src/screens/LoginScreen';
@@ -33,7 +34,7 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <NavigationContainer>
+      <NavigationContainer ref={navigationRef}>
         <Stack.Navigator 
           initialRouteName="Login"
           screenOptions={{ headerShown: false }}
