@@ -1,8 +1,9 @@
 import React, { useEffect } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { View, TouchableOpacity, StyleSheet, AppState } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, AppState, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
 
 import { COLORS } from '../constants/theme';
@@ -26,6 +27,8 @@ import { updateDriverLocation } from '../../lib/driver-client';
 const Tab = createBottomTabNavigator();
 
 export default function MainTabs() {
+  const insets = useSafeAreaInsets();
+  const androidInset = Platform.OS === 'android' ? insets.bottom : 0;
   const hasActiveMissions = useMissionStore((state) => state.missionQueue.length > 0);
   const fetchAvailableMissions = useMissionStore((s) => s.fetchAvailableMissions);
   const setOnlineStatus = useAvailabilityStore((s) => s.setOnlineStatus);
@@ -194,8 +197,8 @@ export default function MainTabs() {
           tabBarActiveTintColor: COLORS.secondary,
           tabBarInactiveTintColor: COLORS.placeholder,
           tabBarStyle: {
-            height: 85,
-            paddingBottom: 12,
+            height: 85 + androidInset,
+            paddingBottom: 12 + androidInset,
             paddingTop: 8,
             borderTopWidth: 0,
             backgroundColor: COLORS.white,
@@ -257,6 +260,8 @@ export default function MainTabs() {
 
 function FloatingMissionButton() {
   const navigation = useNavigation();
+  const { bottom } = useSafeAreaInsets();
+  const fabInset = Platform.OS === 'android' ? bottom : 0;
 
   const handleOpenMissionFocus = () => {
     const parent = navigation.getParent();
@@ -269,7 +274,7 @@ function FloatingMissionButton() {
 
   return (
     <TouchableOpacity
-      style={styles.missionFab}
+      style={[styles.missionFab, { bottom: 100 + fabInset }]}
       activeOpacity={0.85}
       onPress={handleOpenMissionFocus}
     >
@@ -283,7 +288,6 @@ const styles = StyleSheet.create({
   missionFab: {
     position: 'absolute',
     right: 20,
-    bottom: 100,
     width: 62,
     height: 62,
     borderRadius: 31,

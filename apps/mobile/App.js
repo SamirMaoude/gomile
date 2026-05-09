@@ -14,8 +14,6 @@ import RegisterStep1 from './src/screens/RegisterStep1';
 import { EmailVerificationScreen } from './src/screens/EmailVerificationScreen';
 import RegisterStep2Identity from './src/screens/RegisterStep2Identity';
 import RegisterStep2 from './src/screens/RegisterStep2';
-import RegisterStep3 from './src/screens/RegisterStep3';
-import RegisterStep4 from './src/screens/RegisterStep4';
 import MainTabs from './src/navigation/MainTabs';
 import MissionDetailsScreen from './src/screens/MissionDetailsScreen';
 import MissionFocusScreen from './src/screens/MissionFocusScreen';
@@ -46,8 +44,6 @@ export default function App() {
           <Stack.Screen name="RegisterStep2Identity" component={RegisterStep2Identity} />
           <Stack.Screen name="EmailVerification" component={EmailVerificationScreen} />
           <Stack.Screen name="RegisterStep2" component={RegisterStep2} />
-          <Stack.Screen name="RegisterStep3" component={RegisterStep3} />
-          <Stack.Screen name="RegisterStep4" component={RegisterStep4} />
 
           {/* L'écran principal après connexion */}
           <Stack.Screen name="MainApp" component={MainTabs} />

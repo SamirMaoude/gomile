@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   ScrollView,
   RefreshControl,
+  TextInput,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -21,6 +22,7 @@ import {
   presignDocument,
   createMyDocument,
   deleteDocument,
+  updateDriverProfile,
 } from '../../lib/driver-client';
 import { uploadFileToPresignedUrl } from '../../lib/upload-client';
 
@@ -60,11 +62,11 @@ const DOC_SLOTS = [
     typeLabels: { RIB: 'Relevé bancaire' },
   },
   {
-    slot: 'KBIS',
+    slot: 'JUSTIFICATIF_DOMICILE',
     types: ['OTHER'],
-    label: 'Extrait KBIS',
-    icon: 'file-certificate-outline',
-    typeLabels: { OTHER: 'Extrait KBIS / Déclaration auto-entrepreneur' },
+    label: 'Justificatif de domicile',
+    icon: 'home-outline',
+    typeLabels: { OTHER: 'Justificatif de domicile (- 3 mois)' },
   },
 ];
 
@@ -157,6 +159,8 @@ export default function KYCScreen({ navigation }) {
   const [refreshing, setRefreshing] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [uploading, setUploading] = useState({});
+  const [siret, setSiret] = useState('');
+  const [savingSiret, setSavingSiret] = useState(false);
 
   const load = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
@@ -173,6 +177,23 @@ export default function KYCScreen({ navigation }) {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+
+  const handleSaveSiret = async () => {
+    const value = siret.trim().replace(/\s/g, '');
+    if (!value) return;
+    if (!/^\d{14}$/.test(value)) {
+      return Alert.alert('SIRET invalide', 'Le numéro SIRET doit contenir exactement 14 chiffres.');
+    }
+    setSavingSiret(true);
+    try {
+      await updateDriverProfile({ siret: value });
+      Alert.alert('Enregistré', 'Numéro SIRET sauvegardé.');
+    } catch (err) {
+      Alert.alert('Erreur', err?.message || 'Impossible de sauvegarder le SIRET.');
+    } finally {
+      setSavingSiret(false);
+    }
+  };
 
   const rawStatus = String(kycData?.status || 'NOT_SUBMITTED').toUpperCase();
   const statusCfg = STATUS_CONFIG[rawStatus] || STATUS_CONFIG.NOT_SUBMITTED;
@@ -385,6 +406,38 @@ export default function KYCScreen({ navigation }) {
               </Text>
             </View>
           )}
+
+          {/* ── Numéro SIRET ── */}
+          <Text style={styles.sectionTitle}>Informations professionnelles</Text>
+          <View style={styles.siretCard}>
+            <Text style={styles.siretLabel}>Numéro SIRET</Text>
+            <View style={styles.siretRow}>
+              <TextInput
+                style={styles.siretInput}
+                value={siret}
+                onChangeText={setSiret}
+                placeholder="14 chiffres"
+                placeholderTextColor={COLORS.placeholder}
+                keyboardType="numeric"
+                maxLength={17}
+                editable={!savingSiret}
+              />
+              <TouchableOpacity
+                style={[styles.siretBtn, (!siret.trim() || savingSiret) && styles.siretBtnDisabled]}
+                onPress={handleSaveSiret}
+                disabled={!siret.trim() || savingSiret}
+                activeOpacity={0.8}
+              >
+                {savingSiret
+                  ? <ActivityIndicator size="small" color={COLORS.white} />
+                  : <MaterialCommunityIcons name="check" size={18} color={COLORS.white} />
+                }
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.siretHint}>
+              Nécessaire pour activer les paiements. Laisse vide si tu ne l'as pas encore.
+            </Text>
+          </View>
 
           <Text style={styles.sectionTitle}>Mes documents</Text>
 
@@ -813,6 +866,56 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+
+  // SIRET
+  siretCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    padding: 16,
+    marginBottom: 4,
+  },
+  siretLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: COLORS.secondary,
+    marginBottom: 10,
+  },
+  siretRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  siretInput: {
+    flex: 1,
+    height: 44,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    fontSize: 15,
+    color: '#1a1a1a',
+    backgroundColor: '#FAFAFA',
+    letterSpacing: 1,
+  },
+  siretBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 10,
+    backgroundColor: COLORS.secondary,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  siretBtnDisabled: {
+    backgroundColor: '#BDBDBD',
+  },
+  siretHint: {
+    fontSize: 11,
+    color: COLORS.placeholder,
+    marginTop: 8,
+    lineHeight: 15,
   },
 
   // Hint

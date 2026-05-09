@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
 import { useRegistrationStore } from '../store/useRegistrationStore';
 
@@ -9,16 +9,19 @@ import OptionCard from '../components/OptionCard';
 import SectionTitle from '../components/SectionTitle';
 import AddressAutocomplete from '../components/AddressAutocomplete';
 import { COMMON_STYLE_VALUES } from '../styles/commonStyles';
-import { COLORS } from '../constants/theme';
+import { registerDriver } from '../../lib/auth-client';
+import { uploadLocalFileAnonymous } from '../../lib/upload-client';
+import { setCachedProfileAvatarUrl } from '../../lib/profile-cache';
+
+const FALLBACK_AVATAR_URL = 'https://placehold.co/512x512/png?text=GoMile';
 
 export default function RegisterStep2({ navigation }) {
-  const { 
+  const [isLoading, setIsLoading] = useState(false);
+
+  const {
     updateField,
-    address,
-    city,
-    deliveryCity,
-    deliveryRadius,
-    transportType,
+    address, city, zipCode, street, deliveryCity, deliveryRadius, transportType,
+    firstName, lastName, email, phone, avatarUrl, birthDate, gender, password,
   } = useRegistrationStore();
 
   const onSelectAddress = (data) => {
@@ -26,29 +29,71 @@ export default function RegisterStep2({ navigation }) {
     updateField('city', data.city);
     updateField('zipCode', data.zip);
     updateField('street', data.street);
-    if (!deliveryCity) {
-      updateField('deliveryCity', data.city);
-    }
+    if (!deliveryCity) updateField('deliveryCity', data.city);
   };
 
   useEffect(() => {
-    if (!deliveryCity && city) {
-      updateField('deliveryCity', city);
-    }
+    if (!deliveryCity && city) updateField('deliveryCity', city);
   }, [city, deliveryCity, updateField]);
 
-  const handleNext = () => {
-    if (!address || !city) return Alert.alert("Champs requis", "Veuillez sélectionner une adresse valide.");
-    if (!deliveryCity) return Alert.alert("Champs requis", "Indiquez votre ville de livraison.");
-    if (!deliveryRadius) return Alert.alert("Champs requis", "Indiquez votre rayon d'action.");
-    if (!transportType) return Alert.alert("Champs requis", "Choisissez un mode de transport.");
+  const handleNext = async () => {
+    if (!address || !city) return Alert.alert('Champs requis', 'Veuillez sélectionner une adresse valide.');
+    if (!deliveryCity) return Alert.alert('Champs requis', "Indiquez votre ville de livraison.");
+    if (!deliveryRadius) return Alert.alert('Champs requis', "Indiquez votre rayon d'action.");
+    if (!transportType) return Alert.alert('Champs requis', 'Choisissez un mode de transport.');
 
-    navigation.navigate('RegisterStep3');
+    setIsLoading(true);
+    try {
+      const safeRadius = Number.parseInt(String(deliveryRadius), 10);
+      if (!Number.isFinite(safeRadius) || safeRadius < 1) throw new Error('Rayon de livraison invalide.');
+
+      const normalizePhone = (v) => {
+        const c = String(v || '').replace(/\s+/g, '');
+        if (c.startsWith('+')) return c;
+        if (c.startsWith('0') && c.length === 10) return `+33${c.slice(1)}`;
+        return c;
+      };
+
+      const genderMap = { Homme: 'MALE', Femme: 'FEMALE', Autre: 'UNDEFINED' };
+      const vehicleMap = { velo: 'BIKE', moto: 'SCOOTER', voiture: 'CAR', utilitaire: 'TRUCK' };
+
+      const avatarUrlUploaded = avatarUrl
+        ? await uploadLocalFileAnonymous(avatarUrl, 'avatar.jpg').catch(() => undefined)
+        : undefined;
+      if (avatarUrlUploaded) setCachedProfileAvatarUrl(avatarUrlUploaded);
+
+      const signupData = {
+        email: String(email).trim().toLowerCase(),
+        password,
+        firstName: String(firstName).trim(),
+        lastName: String(lastName).trim(),
+        gender: genderMap[gender] || 'UNDEFINED',
+        phone: normalizePhone(phone),
+        dateOfBirth: birthDate,
+        avatarUrl: avatarUrlUploaded ?? FALLBACK_AVATAR_URL,
+        address: String(address).trim(),
+        city: city ? String(city).trim() : undefined,
+        zipCode: zipCode ? String(zipCode).trim() : undefined,
+        street: street ? String(street).trim() : undefined,
+        deliveryCity: String(deliveryCity).trim(),
+        deliveryRadius: safeRadius,
+        transportType: vehicleMap[transportType] || 'BIKE',
+      };
+
+      const cleaned = Object.fromEntries(Object.entries(signupData).filter(([, v]) => v !== undefined));
+      await registerDriver(cleaned);
+
+      navigation.replace('EmailVerification');
+    } catch (err) {
+      Alert.alert("Erreur d'inscription", err.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <FormLayout title="LOGISTIQUE" progress={60}>
-      <SectionTitle>Logistique (3/5)</SectionTitle>
+      <SectionTitle>Logistique (3/4)</SectionTitle>
 
       <AddressAutocomplete
         label="Adresse de résidence"
@@ -85,9 +130,10 @@ export default function RegisterStep2({ navigation }) {
         ))}
       </View>
 
-      <FormButtons 
-        onBack={() => navigation.goBack()} 
-        onNext={handleNext} 
+      <FormButtons
+        onBack={() => navigation.goBack()}
+        onNext={handleNext}
+        loading={isLoading}
       />
     </FormLayout>
   );

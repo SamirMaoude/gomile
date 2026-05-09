@@ -1,11 +1,14 @@
 {
   "cli": {
-    "version": ">= 16.0.0"
+    "version": ">= 16.0.0",
+    "appVersionSource": "remote"
   },
   "build": {
     "development": {
       "developmentClient": true,
       "distribution": "internal",
+      "corepack": true,
+      "pnpm": "10.30.3",
       "ios": {
         "simulator": false
       }
@@ -13,14 +16,23 @@
     "simulator": {
       "developmentClient": true,
       "distribution": "internal",
+      "corepack": true,
+      "pnpm": "10.30.3",
       "ios": {
         "simulator": true
       }
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "corepack": true,
+      "pnpm": "10.30.3",
+      "android": {
+        "buildType": "apk"
+      }
     },
     "production": {
+      "corepack": true,
+      "pnpm": "10.30.3",
       "autoIncrement": true
     }
   },

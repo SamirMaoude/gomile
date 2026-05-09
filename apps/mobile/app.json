@@ -15,7 +15,10 @@
       "supportsTablet": false,
       "bundleIdentifier": "com.gomile.driver",
       "infoPlist": {
-        "UIBackgroundModes": ["remote-notification", "location"]
+        "UIBackgroundModes": [
+          "remote-notification",
+          "location"
+        ]
       }
     },
     "android": {
@@ -25,7 +28,10 @@
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
-      }
+      },
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -48,6 +54,11 @@
           "cameraPermission": "Autoriser GoMile à utiliser la caméra pour la photo de profil."
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "d2f837a0-779b-43db-b35a-62c470513350"
+      }
+    }
   }
 }

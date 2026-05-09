@@ -238,7 +238,7 @@ export async function updateSessionVehicle(activeVehicle: string) {
   });
 }
 
-export async function updateDriverProfile(input: { avatarUrl?: string }) {
+export async function updateDriverProfile(input: { avatarUrl?: string; siret?: string }) {
   return requestDriverApi<{ message: string }>("/driver/me/profile", {
     method: "PATCH",
     body: JSON.stringify(input),

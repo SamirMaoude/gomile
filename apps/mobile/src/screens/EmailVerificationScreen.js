@@ -9,12 +9,12 @@ import {
 import FormLayout from '../components/FormLayout';
 import GoMileButton from '../components/GoMileButton';
 import { getEmailStatus } from '../../lib/auth-client';
-import { createMyDocument } from '../../lib/driver-client';
+import { updateSessionVehicle } from '../../lib/driver-client';
 import { useRegistrationStore } from '../store/useRegistrationStore';
 
 export function EmailVerificationScreen({ navigation }) {
   const email = useRegistrationStore((state) => state.email);
-  const pendingDocuments = useRegistrationStore((state) => state.pendingDocuments);
+  const transportType = useRegistrationStore((state) => state.transportType);
   const resetForm = useRegistrationStore((state) => state.resetForm);
   const [isVerified, setIsVerified] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
@@ -47,18 +47,15 @@ export function EmailVerificationScreen({ navigation }) {
     };
   }, []);
 
-  // Dès que l'email est vérifié : créer les documents en attente puis naviguer
+  // Dès que l'email est vérifié : synchroniser le véhicule, nettoyer le store, naviguer
   useEffect(() => {
     if (!isVerified) return;
 
     const finalize = async () => {
-      // Créer les documents qui avaient été uploadés pendant l'inscription
-      for (const doc of pendingDocuments) {
-        try {
-          await createMyDocument(doc.type, doc.url);
-        } catch {
-          // Non bloquant : le livreur peut uploader depuis l'écran KYC
-        }
+      const vehicleMap = { velo: 'BIKE', moto: 'SCOOTER', voiture: 'CAR', utilitaire: 'TRUCK' };
+      const vehicleType = vehicleMap[transportType] || null;
+      if (vehicleType) {
+        await updateSessionVehicle(vehicleType).catch(() => {});
       }
       resetForm();
       navigation.replace('MainApp');
@@ -66,7 +63,7 @@ export function EmailVerificationScreen({ navigation }) {
 
     const timer = setTimeout(finalize, 1200);
     return () => clearTimeout(timer);
-  }, [isVerified, navigation, pendingDocuments, resetForm]);
+  }, [isVerified, navigation, transportType, resetForm]);
 
   return (
     <FormLayout>

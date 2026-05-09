@@ -1,48 +1,30 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Alert } from 'react-native';
+import { View, StyleSheet, Alert } from 'react-native';
 
 import FormLayout from '../components/FormLayout';
 import SectionTitle from '../components/SectionTitle';
 import GoMileInput from '../components/GoMileInput';
 import GoMileButton from '../components/GoMileButton';
-import DocPicker from '../components/DocPicker'; // Réutilisation du picker de l'étape 3
+import { Text } from 'react-native';
 
-// Store, Thème et API
 import { useRegistrationStore } from '../store/useRegistrationStore';
-import { COLORS } from '../constants/theme';
 import { COMMON_STYLE_VALUES } from '../styles/commonStyles';
 import { registerDriver } from '../../lib/auth-client';
 import { uploadLocalFileAnonymous } from '../../lib/upload-client';
-import { pickImageSource } from '../lib/media-picker';
 import { setCachedProfileAvatarUrl } from '../../lib/profile-cache';
 
 const FALLBACK_AVATAR_URL = 'https://placehold.co/512x512/png?text=GoMile';
 
 export default function RegisterStep4({ navigation }) {
   const [isLoading, setIsLoading] = useState(false);
-  
-  // Extraction des données du store
+
   const {
-    updateField, siret, kbisFile, ribFile,
+    updateField, siret,
     firstName, lastName, email, phone, avatarUrl,
     birthDate, gender, address, city, zipCode, street, deliveryCity, deliveryRadius, transportType,
-    cniFile, justificatifFile, password,
-    permisFile, carteGriseFile,
-    setPendingDocuments,
+    password,
   } = useRegistrationStore();
 
-  const pickDoc = async (field) => {
-    try {
-      const uri = await pickImageSource();
-      if (uri) {
-        updateField(field, uri);
-      }
-    } catch (error) {
-      Alert.alert('Erreur', error.message || 'Impossible d’ouvrir le sélecteur.');
-    }
-  };
-
-  
   const handleFinish = async () => {
     if (!email || !password || !firstName || !lastName || !phone || !birthDate || !gender) {
       return Alert.alert('Erreur', 'Informations personnelles incomplètes.');
@@ -62,24 +44,18 @@ export default function RegisterStep4({ navigation }) {
       const normalizePhone = (value) => {
         const cleaned = String(value || '').replace(/\s+/g, '');
         if (cleaned.startsWith('+')) return cleaned;
-        if (cleaned.startsWith('0') && cleaned.length === 10) {
-          return `+33${cleaned.slice(1)}`;
-        }
+        if (cleaned.startsWith('0') && cleaned.length === 10) return `+33${cleaned.slice(1)}`;
         return cleaned;
       };
 
-      const genderMap = {
-        'Homme': 'MALE',
-        'Femme': 'FEMALE',
-        'Autre': 'UNDEFINED'
-      };
+      const genderMap = { 'Homme': 'MALE', 'Femme': 'FEMALE', 'Autre': 'UNDEFINED' };
+      const vehicleMap = { velo: 'BIKE', moto: 'SCOOTER', voiture: 'CAR', utilitaire: 'TRUCK' };
 
-      const vehicleMap = {
-        velo: 'BIKE',
-        moto: 'SCOOTER',
-        voiture: 'CAR',
-        utilitaire: 'TRUCK',
-      };
+      const avatarUrlUploaded = avatarUrl
+        ? await uploadLocalFileAnonymous(avatarUrl, 'avatar.jpg').catch(() => undefined)
+        : undefined;
+
+      if (avatarUrlUploaded) setCachedProfileAvatarUrl(avatarUrlUploaded);
 
       const signupData = {
         email: String(email).trim().toLowerCase(),
@@ -89,7 +65,7 @@ export default function RegisterStep4({ navigation }) {
         gender: genderMap[gender] || 'UNDEFINED',
         phone: normalizePhone(phone),
         dateOfBirth: birthDate,
-        avatarUrl: FALLBACK_AVATAR_URL,
+        avatarUrl: avatarUrlUploaded ?? FALLBACK_AVATAR_URL,
         address: String(address).trim(),
         city: city ? String(city).trim() : undefined,
         zipCode: zipCode ? String(zipCode).trim() : undefined,
@@ -100,44 +76,13 @@ export default function RegisterStep4({ navigation }) {
         siret: siret ? String(siret).trim() : undefined,
       };
 
-      // 1) Uploader tous les fichiers avant la création du compte.
-      //    /uploads/presign est public — pas besoin d'être connecté.
-      const [cniUrl, justificatifUrl, avatarUrlUploaded, permisUrl, carteGriseUrl, kbisUrl, ribUrl] = await Promise.all([
-        cniFile ? uploadLocalFileAnonymous(cniFile, 'cni.jpg') : Promise.resolve(undefined),
-        justificatifFile ? uploadLocalFileAnonymous(justificatifFile, 'justificatif.jpg') : Promise.resolve(undefined),
-        avatarUrl ? uploadLocalFileAnonymous(avatarUrl, 'avatar.jpg') : Promise.resolve(undefined),
-        permisFile ? uploadLocalFileAnonymous(permisFile, 'permis.jpg') : Promise.resolve(undefined),
-        carteGriseFile ? uploadLocalFileAnonymous(carteGriseFile, 'carte-grise.jpg') : Promise.resolve(undefined),
-        kbisFile ? uploadLocalFileAnonymous(kbisFile, 'kbis.jpg') : Promise.resolve(undefined),
-        ribFile ? uploadLocalFileAnonymous(ribFile, 'rib.jpg') : Promise.resolve(undefined),
-      ]);
-
-      if (avatarUrlUploaded) {
-        setCachedProfileAvatarUrl(avatarUrlUploaded);
-      }
-
-      // 2) Créer le compte avec la vraie URL avatar déjà uploadée.
       const cleanedSignupData = Object.fromEntries(
-        Object.entries({ ...signupData, avatarUrl: avatarUrlUploaded ?? FALLBACK_AVATAR_URL })
-          .filter(([_, v]) => v !== undefined)
+        Object.entries(signupData).filter(([_, v]) => v !== undefined),
       );
 
       await registerDriver(cleanedSignupData);
 
-      // Sauvegarder les URLs S3 dans le store pour les créer après vérification email.
-      // createMyDocument échoue si l'email n'est pas encore vérifié, donc on diffère.
-      const pendingDocuments = [
-        cniUrl          ? { type: 'CNI',               url: cniUrl }          : null,
-        justificatifUrl ? { type: 'OTHER',              url: justificatifUrl } : null,
-        permisUrl       ? { type: 'DRIVING_LICENSE',    url: permisUrl }       : null,
-        carteGriseUrl   ? { type: 'REGISTRATION_CARD',  url: carteGriseUrl }   : null,
-        kbisUrl         ? { type: 'OTHER',              url: kbisUrl }         : null,
-        ribUrl          ? { type: 'RIB',                url: ribUrl }          : null,
-      ].filter(Boolean);
-
-      setPendingDocuments(pendingDocuments);
-      // resetForm() sera appelé par EmailVerificationScreen après création des documents.
-
+      // Les documents KYC se déposent depuis la page Profil après inscription.
       navigation.replace('EmailVerification');
 
     } catch (error) {
@@ -149,46 +94,33 @@ export default function RegisterStep4({ navigation }) {
 
   return (
     <FormLayout title="INFOS PRO" progress={100}>
-      <SectionTitle>Dernière étape (5/5)</SectionTitle>
+      <SectionTitle>Dernière étape (4/4)</SectionTitle>
 
-      <GoMileInput 
-        label="Numéro SIRET"
+      <GoMileInput
+        label="Numéro SIRET (optionnel)"
         placeholder="Ex: 123 456 789 00012"
         value={siret}
         onChangeText={(v) => updateField('siret', v)}
         keyboardType="numeric"
       />
 
-      {/* On réutilise DocPicker pour le KBIS et le RIB pour garder le même style dashed */}
-      <DocPicker 
-        label="Extrait KBIS (ou déclaration auto-entrepreneur)"
-        value={kbisFile}
-        onPress={() => pickDoc('kbisFile')}
-      />
-
-      <DocPicker 
-        label="RIB (Pour tes futurs virements)"
-        value={ribFile}
-        onPress={() => pickDoc('ribFile')}
-      />
-
       <View style={styles.infoBox}>
         <Text style={styles.infoText}>
-          En cliquant sur Terminer, tu certifies l'exactitude des documents fournis.
+          Tes documents KYC (pièce d'identité, permis, RIB…) se déposent depuis ton profil après l'inscription.
         </Text>
       </View>
 
       <View style={styles.buttonRow}>
-        <GoMileButton 
+        <GoMileButton
           title="RETOUR"
           type="secondary"
           outline
           style={{ flex: 1 }}
           onPress={() => navigation.goBack()}
         />
-        <GoMileButton 
+        <GoMileButton
           title="TERMINER"
-          type="secondary" // Vert pour la validation finale
+          type="secondary"
           style={{ flex: 2 }}
           loading={isLoading}
           onPress={handleFinish}
@@ -199,21 +131,21 @@ export default function RegisterStep4({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  infoBox: { 
-    marginTop: 10, 
-    padding: 15, 
-    backgroundColor: '#E3F2FD', 
-    borderRadius: 8 
+  infoBox: {
+    marginTop: 10,
+    padding: 15,
+    backgroundColor: '#E3F2FD',
+    borderRadius: 8,
   },
-  infoText: { 
+  infoText: {
     ...COMMON_STYLE_VALUES.textSecondary,
-    fontSize: 12, 
-    textAlign: 'center' 
+    fontSize: 12,
+    textAlign: 'center',
   },
-  buttonRow: { 
+  buttonRow: {
     ...COMMON_STYLE_VALUES.rowCenter,
-    gap: 15, 
-    marginTop: 30, 
-    marginBottom: 20 
-  }
+    gap: 15,
+    marginTop: 30,
+    marginBottom: 20,
+  },
 });
