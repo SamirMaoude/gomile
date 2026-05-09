@@ -5,19 +5,16 @@ import {
   getMissionHistory,
 } from '../../lib/driver-client';
 import { geocodeAddress, reverseGeocodeCoords } from '../../lib/geocode';
-import { saveMissionQueue, loadMissionQueue } from '../../lib/mission-storage';
 
 const DEFAULT_COORDS = { latitude: 45.1885, longitude: 5.7245 };
 
 async function toMissionCard(mission) {
-  // rawPickup/rawDropoff = coords réelles ou null (jamais le fallback statique ici)
   const rawPickup  = mission.pickupLocation  ?? await geocodeAddress(mission.pickupAddress);
   const rawDropoff = mission.dropoffLocation ?? await geocodeAddress(mission.dropOffAddress);
 
   const pickup  = rawPickup  ?? DEFAULT_COORDS;
   const dropoff = rawDropoff ?? DEFAULT_COORDS;
 
-  // Reverse geocoding uniquement si on a de vraies coordonnées, pas le fallback
   const storeAddress = mission.pickupAddress
     || (rawPickup  ? await reverseGeocodeCoords(rawPickup.latitude,  rawPickup.longitude)  : null)
     || 'Adresse pick-up indisponible';
@@ -47,6 +44,16 @@ async function toMissionCard(mission) {
   };
 }
 
+// Dérive l'état de vérification depuis le statut backend :
+// DRIVER_ACCEPTED → en route vers le commerçant
+// PICKED_UP       → colis récupéré, en route vers le client
+function missionStateFromStatus(status) {
+  return {
+    merchantVerified: status === 'PICKED_UP' || status === 'DELIVERED',
+    clientVerified:   status === 'DELIVERED',
+  };
+}
+
 export const useMissionStore = create((set, get) => ({
   // ── File de missions en cours de livraison ─────────────────────────────────
   missionQueue: [],       // missions acceptées par le livreur
@@ -59,14 +66,12 @@ export const useMissionStore = create((set, get) => ({
       const alreadyIn = state.missionQueue.some((q) => q.id === m.id);
       return {
         missionQueue: alreadyIn ? state.missionQueue : [...state.missionQueue, m],
-        focusedMissionId: m.id, // toujours focaliser la mission (même si déjà en queue)
+        focusedMissionId: m.id,
         missionStates: alreadyIn
           ? state.missionStates
           : { ...state.missionStates, [m.id]: { merchantVerified: false, clientVerified: false } },
       };
     });
-    const { missionQueue, missionStates, focusedMissionId } = get();
-    saveMissionQueue(missionQueue, missionStates, focusedMissionId);
   },
 
   setFocusedMission: (id) => set({ focusedMissionId: id }),
@@ -78,8 +83,6 @@ export const useMissionStore = create((set, get) => ({
         [id]: { ...state.missionStates[id], merchantVerified: true },
       },
     }));
-    const { missionQueue, missionStates, focusedMissionId } = get();
-    saveMissionQueue(missionQueue, missionStates, focusedMissionId);
   },
 
   markClientVerified: (id) => {
@@ -89,8 +92,6 @@ export const useMissionStore = create((set, get) => ({
         [id]: { ...state.missionStates[id], clientVerified: true },
       },
     }));
-    const { missionQueue, missionStates, focusedMissionId } = get();
-    saveMissionQueue(missionQueue, missionStates, focusedMissionId);
   },
 
   clearMission: (id) => {
@@ -101,20 +102,35 @@ export const useMissionStore = create((set, get) => ({
         state.focusedMissionId === id ? (newQueue[0]?.id ?? null) : state.focusedMissionId;
       return { missionQueue: newQueue, missionStates: newStates, focusedMissionId: newFocused };
     });
-    const { missionQueue, missionStates, focusedMissionId } = get();
-    saveMissionQueue(missionQueue, missionStates, focusedMissionId);
   },
 
+  // Restaure les missions en cours depuis le backend au démarrage.
+  // focusedMissionId est déduit par priorité métier : PICKED_UP > DRIVER_ACCEPTED.
   initStore: async () => {
-    // Ne pas écraser une queue déjà chargée en mémoire
     if (get().missionQueue.length > 0) return;
-    const saved = await loadMissionQueue();
-    if (saved?.missionQueue?.length > 0) {
+    try {
+      const active = await getActiveMissions();
+      if (!active || active.length === 0) return;
+
+      const missionQueue = await Promise.all(active.map(toMissionCard));
+
+      const missionStates = {};
+      for (const mission of active) {
+        missionStates[mission.id] = missionStateFromStatus(mission.status ?? '');
+      }
+
+      // La mission la plus urgente passe au premier plan :
+      // colis déjà récupéré (PICKED_UP) > en route vers commerçant (DRIVER_ACCEPTED)
+      const priority = (status) => (status === 'PICKED_UP' ? 0 : 1);
+      const focused = [...active].sort((a, b) => priority(a.status) - priority(b.status))[0];
+
       set({
-        missionQueue: saved.missionQueue,
-        missionStates: saved.missionStates ?? {},
-        focusedMissionId: saved.focusedMissionId ?? saved.missionQueue[0]?.id ?? null,
+        missionQueue,
+        missionStates,
+        focusedMissionId: focused?.id ?? null,
       });
+    } catch (err) {
+      console.warn('[useMissionStore] initStore (backend restore) failed:', err?.message ?? err);
     }
   },
 
@@ -127,7 +143,7 @@ export const useMissionStore = create((set, get) => ({
       availableMissions: state.availableMissions.filter((m) => m.id !== missionId),
     })),
 
-  // ── Missions disponibles (polling) ─────────────────────────────────────────
+  // ── Missions disponibles ───────────────────────────────────────────────────
   availableMissions: [],
   activeMissions: [],
   historyMissions: [],

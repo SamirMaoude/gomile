@@ -69,11 +69,19 @@ export async function configureDriverPushNotifications() {
 
 // Notification locale déclenchée lors de la réception d'une nouvelle mission via socket.
 export async function notifyNewMissions(newMissions) {
+  console.log('[notif] notifyNewMissions appelé, missions:', newMissions?.length);
   if (!newMissions || newMissions.length === 0) return;
   if (Platform.OS === 'web') return;
 
   try {
     const Notifications = await import('expo-notifications');
+
+    const perms = await Notifications.getPermissionsAsync();
+    console.log('[notif] permission status:', perms.status);
+    if (perms.status !== 'granted') {
+      console.warn('[notif] permission refusée → pas de notif');
+      return;
+    }
 
     const first = newMissions[0];
     const title =
@@ -85,7 +93,8 @@ export async function notifyNewMissions(newMissions) {
         ? `${first.store} — ${first.distance} (+${first.reward}€)`
         : `${newMissions.length} courses disponibles près de vous`;
 
-    await Notifications.scheduleNotificationAsync({
+    console.log('[notif] scheduleNotificationAsync →', title, '|', body);
+    const id = await Notifications.scheduleNotificationAsync({
       content: {
         title,
         body,
@@ -95,8 +104,9 @@ export async function notifyNewMissions(newMissions) {
       },
       trigger: null, // immédiat
     });
-  } catch {
-    console.warn('[push-notifications] scheduleNotificationAsync failed');
+    console.log('[notif] notif planifiée ✓ id =', id);
+  } catch (err) {
+    console.warn('[push-notifications] scheduleNotificationAsync failed:', err?.message ?? err);
   }
 }
 

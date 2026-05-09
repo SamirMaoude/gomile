@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, AppState } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import * as Location from 'expo-location';
 
@@ -73,20 +73,21 @@ export default function MainTabs() {
 
       // Nouvelle mission disponible → refresh le store + notif locale
       const handleNewOrder = async (payload) => {
+        console.log('[socket] 📦 order:new reçu:', JSON.stringify(payload));
         if (cancelled) return;
         try {
           const newMissions = await fetchAvailableMissions();
-          // Utilise les données du store si la mission est déjà chargée,
-          // sinon utilise le payload du socket pour la notification immédiate.
+          console.log('[socket] fetchAvailableMissions →', newMissions?.length, 'nouvelles missions');
           const match = newMissions?.find((m) => m.id === payload.orderId);
-          notifyNewMissions([
-            match ?? {
-              id: payload.orderId,
-              store: payload.pickup ?? payload.type ?? 'Nouvelle course',
-              distance: `${payload.distanceKm ?? 0} km`,
-              reward: String(payload.reward ?? 0),
-            },
-          ]);
+          const toNotify = match ?? {
+            id: payload.orderId,
+            store: payload.pickup ?? payload.type ?? 'Nouvelle course',
+            distance: `${payload.distanceKm ?? 0} km`,
+            reward: String(payload.reward ?? 0),
+          };
+          console.log('[socket] appel notifyNewMissions avec:', JSON.stringify(toNotify));
+          await notifyNewMissions([toNotify]);
+          console.log('[socket] notifyNewMissions ✓');
         } catch (err) {
           console.warn('[socket] handleNewOrder failed', err?.message ?? err);
         }
@@ -98,12 +99,33 @@ export default function MainTabs() {
         setOnlineStatus(status === 'AVAILABLE');
       };
 
+      // Rattrapage après reconnexion : les events émis pendant la coupure sont perdus
+      socket.io.on('reconnect', async () => {
+        if (cancelled) return;
+        console.log('[socket] reconnecté → rattrapage des missions manquées');
+        try {
+          const missed = await fetchAvailableMissions();
+          if (missed?.length > 0) await notifyNewMissions(missed);
+        } catch {/* non bloquant */}
+      });
+
       socket.on('order:new', handleNewOrder);
       socket.on('driver:status', handleDriverStatus);
+
+      // Rattrapage quand l'app revient au premier plan (app en fond = socket coupé)
+      const appStateSub = AppState.addEventListener('change', async (nextState) => {
+        if (cancelled || nextState !== 'active') return;
+        console.log('[AppState] app au premier plan → rattrapage missions');
+        try {
+          const missed = await fetchAvailableMissions();
+          if (missed?.length > 0) await notifyNewMissions(missed);
+        } catch {/* non bloquant */}
+      });
 
       offHandlers = () => {
         socket.off('order:new', handleNewOrder);
         socket.off('driver:status', handleDriverStatus);
+        appStateSub.remove();
       };
 
       // Sécurité : si le composant a déjà été démonté avant la résolution
@@ -120,37 +142,47 @@ export default function MainTabs() {
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Suivi GPS en temps réel (uniquement quand en ligne) ────────────────────
+  // ── Suivi GPS hybride : mouvement (≥20m) OU heartbeat (2 min) ────────────────
   useEffect(() => {
     if (!isOnline) return;
 
+    const HEARTBEAT_MS = 2 * 60 * 1000; // 2 minutes
     let cancelled = false;
     let locationSub = null;
+    let lastCoords = null;
 
-    // Mise à jour immédiate au passage en ligne
+    const sendLocation = (coords) => {
+      if (cancelled) return;
+      lastCoords = coords;
+      updateDriverLocation(coords.latitude, coords.longitude).catch((err) =>
+        console.warn('[location] update failed', err?.message ?? err),
+      );
+    };
+
+    // Position immédiate au passage en ligne
     Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced })
-      .then(({ coords }) => {
-        if (!cancelled) updateDriverLocation(coords.latitude, coords.longitude).catch(() => {});
-      })
+      .then(({ coords }) => sendLocation(coords))
       .catch(() => {});
 
-    // Suivi continu : n'envoie une mise à jour que si le livreur a bougé de ≥ 50 m
+    // Mise à jour sur mouvement ≥ 20 m
     Location.watchPositionAsync(
-      { accuracy: Location.Accuracy.Balanced, distanceInterval: 50 },
-      ({ coords }) => {
-        if (cancelled) return;
-        updateDriverLocation(coords.latitude, coords.longitude).catch((err) =>
-          console.warn('[location] update failed', err?.message ?? err),
-        );
-      },
+      { accuracy: Location.Accuracy.Balanced, distanceInterval: 20 },
+      ({ coords }) => sendLocation(coords),
     ).then((sub) => {
       if (cancelled) sub.remove();
       else locationSub = sub;
     });
 
+    // Heartbeat : renvoie la dernière position connue toutes les 2 min
+    // même si le livreur est immobile, pour rester visible dans PostGIS
+    const heartbeat = setInterval(() => {
+      if (lastCoords) sendLocation(lastCoords);
+    }, HEARTBEAT_MS);
+
     return () => {
       cancelled = true;
       locationSub?.remove();
+      clearInterval(heartbeat);
     };
   }, [isOnline]);
 
