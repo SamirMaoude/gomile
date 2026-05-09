@@ -42,7 +42,6 @@ export function useMissionsPoller({ fetchAll = false } = {}) {
     try {
       const newMissions = await fetch();
       if (newMissions?.length > 0) {
-        // console.log(`[useMissionsPoller] ${newMissions.length} new missions detected`);
         notifyNewMissions(newMissions);
       }
     } catch (err) {

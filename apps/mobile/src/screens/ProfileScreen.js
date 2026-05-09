@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, Alert, Share } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import Constants from 'expo-constants';
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
@@ -40,10 +41,8 @@ function resolveApiBaseUrl() {
 
 function resolveAvatarSource(avatarUrl) {
   const cleanedUrl = typeof avatarUrl === 'string' ? avatarUrl.trim() : '';
-  console.log('resolveAvatarSource - cleanedUrl:', cleanedUrl); // Debug log
 
   if (!cleanedUrl) {
-    console.log('resolveAvatarSource - cleanedUrl est vide, retourne DEFAULT_AVATAR'); // Debug log
     return DEFAULT_AVATAR;
   }
 
@@ -52,7 +51,6 @@ function resolveAvatarSource(avatarUrl) {
     cleanedUrl.includes('text=GoMile') ||
     cleanedUrl.includes('text=Gomile')
   ) {
-    console.log('resolveAvatarSource - cleanedUrl est un placeholder, retourne DEFAULT_AVATAR'); // Debug log
     return DEFAULT_AVATAR;
   }
 
@@ -62,13 +60,11 @@ function resolveAvatarSource(avatarUrl) {
     cleanedUrl.startsWith('file://') ||
     cleanedUrl.startsWith('data:')
   ) {
-    console.log('resolveAvatarSource - cleanedUrl est une URL absolue, retourne { uri: cleanedUrl }'); // Debug log
     return { uri: cleanedUrl };
   }
 
   try {
     const resolvedUri = new URL(cleanedUrl, resolveApiBaseUrl()).toString();
-    console.log('resolveAvatarSource - cleanedUrl est relative, résolue en :', resolvedUri); // Debug log
     return { uri: resolvedUri };
   } catch (e) {
     console.error('resolveAvatarSource - Erreur lors de la résolution de l\'URL:', e); // Debug log
@@ -101,12 +97,6 @@ function getAvatarS3Client() {
     throw new Error('Missing AWS env for avatar signing');
   }
 
-  console.log('Avatar signing env loaded:', {
-    region,
-    accessKeyPrefix: accessKeyId.slice(0, 4),
-    secretLength: secretAccessKey.length,
-  });
-
   avatarS3Client = new S3Client({
     region,
     credentials: { accessKeyId, secretAccessKey },
@@ -132,15 +122,10 @@ function parseS3BucketAndKey(s3Url) {
 async function getSignedAvatarUrl(rawUrl) {
   const cached = SIGNED_AVATAR_CACHE.get(rawUrl);
   if (cached && cached.expiresAt > Date.now() + 15_000) {
-    console.log('Avatar signed URL cache hit');
     return cached.url;
   }
 
   const { bucket, key } = parseS3BucketAndKey(rawUrl);
-  console.log('Generating signed avatar URL:', {
-    bucket,
-    keyPrefix: key.split('/').slice(0, 2).join('/'),
-  });
   const command = new GetObjectCommand({ Bucket: bucket, Key: key });
   const client = getAvatarS3Client();
   const expiresIn = 300;
@@ -224,6 +209,13 @@ export default function ProfileScreen({ navigation }) {
     loadProfileData();
   }, [loadProfileData]);
 
+  useFocusEffect(
+    useCallback(() => {
+      // Rafraîchit les données chaque fois qu'on revient sur cet écran
+      loadProfileData();
+    }, [loadProfileData])
+  );
+
   useEffect(() => {
     setAvatarLoadFailed(false);
   }, [profile?.avatarUrl]);
@@ -235,11 +227,6 @@ export default function ProfileScreen({ navigation }) {
 
     const resolveSignedAvatar = async () => {
       const rawAvatarUrl = typeof avatarSourceUrl === 'string' ? avatarSourceUrl.trim() : '';
-      console.log('Avatar resolver input:', {
-        hasRawUrl: Boolean(rawAvatarUrl),
-        isAbsolute: rawAvatarUrl ? isAbsoluteUrl(rawAvatarUrl) : false,
-        isS3: rawAvatarUrl ? isS3Url(rawAvatarUrl) : false,
-      });
 
       if (!rawAvatarUrl) {
         if (isMounted) setSignedAvatarUrl(null);
