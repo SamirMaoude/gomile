@@ -24,11 +24,41 @@ import {
 } from '../../lib/driver-client';
 import { uploadFileToPresignedUrl } from '../../lib/upload-client';
 
-const DOC_TYPES = [
-  { type: 'CNI', label: "Carte nationale d'identité", icon: 'card-account-details-outline' },
-  { type: 'DRIVING_LICENSE', label: 'Permis de conduire', icon: 'steering' },
-  { type: 'REGISTRATION_CARD', label: 'Carte grise', icon: 'car-info' },
-  { type: 'RIB', label: 'Relevé bancaire (RIB)', icon: 'bank-outline' },
+// ── Amélioration 1 : PASSPORT comme alternative à CNI ─────────────────────────
+// Chaque slot représente un emplacement logique dans le formulaire KYC.
+// Le slot IDENTITY accepte CNI OU PASSPORT (un seul suffit).
+const DOC_SLOTS = [
+  {
+    slot: 'IDENTITY',
+    types: ['CNI', 'PASSPORT'],
+    label: "Pièce d'identité",
+    icon: 'card-account-details-outline',
+    typeLabels: {
+      CNI: "Carte nationale d'identité",
+      PASSPORT: 'Passeport',
+    },
+  },
+  {
+    slot: 'DRIVING_LICENSE',
+    types: ['DRIVING_LICENSE'],
+    label: 'Permis de conduire',
+    icon: 'steering',
+    typeLabels: { DRIVING_LICENSE: 'Permis de conduire' },
+  },
+  {
+    slot: 'REGISTRATION_CARD',
+    types: ['REGISTRATION_CARD'],
+    label: 'Carte grise',
+    icon: 'car-info',
+    typeLabels: { REGISTRATION_CARD: 'Carte grise' },
+  },
+  {
+    slot: 'RIB',
+    types: ['RIB'],
+    label: 'Relevé bancaire (RIB)',
+    icon: 'bank-outline',
+    typeLabels: { RIB: 'Relevé bancaire' },
+  },
 ];
 
 const STATUS_CONFIG = {
@@ -44,21 +74,21 @@ const STATUS_CONFIG = {
     bg: '#E3F2FD',
     icon: 'clock-check-outline',
     title: 'Vérification en cours',
-    subtitle: 'Tes documents ont été reçus et sont en cours d\'examen par notre équipe (sous 48h).',
+    subtitle: "Tes documents ont été reçus et sont en cours d'examen par notre équipe (sous 48h).",
   },
   ACCEPTED: {
     color: '#2E7D32',
     bg: '#E8F5E9',
     icon: 'check-decagram',
     title: 'Compte vérifié',
-    subtitle: 'Ton identité a été confirmée. Tu as accès à l\'ensemble des missions GoMile.',
+    subtitle: "Ton identité a été confirmée. Tu as accès à l'ensemble des missions GoMile.",
   },
   REJECTED: {
     color: '#B71C1C',
     bg: '#FFEBEE',
     icon: 'close-octagon-outline',
     title: 'Documents refusés',
-    subtitle: 'Certains documents n\'ont pas été acceptés. Corrige-les et resoumets ta demande.',
+    subtitle: "Certains documents n'ont pas été acceptés. Corrige-les et resoumets ta demande.",
   },
 };
 
@@ -69,6 +99,7 @@ function inferContentType(uri) {
   return 'image/jpeg';
 }
 
+// ── Amélioration 3 : 4 états visuels distincts par document ───────────────────
 function DocStatusChip({ doc, isUploading }) {
   if (isUploading) {
     return (
@@ -92,7 +123,7 @@ function DocStatusChip({ doc, isUploading }) {
     return (
       <View style={styles.chipRow}>
         <MaterialCommunityIcons name="check-circle" size={13} color="#2E7D32" />
-        <Text style={[styles.chipText, { color: '#2E7D32' }]}>Vérifié</Text>
+        <Text style={[styles.chipText, { color: '#2E7D32' }]}>Vérifié ✓</Text>
       </View>
     );
   }
@@ -100,14 +131,14 @@ function DocStatusChip({ doc, isUploading }) {
     return (
       <View style={styles.chipRow}>
         <MaterialCommunityIcons name="close-circle" size={13} color="#B71C1C" />
-        <Text style={[styles.chipText, { color: '#B71C1C' }]}>Refusé</Text>
+        <Text style={[styles.chipText, { color: '#B71C1C' }]}>Refusé — à corriger</Text>
       </View>
     );
   }
   return (
     <View style={styles.chipRow}>
       <MaterialCommunityIcons name="clock-outline" size={13} color="#1565C0" />
-      <Text style={[styles.chipText, { color: '#1565C0' }]}>En attente</Text>
+      <Text style={[styles.chipText, { color: '#1565C0' }]}>En attente d'examen</Text>
     </View>
   );
 }
@@ -140,34 +171,76 @@ export default function KYCScreen({ navigation }) {
   const statusCfg = STATUS_CONFIG[rawStatus] || STATUS_CONFIG.NOT_SUBMITTED;
   const documents = kycData?.documents || [];
   const canModify = rawStatus === 'NOT_SUBMITTED' || rawStatus === 'REJECTED';
-  const canSubmit = canModify && documents.length > 0;
 
-  const getDoc = (type) => documents.find((d) => d.type === type) || null;
+  // Retourne le document uploadé pour un slot donné (vérifie tous les types du slot)
+  const getDocForSlot = (slotDef) =>
+    documents.find((d) => slotDef.types.includes(d.type)) ?? null;
 
-  const handleUpload = async (docType) => {
-    const uri = await pickImageSource();
-    if (!uri) return;
+  // ── Amélioration 4 : indicateur de progression ────────────────────────────
+  const uploadedCount = DOC_SLOTS.filter((s) => getDocForSlot(s) !== null).length;
+  const totalCount = DOC_SLOTS.length;
+  const progressPct = uploadedCount / totalCount;
+  const canSubmit = canModify && uploadedCount > 0;
 
-    const contentType = inferContentType(uri);
-    const ext = uri.split('.').pop() || 'jpg';
-    const filename = `${docType.toLowerCase()}_${Date.now()}.${ext}`;
+  // ── Amélioration 1 : gestion du slot IDENTITY (CNI ou PASSPORT) ──────────
+  const pickIdentityType = (existingDoc, onChosen) => {
+    if (existingDoc) {
+      // Remplace avec le même type par défaut, ou propose de changer
+      Alert.alert(
+        "Remplacer la pièce d'identité",
+        'Veux-tu garder le même type ou changer ?',
+        [
+          { text: existingDoc.type === 'CNI' ? "Nouvelle CNI" : 'Nouveau passeport',
+            onPress: () => onChosen(existingDoc.type) },
+          { text: existingDoc.type === 'CNI' ? 'Passer au passeport' : 'Passer à la CNI',
+            onPress: () => onChosen(existingDoc.type === 'CNI' ? 'PASSPORT' : 'CNI') },
+          { text: 'Annuler', style: 'cancel' },
+        ],
+      );
+    } else {
+      Alert.alert(
+        "Type de pièce d'identité",
+        'Quel document veux-tu utiliser ?',
+        [
+          { text: "Carte nationale d'identité", onPress: () => onChosen('CNI') },
+          { text: 'Passeport', onPress: () => onChosen('PASSPORT') },
+          { text: 'Annuler', style: 'cancel' },
+        ],
+      );
+    }
+  };
 
-    setUploading((prev) => ({ ...prev, [docType]: true }));
-    try {
-      const { uploadUrl, fileUrl } = await presignDocument(filename, contentType);
-      await uploadFileToPresignedUrl(uploadUrl, uri, contentType);
+  const handleUpload = async (slotDef) => {
+    const existingDoc = getDocForSlot(slotDef);
 
-      const existing = getDoc(docType);
-      if (existing) {
-        await deleteDocument(existing.id).catch(() => {});
+    const doUpload = async (backendType) => {
+      const uri = await pickImageSource();
+      if (!uri) return;
+
+      const contentType = inferContentType(uri);
+      const ext = uri.split('.').pop() || 'jpg';
+      const filename = `${backendType.toLowerCase()}_${Date.now()}.${ext}`;
+
+      setUploading((prev) => ({ ...prev, [slotDef.slot]: true }));
+      try {
+        const { uploadUrl, fileUrl } = await presignDocument(filename, contentType);
+        await uploadFileToPresignedUrl(uploadUrl, uri, contentType);
+        if (existingDoc) {
+          await deleteDocument(existingDoc.id).catch(() => {});
+        }
+        await createMyDocument(backendType, fileUrl);
+        await load();
+      } catch (err) {
+        Alert.alert("Erreur d'upload", err?.message || 'Impossible d\'envoyer le document.');
+      } finally {
+        setUploading((prev) => ({ ...prev, [slotDef.slot]: false }));
       }
+    };
 
-      await createMyDocument(docType, fileUrl);
-      await load();
-    } catch (err) {
-      Alert.alert('Erreur d\'upload', err?.message || 'Impossible d\'envoyer le document.');
-    } finally {
-      setUploading((prev) => ({ ...prev, [docType]: false }));
+    if (slotDef.types.length > 1) {
+      pickIdentityType(existingDoc, doUpload);
+    } else {
+      doUpload(slotDef.types[0]);
     }
   };
 
@@ -261,25 +334,64 @@ export default function KYCScreen({ navigation }) {
             </View>
           </View>
 
-          {/* ── Rejection reason from admin ── */}
+          {/* ── Motif de refus global (niveau soumission) ── */}
           {rawStatus === 'REJECTED' && kycData?.latestSubmission?.rejectionReason && (
             <View style={styles.rejectionCard}>
               <MaterialCommunityIcons name="alert-circle" size={16} color="#B71C1C" style={{ marginTop: 1 }} />
               <Text style={styles.rejectionText}>
-                Motif : {kycData.latestSubmission.rejectionReason}
+                Motif global : {kycData.latestSubmission.rejectionReason}
               </Text>
             </View>
           )}
 
+          {/* ── Amélioration 4 : barre de progression ── */}
+          <View style={styles.progressSection}>
+            <View style={styles.progressHeader}>
+              <Text style={styles.progressLabel}>Documents fournis</Text>
+              <Text style={[styles.progressCount, uploadedCount === totalCount && { color: '#2E7D32' }]}>
+                {uploadedCount} / {totalCount}
+              </Text>
+            </View>
+            <View style={styles.progressTrack}>
+              <View style={[
+                styles.progressFill,
+                {
+                  width: `${progressPct * 100}%`,
+                  backgroundColor: uploadedCount === totalCount ? '#2E7D32' : COLORS.secondary,
+                },
+              ]} />
+            </View>
+            {canModify && uploadedCount < totalCount && (
+              <Text style={styles.progressHint}>
+                {totalCount - uploadedCount} document{totalCount - uploadedCount > 1 ? 's' : ''} manquant{totalCount - uploadedCount > 1 ? 's' : ''}
+              </Text>
+            )}
+          </View>
+
           {/* ── Documents section ── */}
+          {/* ── Amélioration 5 : correction ciblée en mode REJECTED ── */}
+          {rawStatus === 'REJECTED' && (
+            <View style={styles.correctionBanner}>
+              <MaterialCommunityIcons name="target" size={15} color="#B71C1C" />
+              <Text style={styles.correctionBannerText}>
+                Corrige en priorité les documents mis en évidence ci-dessous.
+              </Text>
+            </View>
+          )}
+
           <Text style={styles.sectionTitle}>Mes documents</Text>
 
-          {DOC_TYPES.map((def) => {
-            const doc = getDoc(def.type);
-            const isUploading = !!uploading[def.type];
+          {DOC_SLOTS.map((slotDef) => {
+            const doc = getDocForSlot(slotDef);
+            const isUploading = !!uploading[slotDef.slot];
             const hasDoc = !!doc;
             const isVerified = doc?.verified;
             const isRejected = hasDoc && !isVerified && !!doc?.rejectionReason;
+
+            // ── Amélioration 5 : mise en avant ciblée ──────────────────────
+            // En mode REJECTED : les docs refusés ressortent, les autres sont atténués
+            const isUrgent = rawStatus === 'REJECTED' && isRejected;
+            const isDimmed = rawStatus === 'REJECTED' && hasDoc && !isRejected && !isVerified;
 
             const iconBg = isVerified
               ? '#E8F5E9'
@@ -297,20 +409,50 @@ export default function KYCScreen({ navigation }) {
               ? COLORS.secondary
               : COLORS.placeholder;
 
+            // ── Amélioration 1 : label affiché selon le type réel uploadé ──
+            const displayLabel = hasDoc && slotDef.typeLabels[doc.type]
+              ? slotDef.typeLabels[doc.type]
+              : slotDef.label;
+
+            // En mode REJECTED, on autorise la réupload même des docs non-rejetés
+            // pour que le livreur puisse améliorer la qualité si besoin
+            const showActions = canModify;
+
             return (
-              <View key={def.type} style={styles.docCard}>
-                {/* Icon */}
+              <View
+                key={slotDef.slot}
+                style={[
+                  styles.docCard,
+                  isUrgent && styles.docCardUrgent,
+                  isDimmed && styles.docCardDimmed,
+                ]}
+              >
+                {/* Indicateur d'urgence */}
+                {isUrgent && (
+                  <View style={styles.urgentBadge}>
+                    <MaterialCommunityIcons name="alert" size={11} color={COLORS.white} />
+                  </View>
+                )}
+
+                {/* Icône */}
                 <View style={[styles.docIconWrap, { backgroundColor: iconBg }]}>
-                  <MaterialCommunityIcons name={def.icon} size={22} color={iconColor} />
+                  <MaterialCommunityIcons name={slotDef.icon} size={22} color={iconColor} />
                 </View>
 
-                {/* Info */}
+                {/* Infos */}
                 <View style={styles.docInfo}>
-                  <Text style={styles.docLabel}>{def.label}</Text>
+                  <Text style={styles.docLabel}>{displayLabel}</Text>
+                  {/* ── Amélioration 1 : badge "CNI ou Passeport" si slot multi-types et vide ── */}
+                  {!hasDoc && slotDef.types.length > 1 && (
+                    <Text style={styles.docAlternatives}>
+                      {slotDef.types.map((t) => slotDef.typeLabels[t]).join(' ou ')}
+                    </Text>
+                  )}
                   <DocStatusChip doc={doc} isUploading={isUploading} />
+                  {/* ── Amélioration 2 : motif de refus par document ── */}
                   {isRejected && doc.rejectionReason && (
-                    <Text style={styles.docRejectionReason} numberOfLines={2}>
-                      {doc.rejectionReason}
+                    <Text style={styles.docRejectionReason} numberOfLines={3}>
+                      ↳ {doc.rejectionReason}
                     </Text>
                   )}
                 </View>
@@ -319,17 +461,22 @@ export default function KYCScreen({ navigation }) {
                 <View style={styles.docActions}>
                   {isUploading ? (
                     <ActivityIndicator size="small" color={COLORS.secondary} />
-                  ) : canModify ? (
+                  ) : showActions ? (
                     <>
                       <TouchableOpacity
-                        style={[styles.actionBtn, { backgroundColor: COLORS.secondary + '18' }]}
-                        onPress={() => handleUpload(def.type)}
+                        style={[
+                          styles.actionBtn,
+                          isUrgent
+                            ? { backgroundColor: '#FFEBEE' }
+                            : { backgroundColor: COLORS.secondary + '18' },
+                        ]}
+                        onPress={() => handleUpload(slotDef)}
                         hitSlop={6}
                       >
                         <MaterialCommunityIcons
                           name={hasDoc ? 'refresh' : 'upload-outline'}
                           size={18}
-                          color={COLORS.secondary}
+                          color={isUrgent ? '#B71C1C' : COLORS.secondary}
                         />
                       </TouchableOpacity>
                       {hasDoc && (
@@ -481,7 +628,7 @@ const styles = StyleSheet.create({
     lineHeight: 19,
   },
 
-  // Rejection reason (from admin)
+  // Rejection reason (global, niveau soumission)
   rejectionCard: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -500,12 +647,72 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
 
+  // Amélioration 4 : barre de progression
+  progressSection: {
+    marginTop: 20,
+    backgroundColor: COLORS.white,
+    borderRadius: 14,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  progressHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  progressLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#555',
+  },
+  progressCount: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: COLORS.secondary,
+  },
+  progressTrack: {
+    height: 8,
+    backgroundColor: '#E5E7EB',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: 8,
+    borderRadius: 4,
+  },
+  progressHint: {
+    fontSize: 11,
+    color: COLORS.placeholder,
+    marginTop: 7,
+  },
+
+  // Amélioration 5 : bandeau correction ciblée
+  correctionBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+    backgroundColor: '#FFF0F0',
+    borderRadius: 10,
+    padding: 11,
+    marginTop: 14,
+    borderWidth: 1,
+    borderColor: '#EF9A9A',
+  },
+  correctionBannerText: {
+    flex: 1,
+    fontSize: 12,
+    color: '#B71C1C',
+    lineHeight: 17,
+  },
+
   // Section title
   sectionTitle: {
     fontSize: 18,
     fontWeight: '800',
     color: COLORS.secondary,
-    marginTop: 26,
+    marginTop: 22,
     marginBottom: 12,
   },
 
@@ -521,6 +728,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
   },
+  // Amélioration 5 : états urgence / atténué
+  docCardUrgent: {
+    borderColor: '#EF9A9A',
+    borderWidth: 2,
+    backgroundColor: '#FFFAFA',
+  },
+  docCardDimmed: {
+    opacity: 0.55,
+  },
+  urgentBadge: {
+    position: 'absolute',
+    top: -6,
+    right: -6,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#B71C1C',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1,
+  },
   docIconWrap: {
     width: 46,
     height: 46,
@@ -535,7 +763,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     color: COLORS.secondary,
-    marginBottom: 5,
+    marginBottom: 3,
+  },
+  // Amélioration 1 : alternatives CNI/Passeport
+  docAlternatives: {
+    fontSize: 11,
+    color: COLORS.placeholder,
+    marginBottom: 4,
+    fontStyle: 'italic',
   },
   chipRow: {
     flexDirection: 'row',
@@ -551,10 +786,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
   },
+  // Amélioration 2 : motif de refus par document
   docRejectionReason: {
     fontSize: 11,
     color: '#B71C1C',
-    marginTop: 4,
+    marginTop: 5,
     lineHeight: 15,
   },
 
