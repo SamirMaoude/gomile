@@ -39,8 +39,6 @@ Thumbs.db
 # Local planning/state files
 local/
 apps/api/prisma/migrations/migration_lock.toml
-# Allow mobile package-lock.json for EAS build detection
-!apps/mobile/package-lock.json
 apps/api/requests.http
 apps/api/gomile-api-dev_accessKeys.csv
 apps/plugin/woocommerce/docs/*
