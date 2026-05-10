@@ -7,7 +7,6 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
-      "pnpm": "10.30.3",
       "ios": {
         "simulator": false
       }
@@ -15,20 +14,17 @@
     "simulator": {
       "developmentClient": true,
       "distribution": "internal",
-      "pnpm": "10.30.3",
       "ios": {
         "simulator": true
       }
     },
     "preview": {
       "distribution": "internal",
-      "pnpm": "10.30.3",
       "android": {
         "buildType": "apk"
       }
     },
     "production": {
-      "pnpm": "10.30.3",
       "autoIncrement": true
     }
   },
