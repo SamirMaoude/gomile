@@ -174,4 +174,18 @@ export class AdminController {
   ) {
     return this.kycService.rejectDriverKyc(driverId, dto.rejectionReason);
   }
+
+  @ApiOperation({ summary: 'Resetting handshake attempts', description: 'This action will reset the remaining handshake attempts to 3 on both merchant and client side'})
+  @ApiOkResponse({ schema: { properties: { message: { type: 'string' } } } })
+  @ApiUnauthorizedResponse({ description: 'Invalid or missing JWT' })
+  @ApiForbiddenResponse({ description: 'Admin role required' })
+  @ApiNotFoundResponse({ description: 'Order not found' })
+  @Post('orders/:orderId/reset')
+  @HttpCode(HttpStatus.OK)
+  async resetHandshake(
+    @Param('orderId') orderId: string,
+  ) {
+    return this.adminService.unlockHandshake(orderId)
+  }
+
 }

@@ -7,6 +7,7 @@ const mockPrisma = {
   driver: { findMany: jest.fn(), findUnique: jest.fn() },
   walletEntry: { findMany: jest.fn(), findUnique: jest.fn(), update: jest.fn() },
   wallet: { update: jest.fn() },
+  order: { findUnique: jest.fn() },
   handshake: { updateMany: jest.fn() },
   $transaction: jest.fn().mockImplementation((ops) =>
     Array.isArray(ops) ? Promise.all(ops) : ops(mockPrisma),
@@ -123,6 +124,29 @@ describe('AdminService', () => {
     it('throws ConflictException when entry is not PENDING', async () => {
       mockPrisma.walletEntry.findUnique.mockResolvedValue({ ...pendingEntry, status: 'COMPLETED' });
       await expect(service.updateWithdrawal('e1', 'CANCELLED')).rejects.toThrow(ConflictException);
+    });
+  });
+
+  describe('unlockHandshake', () => {
+    const order = { id: 'o1', status: 'IN_PROGRESS' };
+
+    it('resets remainingAttemps to 3 for all handshakes of the order', async () => {
+      mockPrisma.order.findUnique.mockResolvedValue(order);
+      mockPrisma.handshake.updateMany.mockResolvedValue({ count: 2 });
+
+      const result = await service.unlockHandshake('o1');
+
+      expect(mockPrisma.handshake.updateMany).toHaveBeenCalledWith({
+        where: { orderId: 'o1' },
+        data: { remainingAttemps: 3 },
+      });
+      expect(result.message).toBeDefined();
+    });
+
+    it('throws NotFoundException when order does not exist', async () => {
+      mockPrisma.order.findUnique.mockResolvedValue(null);
+      await expect(service.unlockHandshake('bad-id')).rejects.toThrow(NotFoundException);
+      expect(mockPrisma.handshake.updateMany).not.toHaveBeenCalled();
     });
   });
 });

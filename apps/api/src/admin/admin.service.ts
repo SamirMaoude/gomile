@@ -8,6 +8,8 @@ import { createApiError } from '../common/api-error';
 import { AUTH_ERRORS } from '../auth/auth-errors';
 import { ADMIN_ERRORS } from './admin.errors';
 import { ADMIN_MESSAGES } from './admin.message';
+import { ORDER_ERRORS } from 'src/order/order-errors';
+import { OrderStatus } from '@prisma/client';
 
 @Injectable()
 export class AdminService {
@@ -178,5 +180,27 @@ export class AdminService {
           ? ADMIN_MESSAGES.WITHDRAWAL_COMPLETED
           : ADMIN_MESSAGES.WITHDRAWAL_CANCELLED,
     };
+  }
+
+  async unlockHandshake(orderId: string) {
+    const order = await this.prisma.order.findUnique({
+      where: {
+        id : orderId
+      }
+    });
+
+    if (!order) {
+      throw new NotFoundException(createApiError('ORDER_NOT_FOUND', ORDER_ERRORS))
+    }
+
+    await this.prisma.handshake.updateMany({
+      where: {
+        orderId: orderId
+      },
+      data: {
+        remainingAttemps: 3
+      }
+    })
+    return { message: 'Order handshake has been reset successfully' }
   }
 }
