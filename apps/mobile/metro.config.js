@@ -2,23 +2,16 @@ const path = require('path');
 const { getDefaultConfig } = require('expo/metro-config');
 
 const projectRoot = __dirname;
-const workspaceRoot = path.resolve(projectRoot, '../..');
+const monorepoRoot = path.resolve(projectRoot, '../..');
 
 const config = getDefaultConfig(projectRoot);
 
-config.watchFolders = [workspaceRoot];
+// Watch all files in the monorepo so Metro sees shared packages
+config.watchFolders = [monorepoRoot];
 
+// With pnpm hoisted node_modules, all packages are at the monorepo root
 config.resolver.nodeModulesPaths = [
-  path.resolve(projectRoot, 'node_modules'),
-  path.resolve(workspaceRoot, 'node_modules'),
+  path.resolve(monorepoRoot, 'node_modules'),
 ];
-
-config.resolver.disableHierarchicalLookup = true;
-
-config.resolver.extraNodeModules = {
-  react: path.resolve(projectRoot, 'node_modules/react'),
-  'react-native': path.resolve(projectRoot, 'node_modules/react-native'),
-  'expo-location': path.resolve(workspaceRoot, 'node_modules/expo-location'),
-};
 
 module.exports = config;
