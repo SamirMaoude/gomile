@@ -1,12 +1,15 @@
 {
   "cli": {
     "version": ">= 16.0.0",
-    "appVersionSource": "remote"
+    "appVersionSource": "remote",
+    "requireCommit": false
   },
   "build": {
     "development": {
       "developmentClient": true,
       "distribution": "internal",
+      "corepack": true,
+      "pnpm": "10.32.1",
       "ios": {
         "simulator": false
       }
@@ -14,12 +17,17 @@
     "simulator": {
       "developmentClient": true,
       "distribution": "internal",
+      "corepack": true,
+      "pnpm": "10.32.1",
       "ios": {
         "simulator": true
       }
     },
     "preview": {
       "distribution": "internal",
+      "corepack": true,
+      "pnpm": "10.32.1",
+      "installCommand": "corepack enable && corepack prepare pnpm@10.32.1 --activate && pnpm install --frozen-lockfile",
       "android": {
         "buildType": "apk"
       },
@@ -28,6 +36,8 @@
       }
     },
     "production": {
+      "corepack": true,
+      "pnpm": "10.32.1",
       "autoIncrement": true
     }
   },
