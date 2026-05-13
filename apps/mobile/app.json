@@ -30,6 +30,7 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "permissions": [
+        "android.permission.INTERNET",
         "android.permission.RECORD_AUDIO"
       ]
     },
