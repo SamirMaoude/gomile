@@ -3,7 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AuthenticatedUser } from '../auth/auth.types';
 import { ExpoTokenDto } from './dto/expo-token.dto';
 import { createApiError } from '../common/api-error';
-import { AUTH_ERRORS } from '../auth/auth-errors';
+import { API_ERRORS } from '../common/errors';
 import { NOTIFICATION_MESSAGES } from './notification.message';
 import type { OrderType } from '@prisma/client';
 
@@ -31,7 +31,7 @@ export class NotificationService {
     });
 
     if (!driver) {
-      throw new NotFoundException(createApiError('DRIVER_NOT_FOUND', AUTH_ERRORS));
+      throw new NotFoundException(createApiError('DRIVER_NOT_FOUND', API_ERRORS));
     }
 
     await this.prisma.driver.update({

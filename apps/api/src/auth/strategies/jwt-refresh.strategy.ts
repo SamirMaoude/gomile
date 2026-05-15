@@ -6,7 +6,7 @@ import { createHash } from 'crypto';
 import { PrismaService } from '../../prisma/prisma.service';
 import type { JwtPayload } from '../auth.types';
 import { createApiError } from '../../common/api-error';
-import { AUTH_ERRORS } from '../auth-errors';
+import { API_ERRORS } from '../../common/errors';
 
 function hashToken(token: string) {
   return createHash('sha256').update(token).digest('hex');
@@ -39,7 +39,7 @@ export class JwtRefreshStrategy extends PassportStrategy(
       user.refreshToken !== hashToken(refreshToken)
     ) {
       throw new UnauthorizedException(
-        createApiError('INVALID_REFRESH_TOKEN', AUTH_ERRORS),
+        createApiError('INVALID_REFRESH_TOKEN', API_ERRORS),
       );
     }
 

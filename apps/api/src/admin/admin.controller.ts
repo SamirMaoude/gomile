@@ -83,6 +83,33 @@ export class AdminController {
   }
 
   @ApiOperation({
+    summary: 'List all merchants',
+    description: 'Returns all registered merchants with their subscription status.',
+  })
+  @ApiOkResponse({ description: 'List of all merchants' })
+  @ApiUnauthorizedResponse({ description: 'Invalid or missing JWT' })
+  @ApiForbiddenResponse({ description: 'Admin role required' })
+  @Get('merchants')
+  @HttpCode(HttpStatus.OK)
+  async getAllMerchants() {
+    return this.adminService.getAllMerchants();
+  }
+
+  @ApiOperation({
+    summary: 'Get a merchant by ID',
+    description: 'Returns full merchant profile including stores and API keys.',
+  })
+  @ApiOkResponse({ description: 'Merchant detail' })
+  @ApiUnauthorizedResponse({ description: 'Invalid or missing JWT' })
+  @ApiForbiddenResponse({ description: 'Admin role required' })
+  @ApiNotFoundResponse({ description: 'Merchant not found' })
+  @Get('merchants/:merchantId')
+  @HttpCode(HttpStatus.OK)
+  async getMerchant(@Param('merchantId') merchantId: string) {
+    return this.adminService.getMerchant(merchantId);
+  }
+
+  @ApiOperation({
     summary: 'List all drivers',
     description:
       'Returns all registered drivers with their KYC status and latest submission.',

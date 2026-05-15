@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { createApiError } from '../../common/api-error';
-import { AUTH_ERRORS } from '../auth-errors';
+import { API_ERRORS } from '../../common/errors';
 import type { AuthenticatedUser } from '../auth.types';
 
 @Injectable()
@@ -32,7 +32,7 @@ export class EmailVerifiedGuard implements CanActivate {
 
     if (!currentUser?.emailVerified) {
       throw new ForbiddenException(
-        createApiError('EMAIL_NOT_VERIFIED', AUTH_ERRORS),
+        createApiError('EMAIL_NOT_VERIFIED', API_ERRORS),
       );
     }
 

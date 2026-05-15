@@ -12,11 +12,9 @@ import { OutboundWebhookService } from '../../webhook/outbound-webhook.service';
 import { CreateOrderDto } from '../dto/create-order.dto';
 import { AuthenticatedUser } from '../../auth/auth.types';
 import { createApiError } from '../../common/api-error';
-import { STORE_ERRORS } from '../../store/store-errors';
+import { API_ERRORS } from '../../common/errors';
 import { CreateOrderResponseDto } from '../dto/create-order-response';
 import { ORDER_MESSAGE } from '../order-messages';
-import { AUTH_ERRORS } from '../../auth/auth-errors';
-import { ORDER_ERRORS } from '../order-errors';
 import { GetOrderResponseDto } from '../dto/get-order-response.dto';
 import { Merchant, Order, Store } from '@prisma/client';
 import { Role } from '@prisma/client';
@@ -53,7 +51,7 @@ export class OrderService {
     });
     if (!merchant) {
       throw new NotFoundException(
-        createApiError('MERCHANT_NOT_FOUND', AUTH_ERRORS),
+        createApiError('MERCHANT_NOT_FOUND', API_ERRORS),
       );
     }
     return merchant;
@@ -68,7 +66,7 @@ export class OrderService {
     });
     if (!store) {
       throw new NotFoundException(
-        createApiError('STORE_NOT_FOUND', STORE_ERRORS),
+        createApiError('STORE_NOT_FOUND', API_ERRORS),
       );
     }
     return store;
@@ -83,7 +81,7 @@ export class OrderService {
     });
     if (!order) {
       throw new NotFoundException(
-        createApiError('ORDER_NOT_FOUND', ORDER_ERRORS),
+        createApiError('ORDER_NOT_FOUND', API_ERRORS),
       );
     }
     return order;
@@ -95,7 +93,7 @@ export class OrderService {
       where: { id: storeId, merchantId },
     });
     if (!response) {
-      throw new ForbiddenException(createApiError('NOT_OWNER', STORE_ERRORS));
+      throw new ForbiddenException(createApiError('NOT_OWNER', API_ERRORS));
     }
     return response;
   }
@@ -109,7 +107,7 @@ export class OrderService {
       },
     });
     if (!response) {
-      throw new ForbiddenException(createApiError('NOT_OWNER', ORDER_ERRORS));
+      throw new ForbiddenException(createApiError('NOT_OWNER', API_ERRORS));
     }
     return response;
   }
@@ -122,7 +120,7 @@ export class OrderService {
   ): Promise<CreateOrderResponseDto> {
     await this.existsMerchant(merchantId);
     if (user && user.id !== merchantId) {
-      throw new ForbiddenException(createApiError('NOT_OWNER', AUTH_ERRORS));
+      throw new ForbiddenException(createApiError('NOT_OWNER', API_ERRORS));
     }
     const store = await this.existsStore(storeId);
     await this.verifyStoreOwnership(merchantId, storeId);
@@ -227,7 +225,7 @@ export class OrderService {
   ): Promise<ListMerchantOrdersResponseDto[]> {
     await this.existsMerchant(merchantId);
     if (user && user.id !== merchantId && user.role !== Role.ADMIN) {
-      throw new ForbiddenException(createApiError('NOT_OWNER', AUTH_ERRORS));
+      throw new ForbiddenException(createApiError('NOT_OWNER', API_ERRORS));
     }
     return (await this.prisma.order.findMany({
       where: {
@@ -255,7 +253,7 @@ export class OrderService {
   ): Promise<GetOrderResponseDto> {
     await this.existsMerchant(merchantId);
     if (user && user.id !== merchantId && user.role !== Role.ADMIN) {
-      throw new ForbiddenException(createApiError('NOT_OWNER', ORDER_ERRORS));
+      throw new ForbiddenException(createApiError('NOT_OWNER', API_ERRORS));
     }
     const order = await this.verifyOrderOwnership(merchantId, orderId);
     return {
@@ -282,13 +280,13 @@ export class OrderService {
     await this.existsMerchant(merchantId);
 
     if (user && user.id !== merchantId && user.role !== Role.ADMIN) {
-      throw new ForbiddenException(createApiError('NOT_OWNER', AUTH_ERRORS));
+      throw new ForbiddenException(createApiError('NOT_OWNER', API_ERRORS));
     }
 
     const order = await this.verifyOrderOwnership(merchantId, orderId);
     if (order.status === OrderStatus.CANCELLED) {
       throw new ConflictException(
-        createApiError('ORDER_ALREADY_CANCELLED', ORDER_ERRORS),
+        createApiError('ORDER_ALREADY_CANCELLED', API_ERRORS),
       );
     }
     if (
@@ -296,7 +294,7 @@ export class OrderService {
       order.status === OrderStatus.DELIVERED
     ) {
       throw new ConflictException(
-        createApiError('ORDER_ALREADY_PICKED_UP', ORDER_ERRORS),
+        createApiError('ORDER_ALREADY_PICKED_UP', API_ERRORS),
       );
     }
 
@@ -325,13 +323,13 @@ export class OrderService {
 
     if (!order) {
       throw new NotFoundException(
-        createApiError('ORDER_NOT_FOUND', ORDER_ERRORS),
+        createApiError('ORDER_NOT_FOUND', API_ERRORS),
       );
     }
 
     if (order.status === OrderStatus.CANCELLED) {
       throw new ConflictException(
-        createApiError('ORDER_ALREADY_CANCELLED', ORDER_ERRORS),
+        createApiError('ORDER_ALREADY_CANCELLED', API_ERRORS),
       );
     }
 
@@ -340,7 +338,7 @@ export class OrderService {
       order.status === OrderStatus.DELIVERED
     ) {
       throw new ConflictException(
-        createApiError('ORDER_ALREADY_PICKED_UP', ORDER_ERRORS),
+        createApiError('ORDER_ALREADY_PICKED_UP', API_ERRORS),
       );
     }
 
@@ -362,12 +360,12 @@ export class OrderService {
     await this.existsMerchant(merchantId);
 
     if (user.id !== merchantId) {
-      throw new ForbiddenException(createApiError('NOT_OWNER', AUTH_ERRORS));
+      throw new ForbiddenException(createApiError('NOT_OWNER', API_ERRORS));
     }
 
     const store = await this.existsStore(storeId);
     if (store.merchantId !== merchantId) {
-      throw new ForbiddenException(createApiError('NOT_OWNER', STORE_ERRORS));
+      throw new ForbiddenException(createApiError('NOT_OWNER', API_ERRORS));
     }
 
     const handshake = await this.prisma.handshake.findFirst({
@@ -383,20 +381,20 @@ export class OrderService {
 
     if (!handshake) {
       throw new NotFoundException(
-        createApiError('HANDSHAKE_NOT_FOUND', ORDER_ERRORS),
+        createApiError('HANDSHAKE_NOT_FOUND', API_ERRORS),
       );
     }
 
     if (handshake.remainingAttemps === 0) {
       throw new HttpException(
-        createApiError('HANDSHAKE_ATTEMPTS_PASSED', ORDER_ERRORS),
+        createApiError('HANDSHAKE_ATTEMPTS_PASSED', API_ERRORS),
         429,
       );
     }
 
     if (handshake.order.status !== OrderStatus.DRIVER_ACCEPTED) {
       throw new ConflictException(
-        createApiError('ORDER_BAD_STATUS', ORDER_ERRORS),
+        createApiError('ORDER_BAD_STATUS', API_ERRORS),
       );
     }
 

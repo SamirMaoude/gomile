@@ -18,9 +18,8 @@ import {
 } from '@prisma/client';
 import { AuthenticatedUser } from '../../auth/auth.types';
 import { createApiError } from '../../common/api-error';
+import { API_ERRORS } from '../../common/errors';
 import { PrismaService } from '../../prisma/prisma.service';
-import { AUTH_ERRORS } from '../../auth/auth-errors';
-import { ORDER_ERRORS } from '../order-errors';
 import { ListDriverOrdersResponseDto } from '../dto/list-livreurs-orders-response';
 import { ORDER_MESSAGE } from '../order-messages';
 import { SmsService } from '../../sms/sms.service';
@@ -44,7 +43,7 @@ export class OrderLivreursService {
     });
     if (!driver) {
       throw new NotFoundException(
-        createApiError('DRIVER_NOT_FOUND', AUTH_ERRORS),
+        createApiError('DRIVER_NOT_FOUND', API_ERRORS),
       );
     }
     return driver;
@@ -56,7 +55,7 @@ export class OrderLivreursService {
     });
     if (!order) {
       throw new NotFoundException(
-        createApiError('ORDER_NOT_FOUND', ORDER_ERRORS),
+        createApiError('ORDER_NOT_FOUND', API_ERRORS),
       );
     }
     return order;
@@ -69,7 +68,7 @@ export class OrderLivreursService {
   ): Promise<ListDriverOrdersResponseDto[]> {
     await this.existsDriver(driverId);
     if (user.id !== driverId && user.role !== Role.ADMIN) {
-      throw new ForbiddenException(createApiError('NOT_OWNER', ORDER_ERRORS));
+      throw new ForbiddenException(createApiError('NOT_OWNER', API_ERRORS));
     }
 
     const where: Prisma.OrderWhereInput = { driverId };
@@ -110,7 +109,7 @@ export class OrderLivreursService {
   ) {
     const driver = await this.existsDriver(driverId);
     if (user.id !== driverId) {
-      throw new ForbiddenException(createApiError('NOT_OWNER', ORDER_ERRORS));
+      throw new ForbiddenException(createApiError('NOT_OWNER', API_ERRORS));
     }
     await this.existsOrder(orderId);
 
@@ -129,7 +128,7 @@ export class OrderLivreursService {
 
     if (result.count === 0) {
       throw new ConflictException(
-        createApiError('ORDER_ALREADY_TAKEN', ORDER_ERRORS),
+        createApiError('ORDER_ALREADY_TAKEN', API_ERRORS),
       );
     }
 
@@ -142,7 +141,7 @@ export class OrderLivreursService {
 
     if (!handshake) {
       throw new InternalServerErrorException(
-        createApiError('HANDSHAKE_NOT_FOUND', ORDER_ERRORS),
+        createApiError('HANDSHAKE_NOT_FOUND', API_ERRORS),
       );
     }
 
@@ -164,18 +163,18 @@ export class OrderLivreursService {
   ) {
     await this.existsDriver(driverId);
     if (user.id !== driverId) {
-      throw new ForbiddenException(createApiError('NOT_OWNER', ORDER_ERRORS));
+      throw new ForbiddenException(createApiError('NOT_OWNER', API_ERRORS));
     }
 
     const order = await this.existsOrder(orderId);
 
     if (order.driverId !== driverId) {
-      throw new ForbiddenException(createApiError('NOT_OWNER', ORDER_ERRORS));
+      throw new ForbiddenException(createApiError('NOT_OWNER', API_ERRORS));
     }
 
     if (order.status !== OrderStatus.DRIVER_ACCEPTED) {
       throw new ConflictException(
-        createApiError('ORDER_PICKUP_NO_LONGER_AVAILABLE', ORDER_ERRORS),
+        createApiError('ORDER_PICKUP_NO_LONGER_AVAILABLE', API_ERRORS),
       );
     }
 
@@ -185,13 +184,13 @@ export class OrderLivreursService {
 
     if (!handshake) {
       throw new InternalServerErrorException(
-        createApiError('HANDSHAKE_NOT_FOUND', ORDER_ERRORS),
+        createApiError('HANDSHAKE_NOT_FOUND', API_ERRORS),
       );
     }
 
     if (handshake.expiresAt.getTime() < Date.now()) {
       throw new GoneException(
-        createApiError('HANDSHAKE_EXPIRED', ORDER_ERRORS),
+        createApiError('HANDSHAKE_EXPIRED', API_ERRORS),
       );
     }
 
@@ -206,30 +205,30 @@ export class OrderLivreursService {
   ) {
     const driver = await this.existsDriver(driverId);
     if (user.id !== driverId) {
-      throw new ForbiddenException(createApiError('NOT_OWNER', ORDER_ERRORS));
+      throw new ForbiddenException(createApiError('NOT_OWNER', API_ERRORS));
     }
     const order = await this.existsOrder(orderId);
 
     if (order.status === OrderStatus.CANCELLED) {
       throw new ConflictException(
-        createApiError('ORDER_ALREADY_CANCELLED', ORDER_ERRORS),
+        createApiError('ORDER_ALREADY_CANCELLED', API_ERRORS),
       );
     }
 
     if (order.status === OrderStatus.PICKED_UP) {
       throw new ConflictException(
-        createApiError('ORDER_PICKUP_NO_LONGER_AVAILABLE', ORDER_ERRORS),
+        createApiError('ORDER_PICKUP_NO_LONGER_AVAILABLE', API_ERRORS),
       );
     }
 
     if (order.status !== OrderStatus.DRIVER_ACCEPTED) {
       throw new InternalServerErrorException(
-        createApiError('ORDER_BAD_STATUS', ORDER_ERRORS),
+        createApiError('ORDER_BAD_STATUS', API_ERRORS),
       );
     }
 
     if (order.driverId !== driverId) {
-      throw new ForbiddenException(createApiError('NOT_OWNER', ORDER_ERRORS));
+      throw new ForbiddenException(createApiError('NOT_OWNER', API_ERRORS));
     }
 
     const handshake = await this.prisma.handshake.findUnique({
@@ -243,7 +242,7 @@ export class OrderLivreursService {
 
     if (!handshake) {
       throw new InternalServerErrorException(
-        createApiError('HANDSHAKE_NOT_FOUND', ORDER_ERRORS),
+        createApiError('HANDSHAKE_NOT_FOUND', API_ERRORS),
       );
     }
 
@@ -251,13 +250,13 @@ export class OrderLivreursService {
 
     if (handshake.expiresAt.getTime() < Date.now()) {
       throw new GoneException(
-        createApiError('HANDSHAKE_EXPIRED', ORDER_ERRORS),
+        createApiError('HANDSHAKE_EXPIRED', API_ERRORS),
       );
     }
 
     if (remainingAttemps === 0) {
       throw new HttpException(
-        createApiError('HANDSHAKE_ATTEMPTS_PASSED', ORDER_ERRORS),
+        createApiError('HANDSHAKE_ATTEMPTS_PASSED', API_ERRORS),
         429,
       );
     }
@@ -274,7 +273,7 @@ export class OrderLivreursService {
         },
       });
       throw new UnauthorizedException(
-        createApiError('INCORRECT_HANDSHAKE_CODE', ORDER_ERRORS),
+        createApiError('INCORRECT_HANDSHAKE_CODE', API_ERRORS),
       );
     }
     const today = new Date();
@@ -313,7 +312,7 @@ export class OrderLivreursService {
 
     if (!deliveryHandshake) {
       throw new InternalServerErrorException(
-        createApiError('HANDSHAKE_NOT_FOUND', ORDER_ERRORS),
+        createApiError('HANDSHAKE_NOT_FOUND', API_ERRORS),
       );
     }
 
@@ -339,26 +338,26 @@ export class OrderLivreursService {
   ) {
     await this.existsDriver(driverId);
     if (user.id !== driverId) {
-      throw new ForbiddenException(createApiError('NOT_OWNER', ORDER_ERRORS));
+      throw new ForbiddenException(createApiError('NOT_OWNER', API_ERRORS));
     }
 
     const order = await this.existsOrder(orderId);
 
     if (order.status === OrderStatus.CANCELLED) {
       throw new ConflictException(
-        createApiError('ORDER_ALREADY_CANCELLED', ORDER_ERRORS),
+        createApiError('ORDER_ALREADY_CANCELLED', API_ERRORS),
       );
     }
 
     if (order.status === OrderStatus.DELIVERED) {
       throw new ConflictException(
-        createApiError('ORDER_ALREADY_DELIVERED', ORDER_ERRORS),
+        createApiError('ORDER_ALREADY_DELIVERED', API_ERRORS),
       );
     }
 
     if (order.status !== OrderStatus.PICKED_UP) {
       throw new InternalServerErrorException(
-        createApiError('ORDER_BAD_STATUS', ORDER_ERRORS),
+        createApiError('ORDER_BAD_STATUS', API_ERRORS),
       );
     }
 
@@ -373,7 +372,7 @@ export class OrderLivreursService {
 
     if (!handshake) {
       throw new InternalServerErrorException(
-        createApiError('HANDSHAKE_NOT_FOUND', ORDER_ERRORS),
+        createApiError('HANDSHAKE_NOT_FOUND', API_ERRORS),
       );
     }
 
@@ -381,13 +380,13 @@ export class OrderLivreursService {
 
     if (handshake.expiresAt.getTime() < Date.now()) {
       throw new GoneException(
-        createApiError('HANDSHAKE_EXPIRED', ORDER_ERRORS),
+        createApiError('HANDSHAKE_EXPIRED', API_ERRORS),
       );
     }
 
     if (remainingAttemps === 0) {
       throw new HttpException(
-        createApiError('HANDSHAKE_ATTEMPTS_PASSED', ORDER_ERRORS),
+        createApiError('HANDSHAKE_ATTEMPTS_PASSED', API_ERRORS),
         429,
       );
     }
@@ -402,7 +401,7 @@ export class OrderLivreursService {
         },
       });
       throw new UnauthorizedException(
-        createApiError('INCORRECT_HANDSHAKE_CODE', ORDER_ERRORS),
+        createApiError('INCORRECT_HANDSHAKE_CODE', API_ERRORS),
       );
     }
 

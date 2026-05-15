@@ -7,7 +7,7 @@ import {
 import { Request } from 'express';
 import { ApiKeyService, MerchantApiPrincipal } from '../api-key.service';
 import { createApiError } from '../../common/api-error';
-import { AUTH_ERRORS } from '../auth-errors';
+import { API_ERRORS } from '../../common/errors';
 
 type ApiKeyRequest = Request & { merchantApi?: MerchantApiPrincipal };
 
@@ -23,7 +23,7 @@ export class ApiKeyGuard implements CanActivate {
     // If no API key is provided, deny access
     if (!rawKey) {
       throw new UnauthorizedException(
-        createApiError('INVALID_API_KEY', AUTH_ERRORS),
+        createApiError('INVALID_API_KEY', API_ERRORS),
       );
     }
     request.merchantApi = await this.apiKeyService.validateApiKey(rawKey);

@@ -21,8 +21,8 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
 import { AuthResponse } from './auth.types';
 import { createApiError } from '../common/api-error';
+import { API_ERRORS } from '../common/errors';
 import { AUTH_MESSAGES } from './auth-messages';
-import { AUTH_ERRORS } from './auth-errors';
 import { EmailService } from '../emails/email.service';
 import { UploadService } from '../upload/upload.service';
 import type { AuthenticatedUser } from './auth.types';
@@ -226,13 +226,13 @@ export class AuthService {
 
     if (!user)
       throw new UnauthorizedException(
-        createApiError('INVALID_CREDENTIALS', AUTH_ERRORS),
+        createApiError('INVALID_CREDENTIALS', API_ERRORS),
       );
 
     const passwordMatch = await bcrypt.compare(dto.password, user.password);
     if (!passwordMatch)
       throw new UnauthorizedException(
-        createApiError('INVALID_CREDENTIALS', AUTH_ERRORS),
+        createApiError('INVALID_CREDENTIALS', API_ERRORS),
       );
 
     return this.generateAndSaveTokens(user.id, user.email, user.role);
@@ -275,18 +275,18 @@ export class AuthService {
 
     if (!user) {
       throw new BadRequestException(
-        createApiError('INVALID_RESET_TOKEN', AUTH_ERRORS),
+        createApiError('INVALID_RESET_TOKEN', API_ERRORS),
       );
     }
     if (!user.emailVerificationExpiry) {
       throw new BadRequestException(
-        createApiError('INVALID_RESET_TOKEN', AUTH_ERRORS),
+        createApiError('INVALID_RESET_TOKEN', API_ERRORS),
       );
     }
 
     if (user.emailVerificationExpiry < new Date()) {
       throw new BadRequestException(
-        createApiError('INVALID_RESET_TOKEN', AUTH_ERRORS),
+        createApiError('INVALID_RESET_TOKEN', API_ERRORS),
       );
     }
 
@@ -332,7 +332,7 @@ export class AuthService {
 
         if (!merchant?.name) {
           throw new InternalServerErrorException(
-            createApiError('NAME_IS_NULL', AUTH_ERRORS),
+            createApiError('NAME_IS_NULL', API_ERRORS),
           );
         }
 
@@ -343,7 +343,7 @@ export class AuthService {
         });
         if (!driver?.firstName) {
           throw new InternalServerErrorException(
-            createApiError('NAME_IS_NULL', AUTH_ERRORS),
+            createApiError('NAME_IS_NULL', API_ERRORS),
           );
         }
         displayName = driver.firstName;
@@ -362,25 +362,25 @@ export class AuthService {
 
     if (!user) {
       throw new BadRequestException(
-        createApiError('INVALID_RESET_TOKEN', AUTH_ERRORS),
+        createApiError('INVALID_RESET_TOKEN', API_ERRORS),
       );
     }
     if (!user.passwordResetToken || !user.passwordResetExpiry) {
       throw new BadRequestException(
-        createApiError('INVALID_RESET_TOKEN', AUTH_ERRORS),
+        createApiError('INVALID_RESET_TOKEN', API_ERRORS),
       );
     }
 
     if (user.passwordResetExpiry < new Date()) {
       throw new BadRequestException(
-        createApiError('INVALID_RESET_TOKEN', AUTH_ERRORS),
+        createApiError('INVALID_RESET_TOKEN', API_ERRORS),
       );
     }
 
     const hash = this.hashToken(dto.otp);
     if (hash !== user.passwordResetToken) {
       throw new BadRequestException(
-        createApiError('INVALID_RESET_TOKEN', AUTH_ERRORS),
+        createApiError('INVALID_RESET_TOKEN', API_ERRORS),
       );
     }
 
@@ -406,25 +406,25 @@ export class AuthService {
 
     if (!user) {
       throw new BadRequestException(
-        createApiError('INVALID_RESET_TOKEN', AUTH_ERRORS),
+        createApiError('INVALID_RESET_TOKEN', API_ERRORS),
       );
     }
     if (!user.passwordResetToken || !user.passwordResetExpiry) {
       throw new BadRequestException(
-        createApiError('INVALID_RESET_TOKEN', AUTH_ERRORS),
+        createApiError('INVALID_RESET_TOKEN', API_ERRORS),
       );
     }
 
     if (user.passwordResetExpiry < new Date()) {
       throw new BadRequestException(
-        createApiError('INVALID_RESET_TOKEN', AUTH_ERRORS),
+        createApiError('INVALID_RESET_TOKEN', API_ERRORS),
       );
     }
 
     const hash = this.hashToken(dto.resetToken);
     if (hash !== user.passwordResetToken) {
       throw new BadRequestException(
-        createApiError('INVALID_RESET_TOKEN', AUTH_ERRORS),
+        createApiError('INVALID_RESET_TOKEN', API_ERRORS),
       );
     }
 
@@ -452,7 +452,7 @@ export class AuthService {
   private async checkEmailAvailable(email: string) {
     if (!this.isEmail(email)) {
       throw new BadRequestException(
-        createApiError('INVALID_EMAIL', AUTH_ERRORS),
+        createApiError('INVALID_EMAIL', API_ERRORS),
       );
     }
     const existing = await this.prisma.user.findUnique({
@@ -460,7 +460,7 @@ export class AuthService {
     });
     if (existing)
       throw new ConflictException(
-        createApiError('EMAIL_ALREADY_USED', AUTH_ERRORS),
+        createApiError('EMAIL_ALREADY_USED', API_ERRORS),
       );
   }
 
@@ -469,7 +469,7 @@ export class AuthService {
     const existing = await this.prisma.user.findUnique({ where: { phone } });
     if (existing)
       throw new ConflictException(
-        createApiError('PHONE_ALREADY_USED', AUTH_ERRORS),
+        createApiError('PHONE_ALREADY_USED', API_ERRORS),
       );
   }
 
@@ -493,7 +493,7 @@ export class AuthService {
 
     if (!user) {
       throw new BadRequestException(
-        createApiError('USER_NOT_FOUND', AUTH_ERRORS),
+        createApiError('USER_NOT_FOUND', API_ERRORS),
       );
     }
 
@@ -542,7 +542,7 @@ export class AuthService {
 
   // async completeDriverRegistration(userId: string, dto: CompleteDriverRegistrationDto) {
   //   const driver = await this.prisma.driver.findUnique({ where: { userId } });
-  //   if (!driver) throw new BadRequestException(createApiError('DRIVER_NOT_FOUND', AUTH_ERRORS));
+  //   if (!driver) throw new BadRequestException(createApiError('DRIVER_NOT_FOUND', API_ERRORS));
   //   await this.prisma.driver.update({
   //     where: { userId },
   //     data: {

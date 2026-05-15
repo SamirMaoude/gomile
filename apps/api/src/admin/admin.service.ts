@@ -5,15 +5,67 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { createApiError } from '../common/api-error';
-import { AUTH_ERRORS } from '../auth/auth-errors';
-import { ADMIN_ERRORS } from './admin.errors';
+import { API_ERRORS } from '../common/errors';
 import { ADMIN_MESSAGES } from './admin.message';
-import { ORDER_ERRORS } from 'src/order/order-errors';
-import { OrderStatus } from '@prisma/client';
 
 @Injectable()
 export class AdminService {
   constructor(private readonly prisma: PrismaService) {}
+  async getAllMerchants() {
+    return this.prisma.merchant.findMany({
+      select: {
+        userId: true,
+        name: true,
+        createdAt: true,
+        subscription: true,
+        subscriptionStatus: true,
+        user: { select: { email: true, phone: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async getMerchant(merchantId: string) {
+    const merchant = await this.prisma.merchant.findUnique({
+      where: { userId: merchantId },
+      select: {
+        userId: true,
+        name: true,
+        createdAt: true,
+        subscription: true,
+        subscriptionStatus: true,
+        trialEndsAt: true,
+        currentPeriodEnd: true,
+        user: { select: { email: true, phone: true } },
+        store: {
+          select: {
+            id: true,
+            name: true,
+            address: true,
+            isActive: true,
+            isLocked: true,
+            createdAt: true,
+          },
+        },
+        apiKeys: {
+          select: {
+            id: true,
+            name: true,
+            createdAt: true,
+            revokedAt: true,
+            expiresAt: true,
+          },
+          orderBy: { createdAt: 'desc' },
+        },
+      },
+    });
+
+    if (!merchant) {
+      throw new NotFoundException(createApiError('MERCHANT_NOT_FOUND', API_ERRORS));
+    }
+
+    return merchant;
+  }
   // return all drivers
   async getAllDrivers() {
     return this.prisma.driver.findMany({
@@ -99,7 +151,7 @@ export class AdminService {
 
     if (!driver) {
       throw new NotFoundException(
-        createApiError('DRIVER_NOT_FOUND', AUTH_ERRORS),
+        createApiError('DRIVER_NOT_FOUND', API_ERRORS),
       );
     }
 
@@ -145,13 +197,13 @@ export class AdminService {
 
     if (!entry) {
       throw new NotFoundException(
-        createApiError('WITHDRAWAL_NOT_FOUND', ADMIN_ERRORS),
+        createApiError('WITHDRAWAL_NOT_FOUND', API_ERRORS),
       );
     }
 
     if (entry.status !== 'PENDING') {
       throw new ConflictException(
-        createApiError('WITHDRAWAL_NOT_PENDING', ADMIN_ERRORS),
+        createApiError('WITHDRAWAL_NOT_PENDING', API_ERRORS),
       );
     }
 
@@ -190,7 +242,7 @@ export class AdminService {
     });
 
     if (!order) {
-      throw new NotFoundException(createApiError('ORDER_NOT_FOUND', ORDER_ERRORS))
+      throw new NotFoundException(createApiError('ORDER_NOT_FOUND', API_ERRORS))
     }
 
     await this.prisma.handshake.updateMany({

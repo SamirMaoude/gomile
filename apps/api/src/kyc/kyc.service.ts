@@ -5,10 +5,9 @@ import {
 } from '@nestjs/common';
 import { KycStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
-import { AUTH_ERRORS } from '../auth/auth-errors';
 import { KYC_MESSAGES } from './kyc.message';
 import { createApiError } from '../common/api-error';
-import { KYC_ERRORS } from './kyc.error';
+import { API_ERRORS } from '../common/errors';
 
 @Injectable()
 export class KycService {
@@ -69,7 +68,7 @@ export class KycService {
 
     if (!driver) {
       throw new NotFoundException(
-        createApiError('DRIVER_NOT_FOUND', AUTH_ERRORS),
+        createApiError('DRIVER_NOT_FOUND', API_ERRORS),
       );
     }
 
@@ -77,13 +76,13 @@ export class KycService {
     // if there is no submission
     if (!submission) {
       throw new NotFoundException(
-        createApiError('KYC_SUBMISSION_NOT_FOUND', KYC_ERRORS),
+        createApiError('KYC_SUBMISSION_NOT_FOUND', API_ERRORS),
       );
     }
     // front end shouldn't be able to call this if there is no kyc pending
     if (submission.status !== KycStatus.PENDING) {
       throw new ConflictException(
-        createApiError('KYC_VERIFYING_IN_PROCESS', KYC_ERRORS),
+        createApiError('KYC_VERIFYING_IN_PROCESS', API_ERRORS),
       );
     }
 
@@ -99,27 +98,27 @@ export class KycService {
 
     if (!driver) {
       throw new NotFoundException(
-        createApiError('DRIVER_NOT_FOUND', AUTH_ERRORS),
+        createApiError('DRIVER_NOT_FOUND', API_ERRORS),
       );
     }
 
     if (driver.kycStatus === KycStatus.PENDING) {
       throw new ConflictException(
-        createApiError('KYC_VERIFYING_IN_PROCESS', KYC_ERRORS),
+        createApiError('KYC_VERIFYING_IN_PROCESS', API_ERRORS),
       );
     }
 
     // submit kyc should not be called when kyc status is already verified
     if (driver.kycStatus === KycStatus.ACCEPTED) {
       throw new ConflictException(
-        createApiError('KYC_ALREADY_APPROVED', KYC_ERRORS),
+        createApiError('KYC_ALREADY_APPROVED', API_ERRORS),
       );
     }
 
     // Cannot call submit KYC if there is no documents
     if (driver.driverDocuments.length === 0) {
       throw new ConflictException(
-        createApiError('KYC_NO_DOCUMENTS', KYC_ERRORS),
+        createApiError('KYC_NO_DOCUMENTS', API_ERRORS),
       );
     }
 
@@ -160,7 +159,7 @@ export class KycService {
     });
     if (!driver) {
       throw new NotFoundException(
-        createApiError('KYC_SUBMISSION_NOT_FOUND', KYC_ERRORS),
+        createApiError('KYC_SUBMISSION_NOT_FOUND', API_ERRORS),
       );
     }
 

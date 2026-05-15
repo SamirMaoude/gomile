@@ -11,10 +11,8 @@ import { UnauthorizedException } from '@nestjs/common';
 import { createHash, randomBytes } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { createApiError } from '../common/api-error';
+import { API_ERRORS } from '../common/errors';
 import { AuthenticatedUser } from './auth.types';
-import { AUTH_ERRORS } from './auth-errors';
-import { STORE_ERRORS } from '../store/store-errors';
-import { SUBSCRIPTION_ERRORS } from 'src/subscription/subscription.errors';
 // Type representing the authenticated merchant using an API key
 export interface MerchantApiPrincipal {
   merchantId: string;
@@ -46,7 +44,7 @@ export class ApiKeyService {
       },
     });
     if (!store) {
-      throw new ForbiddenException(createApiError('NOT_OWNER', STORE_ERRORS));
+      throw new ForbiddenException(createApiError('NOT_OWNER', API_ERRORS));
     }
     return store;
   }
@@ -60,11 +58,11 @@ export class ApiKeyService {
     expiresAt?: string,
   ): Promise<ApiKeyCreatePrincipal> {
     if (user.id !== merchantId) {
-      throw new ForbiddenException(createApiError('NOT_OWNER', AUTH_ERRORS));
+      throw new ForbiddenException(createApiError('NOT_OWNER', API_ERRORS));
     }
     const store = await this.verifyOwnership(merchantId, storeId);
     if (store.isLocked) {
-      throw new ForbiddenException(createApiError('STORE_LOCKED', SUBSCRIPTION_ERRORS));
+      throw new ForbiddenException(createApiError('STORE_LOCKED', API_ERRORS));
     }
 
     const existing = await this.prisma.merchantApiKey.findFirst({
@@ -75,7 +73,7 @@ export class ApiKeyService {
     });
     if (existing) {
       throw new ConflictException(
-        createApiError('API_KEY_ALREADY_EXISTS', AUTH_ERRORS),
+        createApiError('API_KEY_ALREADY_EXISTS', API_ERRORS),
       );
     }
 
@@ -107,7 +105,7 @@ export class ApiKeyService {
     merchantId: string,
   ) {
     if (user.id !== merchantId) {
-      throw new ForbiddenException(createApiError('NOT_OWNER', AUTH_ERRORS));
+      throw new ForbiddenException(createApiError('NOT_OWNER', API_ERRORS));
     }
     const revokedApiKey = await this.prisma.merchantApiKey.findUnique({
       where: { id: apiKeyId },
@@ -115,12 +113,12 @@ export class ApiKeyService {
 
     if (!revokedApiKey) {
       throw new NotFoundException(
-        createApiError('API_KEY_NOT_FOUND', AUTH_ERRORS),
+        createApiError('API_KEY_NOT_FOUND', API_ERRORS),
       );
     }
 
     if (revokedApiKey.merchantId !== merchantId) {
-      throw new ForbiddenException(createApiError('NOT_OWNER', AUTH_ERRORS));
+      throw new ForbiddenException(createApiError('NOT_OWNER', API_ERRORS));
     }
 
     await this.prisma.merchantApiKey.update({
@@ -141,25 +139,25 @@ export class ApiKeyService {
 
     if (!apiKeyRecord) {
       throw new UnauthorizedException(
-        createApiError('INVALID_API_KEY', AUTH_ERRORS),
+        createApiError('INVALID_API_KEY', API_ERRORS),
       );
     }
 
     if (apiKeyRecord.revokedAt) {
       throw new ForbiddenException(
-        createApiError('API_KEY_REVOKED', AUTH_ERRORS),
+        createApiError('API_KEY_REVOKED', API_ERRORS),
       );
     }
 
     if (apiKeyRecord.expiresAt && apiKeyRecord.expiresAt.getTime() <= Date.now()) {
       throw new ForbiddenException(
-        createApiError('API_KEY_EXPIRED', AUTH_ERRORS),
+        createApiError('API_KEY_EXPIRED', API_ERRORS),
       );
     }
 
     if (apiKeyRecord.store.isLocked) {
       throw new ForbiddenException(
-        createApiError('STORE_LOCKED', SUBSCRIPTION_ERRORS),
+        createApiError('STORE_LOCKED', API_ERRORS),
       );
     }
 
@@ -173,7 +171,7 @@ export class ApiKeyService {
   // List all API keys for a merchant
   async listApiKeys(user: AuthenticatedUser, merchantId: string) {
     if (user.id !== merchantId) {
-      throw new ForbiddenException(createApiError('NOT_OWNER', AUTH_ERRORS));
+      throw new ForbiddenException(createApiError('NOT_OWNER', API_ERRORS));
     }
     return await this.prisma.merchantApiKey.findMany({
       where: { merchantId },
@@ -196,7 +194,7 @@ export class ApiKeyService {
     apiKeyId: string,
   ) {
     if (user.id !== merchantId) {
-      throw new ForbiddenException(createApiError('NOT_OWNER', AUTH_ERRORS));
+      throw new ForbiddenException(createApiError('NOT_OWNER', API_ERRORS));
     }
     const apiKey = await this.prisma.merchantApiKey.findUnique({
       where: { id: apiKeyId },
@@ -208,11 +206,11 @@ export class ApiKeyService {
     });
     if (!apiKey) {
       throw new NotFoundException(
-        createApiError('API_KEY_NOT_FOUND', AUTH_ERRORS),
+        createApiError('API_KEY_NOT_FOUND', API_ERRORS),
       );
     }
     if (apiKey.merchantId !== merchantId) {
-      throw new ForbiddenException(createApiError('NOT_OWNER', AUTH_ERRORS));
+      throw new ForbiddenException(createApiError('NOT_OWNER', API_ERRORS));
     }
     return apiKey;
   }
@@ -226,22 +224,22 @@ export class ApiKeyService {
     expiresAt?: string | null,
   ) {
     if (user.id !== merchantId) {
-      throw new ForbiddenException(createApiError('NOT_OWNER', AUTH_ERRORS));
+      throw new ForbiddenException(createApiError('NOT_OWNER', API_ERRORS));
     }
     const existing = await this.prisma.merchantApiKey.findUnique({
       where: { id: apiKeyId },
     });
     if (!existing) {
       throw new NotFoundException(
-        createApiError('API_KEY_NOT_FOUND', AUTH_ERRORS),
+        createApiError('API_KEY_NOT_FOUND', API_ERRORS),
       );
     }
     if (existing.merchantId !== merchantId) {
-      throw new ForbiddenException(createApiError('NOT_OWNER', AUTH_ERRORS));
+      throw new ForbiddenException(createApiError('NOT_OWNER', API_ERRORS));
     }
     if (existing.revokedAt) {
       throw new ForbiddenException(
-        createApiError('API_KEY_REVOKED', AUTH_ERRORS),
+        createApiError('API_KEY_REVOKED', API_ERRORS),
       );
     }
     return this.prisma.merchantApiKey.update({

@@ -5,15 +5,14 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuthenticatedUser } from '../auth/auth.types';
-import { AUTH_ERRORS } from '../auth/auth-errors';
 import { createApiError } from '../common/api-error';
+import { API_ERRORS } from '../common/errors';
 import { DRIVER_MESSAGES } from './driver-me.message';
 import {
   DriverStatus,
   WalletEntryStatus,
   WalletEntryType,
 } from '@prisma/client';
-import { DRIVER_ERROR } from './driver-me.error';
 import { OrderStatus } from '@prisma/client';
 import { DriverProfileResponseDto } from './dto/driver-profile-response.dto';
 import { UpdateDriverProfileDto } from './dto/update-driver-profile.dto';
@@ -22,9 +21,7 @@ import { UploadService } from '../upload/upload.service';
 import { SessionVehicleDto } from './dto/session-vehicle.dto';
 import { DashboardResponseDto } from './dto/dashboard-response.dto';
 import { CreateDriverDocumentDto } from './dto/create-driver-document.dto';
-import { KYC_ERRORS } from '../kyc/kyc.error';
 import { EventsGateway } from '../events/events.gateway';
-import { ORDER_ERRORS } from '../order/order-errors';
 
 @Injectable()
 export class DriverMeService {
@@ -56,7 +53,7 @@ export class DriverMeService {
     });
     if (!driver) {
       throw new NotFoundException(
-        createApiError('DRIVER_NOT_FOUND', AUTH_ERRORS),
+        createApiError('DRIVER_NOT_FOUND', API_ERRORS),
       );
     }
     return driver;
@@ -121,7 +118,7 @@ export class DriverMeService {
   async rejectOrder(user: AuthenticatedUser, orderId: string) {
     const order = await this.prisma.order.findUnique({ where: { id: orderId } });
     if (!order) {
-      throw new NotFoundException(createApiError('ORDER_NOT_FOUND', ORDER_ERRORS));
+      throw new NotFoundException(createApiError('ORDER_NOT_FOUND', API_ERRORS));
     }
 
     await this.prisma.driverOrderRejection.upsert({
@@ -138,7 +135,7 @@ export class DriverMeService {
     const driver = await this.existsDriver(user);
 
     if (driver.status === DriverStatus.BUSY) {
-      throw new ConflictException(createApiError('DRIVER_BUSY', DRIVER_ERROR));
+      throw new ConflictException(createApiError('DRIVER_BUSY', API_ERRORS));
     }
 
     // If driver is not occupied and available, toggle to offline and vice versa
@@ -260,7 +257,7 @@ export class DriverMeService {
 
     if (!driver) {
       throw new NotFoundException(
-        createApiError('DRIVER_NOT_FOUND', AUTH_ERRORS),
+        createApiError('DRIVER_NOT_FOUND', API_ERRORS),
       );
     }
 
@@ -291,7 +288,7 @@ export class DriverMeService {
 
     if (!driver) {
       throw new NotFoundException(
-        createApiError('DRIVER_NOT_FOUND', AUTH_ERRORS),
+        createApiError('DRIVER_NOT_FOUND', API_ERRORS),
       );
     }
 
@@ -408,7 +405,7 @@ export class DriverMeService {
 
     if (!wallet) {
       throw new NotFoundException(
-        createApiError('DRIVER_NOT_FOUND', AUTH_ERRORS),
+        createApiError('DRIVER_NOT_FOUND', API_ERRORS),
       );
     }
 
@@ -432,7 +429,7 @@ export class DriverMeService {
 
     if (!wallet) {
       throw new NotFoundException(
-        createApiError('DRIVER_NOT_FOUND', AUTH_ERRORS),
+        createApiError('DRIVER_NOT_FOUND', API_ERRORS),
       );
     }
 
@@ -457,19 +454,19 @@ export class DriverMeService {
 
     if (!wallet) {
       throw new NotFoundException(
-        createApiError('DRIVER_NOT_FOUND', AUTH_ERRORS),
+        createApiError('DRIVER_NOT_FOUND', API_ERRORS),
       );
     }
 
     if (amount <= 0) {
       throw new ConflictException(
-        createApiError('INVALID_WITHDRAWAL_AMOUNT', DRIVER_ERROR),
+        createApiError('INVALID_WITHDRAWAL_AMOUNT', API_ERRORS),
       );
     }
 
     if (wallet.balance < amount) {
       throw new ConflictException(
-        createApiError('INSUFFICIENT_BALANCE', DRIVER_ERROR),
+        createApiError('INSUFFICIENT_BALANCE', API_ERRORS),
       );
     }
 
@@ -516,7 +513,7 @@ export class DriverMeService {
 
     if (driver.kycStatus === KycStatus.PENDING) {
       throw new ConflictException(
-        createApiError('KYC_VERIFYING_IN_PROCESS', KYC_ERRORS),
+        createApiError('KYC_VERIFYING_IN_PROCESS', API_ERRORS),
       );
     }
 
@@ -565,13 +562,13 @@ export class DriverMeService {
     // KYC documents validated can only be updated by another document, and should not be able to be deleted
     if (driver.kycStatus === KycStatus.ACCEPTED) {
       throw new ConflictException(
-        createApiError('KYC_ALREADY_APPROVED', KYC_ERRORS),
+        createApiError('KYC_ALREADY_APPROVED', API_ERRORS),
       );
     }
 
     if (driver.kycStatus === KycStatus.PENDING) {
       throw new ConflictException(
-        createApiError('KYC_VERIFYING_IN_PROCESS', KYC_ERRORS),
+        createApiError('KYC_VERIFYING_IN_PROCESS', API_ERRORS),
       );
     }
 
@@ -581,7 +578,7 @@ export class DriverMeService {
 
     if (!doc || doc.driverId !== user.id) {
       throw new NotFoundException(
-        createApiError('DRIVER_NOT_FOUND', AUTH_ERRORS),
+        createApiError('DRIVER_NOT_FOUND', API_ERRORS),
       );
     }
 

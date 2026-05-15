@@ -5,8 +5,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from '../emails/email.service';
 import { TIER_LIMITS } from './subscription.config';
 import { createApiError } from '../common/api-error';
-import { SUBSCRIPTION_ERRORS } from './subscription.errors';
-import { AUTH_ERRORS } from '../auth/auth-errors';
+import { API_ERRORS } from '../common/errors';
 
 @Injectable()
 export class SubscriptionService {
@@ -30,7 +29,7 @@ export class SubscriptionService {
     });
 
     if (!merchant) {
-      throw new ForbiddenException(createApiError('MERCHANT_NOT_FOUND', AUTH_ERRORS));
+      throw new ForbiddenException(createApiError('MERCHANT_NOT_FOUND', API_ERRORS));
     }
 
     let customerId = merchant.stripeCustomerId;
@@ -67,7 +66,7 @@ export class SubscriptionService {
     });
 
     if (!merchant?.stripeCustomerId) {
-      throw new BadRequestException(createApiError('NO_STRIPE_SUBSCRIPTION', SUBSCRIPTION_ERRORS));
+      throw new BadRequestException(createApiError('NO_STRIPE_SUBSCRIPTION', API_ERRORS));
     }
 
     const session = await this.stripe.billingPortal.sessions.create({

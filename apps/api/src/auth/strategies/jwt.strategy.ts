@@ -4,7 +4,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PrismaService } from '../../prisma/prisma.service';
 import type { JwtPayload } from '../auth.types';
 import { createApiError } from '../../common/api-error';
-import { AUTH_ERRORS } from '../auth-errors';
+import { API_ERRORS } from '../../common/errors';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
@@ -22,7 +22,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
 
     if (!user)
       throw new UnauthorizedException(
-        createApiError('INVALID_ACCESS_TOKEN', AUTH_ERRORS),
+        createApiError('INVALID_ACCESS_TOKEN', API_ERRORS),
       );
     return user;
   }

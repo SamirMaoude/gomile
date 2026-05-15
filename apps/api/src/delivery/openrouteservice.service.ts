@@ -8,7 +8,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { RedisService } from '../redis/redis.service';
 import { createApiError } from 'src/common/api-error';
-import { DELIVERY_ERRORS } from './delivery.errors';
+import { API_ERRORS } from '../common/errors';
 
 type Coordinates = {
   latitude: number;
@@ -51,7 +51,7 @@ export class OpenRouteService {
     const apiKey = this.configService.get<string>('ORS_API_KEY');
 
     if (!apiKey) {
-      throw new ServiceUnavailableException(createApiError('ORS_API_KEY_MISSING', DELIVERY_ERRORS));
+      throw new ServiceUnavailableException(createApiError('ORS_API_KEY_MISSING', API_ERRORS));
     }
 
     return apiKey;
@@ -86,19 +86,19 @@ export class OpenRouteService {
     try {
       response = await fetch(url.toString());
     } catch {
-      throw new BadGatewayException(createApiError('ORS_SERVICE_UNAVAILABLE', DELIVERY_ERRORS)
+      throw new BadGatewayException(createApiError('ORS_SERVICE_UNAVAILABLE', API_ERRORS)
       );
     }
 
     if (!response.ok) {
-      throw new BadGatewayException(createApiError('GEOCODING_FAILED', DELIVERY_ERRORS));
+      throw new BadGatewayException(createApiError('GEOCODING_FAILED', API_ERRORS));
     }
 
     const data = (await response.json()) as OrsGeocodeResponse;
     const coordinates = data.features?.[0]?.geometry?.coordinates;
 
     if (!coordinates) {
-      throw new NotFoundException(createApiError('ADDRESS_NOT_FOUND', DELIVERY_ERRORS));
+      throw new NotFoundException(createApiError('ADDRESS_NOT_FOUND', API_ERRORS));
     }
 
     const result = {
@@ -161,18 +161,18 @@ export class OpenRouteService {
         }),
       });
     } catch {
-      throw new BadGatewayException(createApiError('ORS_SERVICE_UNAVAILABLE', DELIVERY_ERRORS));
+      throw new BadGatewayException(createApiError('ORS_SERVICE_UNAVAILABLE', API_ERRORS));
     }
 
     if (!response.ok) {
-      throw new BadGatewayException(createApiError('ROUTING_FAILED', DELIVERY_ERRORS));
+      throw new BadGatewayException(createApiError('ROUTING_FAILED', API_ERRORS));
     }
 
     const data = (await response.json()) as OrsDirectionsResponse;
     const summary = data.routes?.[0]?.summary;
 
     if (!summary) {
-      throw new NotFoundException(createApiError('ROUTE_NOT_FOUND', DELIVERY_ERRORS));
+      throw new NotFoundException(createApiError('ROUTE_NOT_FOUND', API_ERRORS));
     }
 
     const result = {

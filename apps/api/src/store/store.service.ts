@@ -10,8 +10,7 @@ import { OpenRouteService } from '../delivery/openrouteservice.service';
 import { CreateStoreDto } from './dto/create-store.dto';
 import { UpdateStoreDto } from './dto/update-store.dto';
 import { createApiError } from '../common/api-error';
-import { STORE_ERRORS } from './store-errors';
-import { AUTH_ERRORS } from '../auth/auth-errors';
+import { API_ERRORS } from '../common/errors';
 import { UpdateStoreResponseDto } from './dto/update-store.response.dto';
 import { STORE_MESSAGES } from './store-messages';
 import { CreateStoreResponseDto } from './dto/create-store-response.dto';
@@ -19,7 +18,6 @@ import { DeleteStoreResponseDto } from './dto/delete-store-response.dto';
 import { AuthenticatedUser } from '../auth/auth.types';
 import { randomBytes } from 'crypto';
 import { OrderStatus, Role, SubscriptionStatus } from '@prisma/client';
-import { SUBSCRIPTION_ERRORS } from '../subscription/subscription.errors';
 import { TIER_LIMITS } from '../subscription/subscription.config';
 
 @Injectable()
@@ -45,7 +43,7 @@ export class StoreService {
     });
     if (!merchant) {
       throw new NotFoundException(
-        createApiError('MERCHANT_NOT_FOUND', AUTH_ERRORS),
+        createApiError('MERCHANT_NOT_FOUND', API_ERRORS),
       );
     }
     return merchant;
@@ -60,7 +58,7 @@ export class StoreService {
     });
     if (!store) {
       throw new NotFoundException(
-        createApiError('STORE_NOT_FOUND', STORE_ERRORS),
+        createApiError('STORE_NOT_FOUND', API_ERRORS),
       );
     }
     return store;
@@ -72,7 +70,7 @@ export class StoreService {
       where: { id: storeId, merchantId },
     });
     if (!response) {
-      throw new ForbiddenException(createApiError('NOT_OWNER', STORE_ERRORS));
+      throw new ForbiddenException(createApiError('NOT_OWNER', API_ERRORS));
     }
     return response;
   }
@@ -91,7 +89,7 @@ export class StoreService {
     });
     if (ongoingOrder) {
       throw new ConflictException(
-        createApiError('STORE_HAS_ACTIVE_ORDERS', STORE_ERRORS),
+        createApiError('STORE_HAS_ACTIVE_ORDERS', API_ERRORS),
       );
     }
     return ongoingOrder;
@@ -104,12 +102,12 @@ export class StoreService {
   ): Promise<CreateStoreResponseDto> {
     const merchant = await this.existsMerchant(merchantId);
     if (user.id !== merchantId) {
-      throw new ForbiddenException(createApiError('NOT_OWNER', AUTH_ERRORS));
+      throw new ForbiddenException(createApiError('NOT_OWNER', API_ERRORS));
     }
 
     // Blocking merchants from using creating new stores if no subscription is active aka LOCKED
     if (merchant.subscriptionStatus === SubscriptionStatus.LOCKED) {
-      throw new ForbiddenException(createApiError('SUBSCRIPTION_NOT_ACTIVE', SUBSCRIPTION_ERRORS));
+      throw new ForbiddenException(createApiError('SUBSCRIPTION_NOT_ACTIVE', API_ERRORS));
     }
     // If number of stores surpasses current subscription quota, block !
     const storeCount = await this.prisma.store.count({
@@ -118,7 +116,7 @@ export class StoreService {
       }
     });
     if (storeCount >= TIER_LIMITS[merchant.subscription]) {
-      throw new ForbiddenException(createApiError('SUBSCRIPTION_QUOTA_EXCEEDED', SUBSCRIPTION_ERRORS));
+      throw new ForbiddenException(createApiError('SUBSCRIPTION_QUOTA_EXCEEDED', API_ERRORS));
     }
 
     // Geocoding given address
@@ -158,7 +156,7 @@ export class StoreService {
     dto: UpdateStoreDto,
   ): Promise<UpdateStoreResponseDto> {
     if (user.id !== merchantId) {
-      throw new ForbiddenException(createApiError('NOT_OWNER', AUTH_ERRORS));
+      throw new ForbiddenException(createApiError('NOT_OWNER', API_ERRORS));
     }
     await this.existsStore(storeId);
     const existing = await this.verifyOwnership(merchantId, storeId);
@@ -166,7 +164,7 @@ export class StoreService {
     // If provider is being set, ensure domain is present (in the request or already in DB)
     if (dto.provider !== undefined && !dto.domain && !existing.domain) {
       throw new BadRequestException(
-        createApiError('DOMAIN_REQUIRED_WITH_PROVIDER', STORE_ERRORS),
+        createApiError('DOMAIN_REQUIRED_WITH_PROVIDER', API_ERRORS),
       );
     }
 
@@ -205,7 +203,7 @@ export class StoreService {
   ): Promise<UpdateStoreResponseDto> {
     await this.existsMerchant(merchantId);
     if (user.id !== merchantId) {
-      throw new ForbiddenException(createApiError('NOT_OWNER', AUTH_ERRORS));
+      throw new ForbiddenException(createApiError('NOT_OWNER', API_ERRORS));
     }
     await this.existsStore(storeId);
     await this.verifyOwnership(merchantId, storeId);
@@ -233,12 +231,12 @@ export class StoreService {
   ): Promise<UpdateStoreResponseDto> {
     await this.existsMerchant(merchantId);
     if (user.id !== merchantId) {
-      throw new ForbiddenException(createApiError('NOT_OWNER', AUTH_ERRORS));
+      throw new ForbiddenException(createApiError('NOT_OWNER', API_ERRORS));
     }
     await this.existsStore(storeId);
     const store = await this.verifyOwnership(merchantId, storeId);
     if (store.isLocked) {
-      throw new ForbiddenException(createApiError('SUBSCRIPTION_NOT_ACTIVE', SUBSCRIPTION_ERRORS));
+      throw new ForbiddenException(createApiError('SUBSCRIPTION_NOT_ACTIVE', API_ERRORS));
     }
     const response = await this.prisma.store.update({
       where: {
@@ -263,7 +261,7 @@ export class StoreService {
   ): Promise<DeleteStoreResponseDto> {
     await this.existsMerchant(merchantId);
     if (user.id !== merchantId) {
-      throw new ForbiddenException(createApiError('NOT_OWNER', AUTH_ERRORS));
+      throw new ForbiddenException(createApiError('NOT_OWNER', API_ERRORS));
     }
     await this.existsStore(storeId);
     await this.verifyOwnership(merchantId, storeId);
@@ -283,7 +281,7 @@ export class StoreService {
     isActive?: boolean,
   ) {
     if (user.id !== merchantId && user.role !== Role.ADMIN) {
-      throw new ForbiddenException(createApiError('NOT_OWNER', AUTH_ERRORS));
+      throw new ForbiddenException(createApiError('NOT_OWNER', API_ERRORS));
     }
     return this.prisma.store.findMany({
       where: {
@@ -307,7 +305,7 @@ export class StoreService {
     webhookUrl: string,
   ): Promise<{ webhookUrl: string; webhookSecret: string }> {
     if (user.id !== merchantId) {
-      throw new ForbiddenException(createApiError('NOT_OWNER', AUTH_ERRORS));
+      throw new ForbiddenException(createApiError('NOT_OWNER', API_ERRORS));
     }
     await this.verifyOwnership(merchantId, storeId);
 
@@ -324,7 +322,7 @@ export class StoreService {
     await this.existsMerchant(merchantId);
     await this.existsStore(storeId);
     if (user.id !== merchantId) {
-      throw new ForbiddenException(createApiError('NOT_OWNER', AUTH_ERRORS));
+      throw new ForbiddenException(createApiError('NOT_OWNER', API_ERRORS));
     }
     return this.verifyOwnership(merchantId, storeId);
   }
