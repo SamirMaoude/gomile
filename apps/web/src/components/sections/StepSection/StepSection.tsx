@@ -80,7 +80,8 @@ export default function StepSection(){
                             src="/images/livreur.png"
                             alt="Livreur à vélo"
                             fill
-                            className="object-cover"
+                            sizes="24rem"
+                            className="object-contain"
                         />
                     </div>
                     </section>
