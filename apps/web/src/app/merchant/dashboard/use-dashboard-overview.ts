@@ -16,6 +16,7 @@ import {
   buildMerchantMapMarkers,
   buildRecentStatusChangeItems,
 } from "./dashboard-overview.helpers";
+import { useOrderStatusSocket } from "@/lib/order-status-socket";
 import { listCurrentMerchantApiKeys } from "./api-keys/api-keys.service";
 import {
   getCurrentMerchantOrder,
@@ -47,6 +48,7 @@ export function useDashboardOverview(): UseDashboardOverviewResult {
     MerchantNotificationItem[]
   >([]);
   const [mapMarkers, setMapMarkers] = useState<MerchantMapMarker[]>([]);
+  const [trackedOrderIds, setTrackedOrderIds] = useState<string[]>([]);
   const [overviewError, setOverviewError] = useState<string | null>(null);
   const [isLoadingOverview, setIsLoadingOverview] = useState(true);
   const isMountedRef = useRef(true);
@@ -96,6 +98,7 @@ export function useDashboardOverview(): UseDashboardOverviewResult {
         return;
       }
 
+      setTrackedOrderIds(orders.map((order) => order.id));
       setActiveDeliveries(deliveryItems);
       setCreatedDeliveries(createdDeliveryItems);
       setRecentStatusChanges(recentStatusChangeItems);
@@ -116,6 +119,7 @@ export function useDashboardOverview(): UseDashboardOverviewResult {
       setRecentStatusChanges([]);
       setDeliveryNotifications([]);
       setMapMarkers([]);
+      setTrackedOrderIds([]);
     } finally {
       if (isMountedRef.current && showLoader) {
         setIsLoadingOverview(false);
@@ -139,6 +143,13 @@ export function useDashboardOverview(): UseDashboardOverviewResult {
       window.clearInterval(intervalId);
     };
   }, []);
+
+  useOrderStatusSocket({
+    orderIds: trackedOrderIds,
+    onStatusChange: () => {
+      void loadOverview(false);
+    },
+  });
 
   return {
     activeDeliveries,

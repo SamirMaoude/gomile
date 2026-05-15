@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 
 import { attachAddressAutocomplete } from "@/lib/address-autocomplete";
+import { useOrderStatusSocket } from "@/lib/order-status-socket";
+import type { OrderStatusPayload } from "@/lib/order-status-socket";
 import type { StoreListItem } from "../shops/store.model";
 import type {
   CreateOrderResult,
@@ -160,6 +162,65 @@ export function useOrdersTable(): UseOrdersTableResult {
       isMountedRef.current = false;
     };
   }, []);
+
+  useOrderStatusSocket({
+    orderIds: rows.map((order) => order.id),
+    onStatusChange: (payload) => {
+      handleRealtimeOrderStatus(payload);
+    },
+  });
+
+  function handleRealtimeOrderStatus({ orderId, status }: OrderStatusPayload) {
+    setRows((currentRows) =>
+      currentRows.map((order) =>
+        order.id === orderId ? { ...order, status } : order,
+      ),
+    );
+
+    setOrderDetailsById((previous) => {
+      const currentState = previous[orderId];
+
+      if (!currentState?.order) {
+        return previous;
+      }
+
+      return {
+        ...previous,
+        [orderId]: {
+          ...currentState,
+          order: {
+            ...currentState.order,
+            status,
+          },
+        },
+      };
+    });
+
+    if (expandedOrderId === orderId || orderDetailsById[orderId]?.order) {
+      void refreshOrderDetails(orderId);
+    }
+  }
+
+  async function refreshOrderDetails(orderId: string) {
+    try {
+      const orderDetails = await getCurrentMerchantOrder(orderId);
+
+      if (!isMountedRef.current) {
+        return;
+      }
+
+      setOrderDetailsById((previous) => ({
+        ...previous,
+        [orderId]: {
+          error: null,
+          isLoading: false,
+          order: orderDetails,
+        },
+      }));
+    } catch {
+      // The list badge already received the realtime status; details can be retried manually.
+    }
+  }
 
   function getOrderDetailsState(orderId: string): OrderDetailsState {
     return orderDetailsById[orderId] ?? EMPTY_ORDER_DETAILS_STATE;

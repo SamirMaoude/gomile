@@ -85,7 +85,9 @@ export default function HeroSection(){
                             src="/images/livreur.png"
                             alt="Livreur à vélo"
                             fill
-                            className="object-cover"
+                            sizes="(min-width: 1024px) 28rem, 24rem"
+                            priority
+                            className="object-contain"
                         />
                     </div>
                 </div>

@@ -2,8 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { useOrderStatusSocket } from "@/lib/order-status-socket";
 import type { DeliveryRow } from "./delivery.model";
-import { listCurrentMerchantDeliveries } from "./deliveries.service";
+import { listCurrentMerchantDeliverySnapshot } from "./deliveries.service";
 
 type UseDeliveriesTableResult = {
   error: string | null;
@@ -13,42 +14,48 @@ type UseDeliveriesTableResult = {
 
 export function useDeliveriesTable(): UseDeliveriesTableResult {
   const [rows, setRows] = useState<DeliveryRow[]>([]);
+  const [trackedOrderIds, setTrackedOrderIds] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const isMountedRef = useRef(true);
 
-  useEffect(() => {
-    isMountedRef.current = true;
-
-    async function loadDeliveries() {
+  async function loadDeliveries(showLoader = true) {
+    if (showLoader) {
       setIsLoading(true);
-      setError(null);
+    }
 
-      try {
-        const deliveries = await listCurrentMerchantDeliveries();
+    setError(null);
 
-        if (!isMountedRef.current) {
-          return;
-        }
+    try {
+      const snapshot = await listCurrentMerchantDeliverySnapshot();
 
-        setRows(deliveries);
-      } catch (loadError) {
-        if (!isMountedRef.current) {
-          return;
-        }
+      if (!isMountedRef.current) {
+        return;
+      }
 
-        setRows([]);
-        setError(
-          loadError instanceof Error
-            ? loadError.message
-            : "Impossible de charger les livraisons pour le moment.",
-        );
-      } finally {
-        if (isMountedRef.current) {
-          setIsLoading(false);
-        }
+      setRows(snapshot.deliveries);
+      setTrackedOrderIds(snapshot.orderIds);
+    } catch (loadError) {
+      if (!isMountedRef.current) {
+        return;
+      }
+
+      setRows([]);
+      setTrackedOrderIds([]);
+      setError(
+        loadError instanceof Error
+          ? loadError.message
+          : "Impossible de charger les livraisons pour le moment.",
+      );
+    } finally {
+      if (isMountedRef.current && showLoader) {
+        setIsLoading(false);
       }
     }
+  }
+
+  useEffect(() => {
+    isMountedRef.current = true;
 
     void loadDeliveries();
 
@@ -56,6 +63,13 @@ export function useDeliveriesTable(): UseDeliveriesTableResult {
       isMountedRef.current = false;
     };
   }, []);
+
+  useOrderStatusSocket({
+    orderIds: trackedOrderIds,
+    onStatusChange: () => {
+      void loadDeliveries(false);
+    },
+  });
 
   return {
     error,

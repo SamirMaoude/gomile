@@ -11,6 +11,14 @@ import {
 } from "./delivery.model";
 
 export async function listCurrentMerchantDeliveries(): Promise<DeliveryRow[]> {
+  const snapshot = await listCurrentMerchantDeliverySnapshot();
+  return snapshot.deliveries;
+}
+
+export async function listCurrentMerchantDeliverySnapshot(): Promise<{
+  deliveries: DeliveryRow[];
+  orderIds: string[];
+}> {
   const [orders, stores] = await Promise.all([
     listCurrentMerchantOrders(),
     listCurrentMerchantStores(),
@@ -27,7 +35,7 @@ export async function listCurrentMerchantDeliveries(): Promise<DeliveryRow[]> {
   );
   const detailsById = new Map(details.map((order) => [order.orderId, order]));
 
-  return deliveryOrders
+  const deliveries = deliveryOrders
     .map((order) => {
       const detail = detailsById.get(order.id);
       const statusDate = detail
@@ -44,4 +52,9 @@ export async function listCurrentMerchantDeliveries(): Promise<DeliveryRow[]> {
     .sort((left, right) =>
       new Date(right.statusDate).getTime() - new Date(left.statusDate).getTime(),
     );
+
+  return {
+    deliveries,
+    orderIds: orders.map((order) => order.id),
+  };
 }
