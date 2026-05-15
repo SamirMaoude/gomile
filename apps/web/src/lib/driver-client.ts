@@ -8,6 +8,7 @@ export type UploadPresignInput = {
 export type UploadPresignResponse = {
   uploadUrl: string;
   fileUrl: string;
+  viewUrl: string;
 };
 
 export type DriverDocumentType =

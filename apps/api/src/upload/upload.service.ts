@@ -4,6 +4,7 @@ import {
   PutObjectCommand,
   DeleteObjectCommand,
   CopyObjectCommand,
+  GetObjectCommand,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { randomUUID } from 'crypto';
@@ -16,7 +17,6 @@ export class UploadService {
   private readonly bucket: string;
 
   constructor() {
-    // Loading env variables
     if (
       !process.env.AWS_REGION ||
       !process.env.AWS_ACCESS_KEY_ID ||
@@ -33,11 +33,12 @@ export class UploadService {
         accessKeyId: process.env.AWS_ACCESS_KEY_ID,
         secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
       },
+      requestChecksumCalculation: 'WHEN_REQUIRED',
+      responseChecksumValidation: 'WHEN_REQUIRED',
     });
     this.bucket = process.env.S3_BUCKET_NAME!;
   }
 
-  // S3 database upload authorization url
   async presign(
     filename: string,
     contentType: string,
@@ -50,23 +51,22 @@ export class UploadService {
       Key: key,
       ContentType: contentType,
     });
-    const uploadUrl = await getSignedUrl(this.s3, command, { expiresIn: 300 }); // 5 minutes expiration
+    const uploadUrl = await getSignedUrl(this.s3, command, { expiresIn: 300 });
     const fileUrl = `https://${this.bucket}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
-    return { uploadUrl: uploadUrl, fileUrl: fileUrl };
+    const viewUrl = await getSignedUrl(this.s3, new GetObjectCommand({ Bucket: this.bucket, Key: key }), { expiresIn: 3600 });
+    return { uploadUrl, fileUrl, viewUrl };
   }
 
   async deleteFile(fileUrl: string): Promise<void> {
     const url = new URL(fileUrl);
-    const key = url.pathname.slice(1); // remove leading "/"
+    const key = url.pathname.slice(1);
     await this.s3.send(
       new DeleteObjectCommand({ Bucket: this.bucket, Key: key }),
     );
   }
 
-  // Moves a file from the uploads/ staging area to the documents/ permanent area.
-  // Files in uploads/ are deleted by the S3 lifecycle rule after 2 days, so only
-  // committed (DB-linked) files should be moved here. If the URL is already in
-  // documents/ (e.g. called twice), it is returned unchanged.
+  // Moves a file from uploads/ staging to documents/ permanent area.
+  // Already committed or external URL → returned unchanged.
   async commitFile(fileUrl: string): Promise<string> {
     const url = new URL(fileUrl);
     const oldKey = url.pathname.slice(1);
@@ -75,8 +75,7 @@ export class UploadService {
       return fileUrl;
     }
 
-    const filename = oldKey.slice('uploads/'.length);
-    const newKey = `documents/${filename}`;
+    const newKey = `documents/${oldKey.slice('uploads/'.length)}`;
 
     await this.s3.send(
       new CopyObjectCommand({
@@ -91,5 +90,12 @@ export class UploadService {
     );
 
     return `https://${this.bucket}.s3.${process.env.AWS_REGION}.amazonaws.com/${newKey}`;
+  }
+
+  async getSignedDownloadUrl(fileUrl: string, expiresIn = 3600): Promise<string> {
+    const url = new URL(fileUrl);
+    const key = url.pathname.slice(1);
+    const command = new GetObjectCommand({ Bucket: this.bucket, Key: key });
+    return getSignedUrl(this.s3, command, { expiresIn });
   }
 }

@@ -261,11 +261,20 @@ export class DriverMeService {
       );
     }
 
+    const signedDocuments = await Promise.all(
+      driver.driverDocuments.map(async (doc) => ({
+        ...doc,
+        url: await this.uploadService.getSignedDownloadUrl(doc.url),
+      })),
+    );
+
     return {
       id: driver.userId,
       firstName: driver.firstName,
       lastName: driver.lastName,
-      avatarUrl: driver.avatarUrl,
+      avatarUrl: driver.avatarUrl
+        ? await this.uploadService.getSignedDownloadUrl(driver.avatarUrl)
+        : null,
       email: driver.user.email,
       phone: driver.user.phone,
       rating: driver.rating,
@@ -274,7 +283,7 @@ export class DriverMeService {
       gomileCode: driver.gomileCode,
       status: driver.status,
       kycStatus: driver.kycStatus,
-      documents: driver.driverDocuments,
+      documents: signedDocuments,
     };
   }
 
@@ -490,7 +499,7 @@ export class DriverMeService {
 
   async getDocuments(user: AuthenticatedUser) {
     await this.existsDriver(user);
-    return this.prisma.driverDocument.findMany({
+    const docs = await this.prisma.driverDocument.findMany({
       where: { driverId: user.id },
       select: {
         id: true,
@@ -502,6 +511,13 @@ export class DriverMeService {
       },
       orderBy: { createdAt: 'desc' },
     });
+
+    return Promise.all(
+      docs.map(async (doc) => ({
+        ...doc,
+        url: await this.uploadService.getSignedDownloadUrl(doc.url),
+      })),
+    );
   }
 
   async presignDocument(filename: string, contentType: string) {

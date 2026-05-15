@@ -5,9 +5,10 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { KycModule } from '../kyc/kyc.module';
 import { AuthModule } from '../auth/auth.module';
+import { UploadModule } from '../upload/upload.module';
 
 @Module({
-  imports: [KycModule, AuthModule],
+  imports: [KycModule, AuthModule, UploadModule],
   controllers: [AdminController],
   providers: [AdminService, RolesGuard, JwtAuthGuard],
 })

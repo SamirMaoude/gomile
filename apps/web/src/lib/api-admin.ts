@@ -100,6 +100,65 @@ export type RejectKycInput = {
   rejectionReason: string;
 };
 
+export type SubscriptionTier = "FREE" | "STARTER" | "PRO";
+export type SubscriptionStatus = "TRIAL" | "ACTIVE" | "PAST_DUE" | "CANCELLED";
+
+export type AdminMerchantListItem = {
+  userId: string;
+  name: string;
+  createdAt: string;
+  subscription: SubscriptionTier;
+  subscriptionStatus: SubscriptionStatus;
+  user: {
+    email: string;
+    phone: string | null;
+  };
+};
+
+export type AdminMerchantDetail = {
+  userId: string;
+  name: string;
+  createdAt: string;
+  subscription: SubscriptionTier;
+  subscriptionStatus: SubscriptionStatus;
+  trialEndsAt: string | null;
+  currentPeriodEnd: string | null;
+  user: {
+    email: string;
+    phone: string | null;
+  };
+  store: Array<{
+    id: string;
+    name: string;
+    address: string;
+    isActive: boolean;
+    isLocked: boolean;
+    createdAt: string;
+  }>;
+  apiKeys: Array<{
+    id: string;
+    name: string;
+    createdAt: string;
+    revokedAt: string | null;
+    expiresAt: string | null;
+  }>;
+};
+
+export function getMerchantsList() {
+  return requestWithAutoRefresh<AdminMerchantListItem[]>("/api/admin/merchants");
+}
+
+export function getMerchant(merchantId: string) {
+  return requestWithAutoRefresh<AdminMerchantDetail>(`/api/admin/merchants/${merchantId}`);
+}
+
+export function resetHandshake(orderId: string) {
+  return requestWithAutoRefresh<AdminMessageResponse>(
+    `/api/admin/orders/${orderId}/reset`,
+    { method: "POST" },
+  );
+}
+
 export function getDriversList() {
   return requestWithAutoRefresh<AdminDriverListItem[]>("/api/admin/drivers");
 }

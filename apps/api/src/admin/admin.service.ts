@@ -7,10 +7,14 @@ import { PrismaService } from '../prisma/prisma.service';
 import { createApiError } from '../common/api-error';
 import { API_ERRORS } from '../common/errors';
 import { ADMIN_MESSAGES } from './admin.message';
+import { UploadService } from '../upload/upload.service';
 
 @Injectable()
 export class AdminService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly uploadService: UploadService,
+  ) {}
   async getAllMerchants() {
     return this.prisma.merchant.findMany({
       select: {
@@ -155,7 +159,14 @@ export class AdminService {
       );
     }
 
-    return driver;
+    const signedDocuments = await Promise.all(
+      driver.driverDocuments.map(async (doc) => ({
+        ...doc,
+        url: await this.uploadService.getSignedDownloadUrl(doc.url),
+      })),
+    );
+
+    return { ...driver, driverDocuments: signedDocuments };
   }
 
   async getWithdrawals(
