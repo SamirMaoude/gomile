@@ -14,6 +14,7 @@ import {
 } from '@nestjs/swagger';
 import { PresignRequestDto } from './dto/presign-request.dto';
 import { UploadService } from './upload.service';
+import { PresignResponseDto } from './dto/presign-response.dto';
 
 @ApiTags('[Uploads]')
 @Controller('uploads')
@@ -37,6 +38,10 @@ export class UploadController {
           type: 'string',
           description: 'Permanent URL to store in DB',
         },
+        viewUrl: { 
+          type: 'string', 
+          description: 'Pre-signed GET URL for immediate preview. Expires in 1 hour.' 
+        },
       },
     },
   })
@@ -46,11 +51,11 @@ export class UploadController {
   // a rule on S3 is defnied to automaticcally delete orphaned files after 2 days.
   @UseGuards(ThrottlerGuard)
   @Throttle({ default: { 
-    ttl: 60_000, limit: 10  // limiting 10 requests per IP per 60 seconds
+    ttl: 60000, limit: 10  // limiting 10 requests per IP per 60 seconds
   }})
   async presign(
     @Body() dto: PresignRequestDto,
-  ): Promise<{ uploadUrl: string; fileUrl: string }> {
+  ): Promise<PresignResponseDto> {
     return this.uploadService.presign(dto.filename, dto.contentType);
   }
 }
