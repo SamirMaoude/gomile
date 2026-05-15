@@ -111,16 +111,20 @@ export class AdminController {
 
   @ApiOperation({
     summary: 'List all drivers',
-    description:
-      'Returns all registered drivers with their KYC status and latest submission.',
+    description: 'Returns all registered drivers. Filter by status and/or kycStatus.',
   })
+  @ApiQuery({ name: 'status', required: false, enum: ['AVAILABLE', 'BUSY', 'OFFLINE'] })
+  @ApiQuery({ name: 'kycStatus', required: false, enum: ['PENDING', 'ACCEPTED', 'REJECTED', 'NOT_SUBMITTED'] })
   @ApiOkResponse({ description: 'List of all drivers' })
   @ApiUnauthorizedResponse({ description: 'Invalid or missing JWT' })
   @ApiForbiddenResponse({ description: 'Admin role required' })
   @Get('drivers')
   @HttpCode(HttpStatus.OK)
-  async getAllDrivers() {
-    return this.adminService.getAllDrivers();
+  async getAllDrivers(
+    @Query('status') status?: 'AVAILABLE' | 'BUSY' | 'OFFLINE',
+    @Query('kycStatus') kycStatus?: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'NOT_SUBMITTED',
+  ) {
+    return this.adminService.getAllDrivers(status, kycStatus);
   }
 
   @ApiOperation({

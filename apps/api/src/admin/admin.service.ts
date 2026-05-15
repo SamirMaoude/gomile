@@ -70,9 +70,15 @@ export class AdminService {
 
     return merchant;
   }
-  // return all drivers
-  async getAllDrivers() {
+  async getAllDrivers(
+    status?: 'AVAILABLE' | 'BUSY' | 'OFFLINE',
+    kycStatus?: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'NOT_SUBMITTED',
+  ) {
     return this.prisma.driver.findMany({
+      where: {
+        ...(status && { status }),
+        ...(kycStatus && { kycStatus }),
+      },
       select: {
         userId: true,
         firstName: true,

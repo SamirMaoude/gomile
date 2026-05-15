@@ -1,7 +1,7 @@
 import type { ListDriverOrdersItem } from "../../../../shared/order-contracts";
 import { requestWithAutoRefresh } from "./protected-request";
 
-export type DriverStatus = "approved" | "pending" | "denied";
+export type DriverStatus = "AVAILABLE" | "BUSY" | "OFFLINE";
 export type KycStatus = "NONE" | "PENDING" | "APPROVED" | "REJECTED";
 export type WithdrawalStatus = "PENDING" | "COMPLETED" | "CANCELLED";
 
@@ -159,8 +159,9 @@ export function resetHandshake(orderId: string) {
   );
 }
 
-export function getDriversList() {
-  return requestWithAutoRefresh<AdminDriverListItem[]>("/api/admin/drivers");
+export function getDriversList(status?: DriverStatus, kycStatus?: KycStatus) {
+  const query = new URLSearchParams({ ...(status && { status }), ...(kycStatus && { kycStatus }) }).toString();
+  return requestWithAutoRefresh<AdminDriverListItem[]>(`/api/admin/drivers${query ? `?${query}` : ""}`);
 }
 
 export function getDriver(driverId: string) {
