@@ -6,11 +6,21 @@
     "dev": "next dev -p 3001",
     "build": "next build",
     "start": "next start -p 3001",
-    "lint": "eslint",
-    "typecheck": "tsc --noEmit"
+    "lint": "pnpm lint:tsx",
+    "lint:tsx": "eslint \"src/**/*.{ts,tsx}\" \"cypress.config.ts\" \"cypress/**/*.ts\"",
+    "lint:css": "stylelint \"src/**/*.css\"",
+    "typecheck": "pnpm typecheck:app && pnpm typecheck:cypress",
+    "typecheck:app": "tsc --noEmit",
+    "typecheck:cypress": "tsc --project cypress/tsconfig.json --noEmit",
+    "quality": "pnpm lint:tsx && pnpm lint:css && pnpm typecheck",
+    "cypress:open": "env -u ELECTRON_RUN_AS_NODE -u ELECTRON_NO_ATTACH_CONSOLE cypress open",
+    "cypress:run": "env -u ELECTRON_RUN_AS_NODE -u ELECTRON_NO_ATTACH_CONSOLE cypress run",
+    "test:e2e:merchant": "env -u ELECTRON_RUN_AS_NODE -u ELECTRON_NO_ATTACH_CONSOLE cypress run --spec cypress/e2e/merchant.cy.ts"
   },
   "dependencies": {
     "clsx": "^2.1.1",
+    "cypress": "^15.15.0",
+    "htmlhint": "^1.9.2",
     "leaflet": "^1.9.4",
     "lucide-react": "^1.11.0",
     "next": "16.1.6",
@@ -20,6 +30,7 @@
     "react-international-phone": "^4.8.0",
     "react-otp-input": "^3.1.1",
     "recharts": "^3.8.1",
+    "serve": "^14.2.6",
     "sweetalert2": "^11.26.23"
   },
   "devDependencies": {
@@ -31,7 +42,14 @@
     "babel-plugin-react-compiler": "1.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
+    "stylelint": "^17.11.1",
+    "stylelint-config-standard": "^40.0.0",
     "tailwindcss": "^4",
     "typescript": "^5"
-  }
+  },
+  "description": "Application web Next.js (App Router) avec une couche BFF via `route.ts`.",
+  "main": "index.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
 }

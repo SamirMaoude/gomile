@@ -12,7 +12,22 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    ".agents/**",
+    ".codex/**",
+    "coverage/**",
+    "node_modules/**",
   ]),
+  {
+    rules: {
+      "react/no-unescaped-entities": "off",
+    },
+  },
+  {
+    files: ["cypress/**/*.ts"],
+    rules: {
+      "@typescript-eslint/no-namespace": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;

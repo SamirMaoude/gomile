@@ -1,0 +1,52 @@
+{
+  "merchantId": "merchant-lidl",
+  "session": {
+    "user": {
+      "id": "merchant-lidl",
+      "email": "claire.martin@example.com",
+      "role": "MERCHANT"
+    }
+  },
+  "profile": {
+    "id": "merchant-lidl",
+    "name": "LIDL Grenoble",
+    "email": "claire.martin@example.com",
+    "phone": "+33612345678",
+    "subscription": "PRO",
+    "createdAt": "2026-05-01T08:00:00.000Z"
+  },
+  "stores": [
+    {
+      "id": "store-lidl-grenoble",
+      "merchantId": "merchant-lidl",
+      "name": "LIDL Grenoble Centre",
+      "description": "Magasin LIDL Grenoble Centre",
+      "isActive": true,
+      "isLocked": false,
+      "address": "25 boulevard Clemenceau, Grenoble",
+      "latitude": 45.184,
+      "longitude": 5.735,
+      "domain": "grenoble.example.test",
+      "provider": "SHOPIFY",
+      "webhookUrl": "https://grenoble.example.test/webhooks/gomile",
+      "createdAt": "2026-05-01T09:00:00.000Z",
+      "updatedAt": "2026-05-02T10:00:00.000Z",
+      "_count": {
+        "orders": 0
+      }
+    }
+  ],
+  "apiKeys": [
+    {
+      "id": "api-key-lidl",
+      "merchantId": "merchant-lidl",
+      "storeId": "store-lidl-grenoble",
+      "name": "Shopify production",
+      "createdAt": "2026-05-03T10:00:00.000Z",
+      "expiresAt": "2027-05-03T10:00:00.000Z",
+      "revokedAt": null
+    }
+  ],
+  "orders": [],
+  "orderDetails": []
+}
