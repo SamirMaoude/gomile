@@ -43,6 +43,26 @@ Ces outils ne sont pas nécessaires pour un marchand final, mais utiles pour con
 - `zip` pour construire une archive installable du plugin ;
 - `wp-cli` pour générer le catalogue de traduction ;
 - `gettext` / `msgfmt` pour compiler les fichiers `.mo`.
+- `composer` pour installer PHPUnit et lancer les tests unitaires du plugin.
+
+## Tests
+
+Depuis le dossier du plugin :
+
+```bash
+cd apps/plugin/woocommerce
+composer install
+composer test
+```
+
+Commandes utiles :
+
+```bash
+composer lint
+composer test:unit
+```
+
+Le bootstrap de tests fournit des stubs WordPress/WooCommerce minimaux. Les tests unitaires peuvent donc valider le mapping des payloads, la signature webhook et les hooks de commande sans démarrer une instance WordPress complète.
 
 ## Installation
 
