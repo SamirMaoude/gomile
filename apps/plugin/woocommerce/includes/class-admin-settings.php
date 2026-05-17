@@ -78,6 +78,14 @@ class Gomile_Shipment_Admin_Settings {
             'auto_create'      => 'yes',
             'webhook_secret'   => '',
             'debug_mode'       => 'yes',
+            'sender_name'      => '',
+            'sender_phone'     => '',
+            'sender_address_street_number' => '',
+            'sender_address_street_name'   => '',
+            'sender_address_postal_code'   => '',
+            'sender_address_city'          => '',
+            'sender_address_country'       => '',
+            'sender_address'   => '',
         );
     }
 
@@ -138,10 +146,6 @@ class Gomile_Shipment_Admin_Settings {
     public static function get_settings() {
         $settings = wp_parse_args((array) get_option(self::OPTION_NAME, array()), self::get_defaults());
         $settings = array_merge($settings, self::get_constant_overrides());
-
-        
-        $settings['api_base_url'] = self::PRODUCTION_API_BASE_URL;
-        
 
         return $settings;
     }
@@ -457,9 +461,12 @@ class Gomile_Shipment_Admin_Settings {
         $defaults = self::get_defaults();
         $sanitized = $defaults;
         $input = is_array($input) ? $input : array();
-
-        $sanitized['api_base_url'] = isset($input['api_base_url']) ? esc_url_raw(trim(wp_unslash($input['api_base_url']))) : '';
         $existing_settings = self::get_settings();
+
+        $submitted_api_base_url = isset($input['api_base_url']) ? trim(wp_unslash($input['api_base_url'])) : '';
+        $sanitized['api_base_url'] = '' !== $submitted_api_base_url
+            ? esc_url_raw($submitted_api_base_url)
+            : (isset($existing_settings['api_base_url']) ? (string) $existing_settings['api_base_url'] : $defaults['api_base_url']);
         $submitted_api_key = isset($input['api_key']) ? trim(wp_unslash($input['api_key'])) : '';
 
         if ('' !== $submitted_api_key) {
