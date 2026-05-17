@@ -1,0 +1,117 @@
+\newpage
+
+\section{Cas d'Usage et Modélisation des Interactions}
+\label{sec:cas_usages}
+
+Cette section détaille les fonctionnalités du système à travers les interactions entre les différents acteurs identifiés. L'objectif est de définir précisément le "qui fait quoi" afin de structurer la logique métier et les permissions d'accès.
+
+\subsection{Définition des Acteurs}
+
+Le système repose sur l'interaction de quatre acteurs principaux :
+
+\begin{itemize}
+    \item \textbf{Commerçant / Enseigne (Donneur d'ordre) :} Entité qui utilise le système (via API ou Interface) pour déléguer la livraison de colis. Il est le point d'origine de la commande.
+    \item \textbf{Livreur (Prestataire) :} Utilisateur mobile indépendant ou salarié chargé de la récupération et du dépôt physique du colis.
+    \item \textbf{Client Final (Destinataire) :} Bien qu'il n'interagisse pas directement avec l'administration du système, il est l'acteur clé de la validation finale (système de handshake).
+    \item \textbf{Administrateur :} Responsable de la maintenance opérationnelle, de la validation des profils (KYC) et de la résolution des litiges.
+\end{itemize}
+
+\subsection{Inventaire des Cas d'Usage}
+
+Les fonctionnalités sont segmentées par acteur pour garantir une séparation claire des responsabilités.
+
+\subsubsection{Pour le Commerçant}
+\begin{itemize}
+    \item \textbf{Gestion du compte :} Inscription, configuration des points de collecte (locaux).
+    \item \textbf{Intégration technique :} Génération et révocation de clés API pour l'automatisation.
+    \item \textbf{Suivi opérationnel :} Consultation du statut des courses en temps réel et accès à l'historique des facturations.
+\end{itemize}
+
+\subsubsection{Pour le Livreur}
+\begin{itemize}
+    \item \textbf{Onboarding :} Création de profil et soumission des documents légaux (KYC).
+    \item \textbf{Gestion d'activité :} Passage en mode "En ligne" pour recevoir des notifications de missions.
+    \item \textbf{Exécution :} Acceptation d'une course, navigation, et validation des étapes par code (Handshake).
+\end{itemize}
+
+\subsubsection{Pour l'Administrateur}
+\begin{itemize}
+    \item \textbf{Modération :} Validation ou rejet des documents des livreurs.
+    \item \textbf{Supervision :} Monitoring des flux et intervention en cas de litige entre un commerçant et un livreur.
+\end{itemize}
+
+\subsection{Diagramme de Séquence : Le "Golden Path"}
+\label{subsec:sequence_golden_path}
+
+Le diagramme suivant illustre le flux nominal (scénario idéal) d'une livraison, depuis le déclenchement par le plugin e-commerce jusqu'à la clôture de la mission. C'est ici que l'on visualise l'importance du double code de validation (Handshake).
+
+
+
+
+
+\begin{figure}[ht!]
+    \centering
+    \begin{tikzpicture}[
+        font=\sffamily\small,
+        >=Stealth,
+        % Style des lignes de vie
+        lifeline/.style={draw, dashed, thick, gray!60},
+        % Style des boîtes d'acteurs
+        actor/.style={draw, thick, fill=blue!10, minimum width=2cm, minimum height=1cm, rounded corners=2pt},
+        % Style des messages
+        msg/.style={->, >=stealth, thick},
+        return/.style={->, >=stealth, dashed, thick},
+        % Style des notes (Handshake)
+        handshake/.style={draw, fill=yellow!20, font=\scriptsize, align=center, inner sep=4pt}
+    ]
+
+    % --- Définition des colonnes (Espacement horizontal intelligent) ---
+    \def\colA{0}    % Commerçant (Plugin)
+    \def\colB{4}    % API / Backend
+    \def\colC{8}    % App Livreur
+    \def\colD{12}   % Client (Final)
+
+    % --- Dessin des Acteurs ---
+    \node[actor] (A) at (\colA, 0) {Commerçant};
+    \node[actor] (B) at (\colB, 0) {Backend API};
+    \node[actor] (C) at (\colC, 0) {Livreur (App)};
+    \node[actor] (D) at (\colD, 0) {Client Final};
+
+    % --- Lignes de vie ---
+    \draw[lifeline] (A) -- ++(0, -11.5);
+    \draw[lifeline] (B) -- ++(0, -11.5);
+    \draw[lifeline] (C) -- ++(0, -11.5);
+    \draw[lifeline] (D) -- ++(0, -11.5);
+
+    % --- Séquence des messages ---
+    
+    % 1. Création commande
+    \draw[msg] ($(A)-(0,1.5)$) -- node[above, align=center] {1. POST /order\\(Création)} ($(B)-(0,1.5)$);
+    
+    % 2. Notification Livreur
+    \draw[msg] ($(B)-(0,2.5)$) -- node[above, align=center] {2. Notification Push\\(Nouvelle course)} ($(C)-(0,2.5)$);
+    
+    % 3. Acceptation
+    \draw[msg] ($(C)-(0,3.5)$) -- node[above] {3. Acceptation mission} ($(B)-(0,3.5)$);
+    \draw[return] ($(B)-(0,4)$) -- node[above] {Confirmation} ($(C)-(0,4)$);
+
+    % --- Bloc Handshake A (Ramassage) ---
+    \node[handshake] at ($(A)!0.5!(C) - (0,5)$ (H1) {Handshake A : Le Commerçant donne le Code A au Livreur};
+    \draw[msg, orange] ($(C)-(0,5.8)$) -- node[above, color=black] {4. Validation Code A} ($(B)-(0,5.8)$);
+    \draw[return] ($(B)-(0,6.3)$) -- node[above] {Statut: En cours de livraison} ($(C)-(0,6.3)$);
+
+    % --- Déplacement ---
+    \draw[->, gray, line width=1.5pt] ($(C)-(0,6.8)$) -- node[right, black] {Trajet vers client} ($(C)-(0,7.8)$);
+
+    % --- Bloc Handshake B (Livraison) ---
+    \node[handshake] at ($(D)!0.5!(C) - (0,8.5)$ (H2) {Handshake B : Le Client donne le Code B au Livreur};
+    \draw[msg, orange] ($(C)-(0,9.3)$) -- node[above, color=black] {5. Validation Code B} ($(B)-(0,9.3)$);
+    
+    % 6. Clôture et Paiement
+    \draw[return, blue] ($(B)-(0,10.3)$) -- node[above, align=center, color=blue] {6. Course Clôturée\\Mise à jour solde} ($(C)-(0,10.3)$);
+    \draw[return] ($(B)-(0,10.8)$) -- node[above, xshift=-1cm] {Notification Succès} ($(A)-(0,10.8)$);
+
+    \end{tikzpicture}
+    \caption{Diagramme de séquence du flux nominal (Golden Path) avec double validation par codes.}
+    \label{fig:seq_golden_path}
+\end{figure}

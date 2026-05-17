@@ -38,6 +38,7 @@
   "private": true,
   "devDependencies": {
     "@eslint/js": "^9.18.0",
+    "@types/react": "~19.1.17",
     "eslint": "^9.18.0",
     "globals": "^16.0.0",
     "typescript": "^5.8.3",

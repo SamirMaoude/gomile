@@ -1,0 +1,62 @@
+@startuml app-mobile-profile-kyc-states
+title Profil + États KYC
+
+state PROFILE_MAIN {
+    state "Avatar + Score + Trips\nNom, Véhicule, GoMile ID" as INFO_DISPLAY
+    state "Widget KYC Status" as KYC_WIDGET
+    
+    [*] --> INFO_DISPLAY
+    INFO_DISPLAY --> KYC_WIDGET
+}
+
+state KYC_NOT_SUBMITTED {
+    note right
+        Badge ORANGE
+        Icône: alerte
+        Message: "Ajoute tes documents"
+        CTA: "Compléter mon KYC"
+    end note
+}
+
+state KYC_PENDING {
+    note right
+        Badge BLEU  
+        Icône: horloge
+        Message: "Vérification en cours"
+        CTA: "Voir mes documents"
+    end note
+}
+
+state KYC_APPROVED {
+    note right
+        Badge VERT
+        Icône: checkmark
+        Message: "Compte vérifié"
+        CTA: "Voir les détails"
+    end note
+}
+
+state KYC_REJECTED {
+    note right
+        Badge ROUGE
+        Icône: X
+        Message: "Documents refusés"
+        CTA: "Corriger mes documents"
+    end note
+}
+
+KYC_WIDGET --> KYC_NOT_SUBMITTED: Status = NOT_SUBMITTED
+KYC_WIDGET --> KYC_PENDING: Status = PENDING
+KYC_WIDGET --> KYC_APPROVED: Status = APPROVED
+KYC_WIDGET --> KYC_REJECTED: Status = REJECTED
+
+KYC_NOT_SUBMITTED --> KYC_PENDING: User uploads docs
+KYC_PENDING --> KYC_APPROVED: Backend validation OK
+KYC_PENDING --> KYC_REJECTED: Backend validation FAIL
+
+KYC_NOT_SUBMITTED : Tap → KYCScreen
+KYC_PENDING : Tap → KYCScreen
+KYC_APPROVED : Tap → KYCScreen
+KYC_REJECTED : Tap → KYCScreen
+
+@enduml

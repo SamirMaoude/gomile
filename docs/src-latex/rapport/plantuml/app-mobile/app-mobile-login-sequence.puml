@@ -1,0 +1,34 @@
+@startuml
+title Séquence technique - Connexion et compte non vérifié
+
+actor Livreur
+participant "App mobile" as App
+participant "API GoMile" as API
+participant "Écran de vérification" as Verify
+
+Livreur -> App : Saisie email/téléphone + mot de passe
+App -> API : POST /auth/login
+API --> App : succès ou erreur
+
+alt Compte vérifié
+  App -> App : navigation.replace(MainApp)
+else EMAIL_NOT_VERIFIED
+  App -> Verify : navigation vers l'écran d'attente
+
+  loop Vérification automatique
+    Verify -> API : GET /auth/email-status
+    API --> Verify : emailVerified = false
+  end
+
+  Livreur -> Verify : Clique le lien reçu par mail
+
+  loop Attente active
+    Verify -> API : GET /auth/email-status
+    API --> Verify : emailVerified = true
+  end
+
+  Verify -> API : PATCH /driver/me/session-vehicle
+  Verify -> App : navigation.replace(MainApp)
+end
+
+@enduml

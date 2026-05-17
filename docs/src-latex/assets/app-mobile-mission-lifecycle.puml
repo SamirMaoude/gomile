@@ -1,0 +1,59 @@
+@startuml app-mobile-mission-lifecycle
+title États du Cycle de Vie d'une Mission
+
+state "DISPONIBLE" as AVAILABLE {
+    [*] --> AVAILABLE
+}
+
+state "ACCEPTÉE" as ACCEPTED {
+    state "EN ROUTE VERS\nCOMMERÇANT" as TO_MERCHANT
+    state "CODE COMMERÇANT\nENTRÉ" as MERCHANT_VERIFIED
+    
+    [*] --> TO_MERCHANT
+    TO_MERCHANT --> MERCHANT_VERIFIED: markMerchantVerified()\n(code validé)
+}
+
+state "COLIS RÉCUPÉRÉ" as PICKED_UP {
+    state "EN ROUTE VERS\nCLIENT" as TO_CLIENT
+    state "CODE CLIENT\nENTRÉ" as CLIENT_VERIFIED
+    
+    [*] --> TO_CLIENT
+    TO_CLIENT --> CLIENT_VERIFIED: verifyClientHandshake()\n(code client validé)
+}
+
+state "LIVRÉE" as DELIVERED {
+    [*] --> DELIVERED
+}
+
+AVAILABLE --> ACCEPTED: acceptMission()
+ACCEPTED --> ACCEPTED: suivi GPS\nensemble des étapes\nmissionStates tracking
+
+MERCHANT_VERIFIED --> PICKED_UP: colis en possession
+PICKED_UP --> PICKED_UP: suivi GPS continu\nsur destination client
+
+CLIENT_VERIFIED --> DELIVERED: clearMission()
+DELIVERED --> [*]: mission archivée
+
+note right of AVAILABLE
+    État initial
+    Affichée sur TableauDeBord & MissionsScreen
+end note
+
+note right of TO_MERCHANT
+    MissionFocusScreen activé
+    Code commerçant affiché
+    missionStates[id].merchantVerified = false
+end note
+
+note right of TO_CLIENT
+    Code client saisi par livreur
+    missionStates[id].clientVerified = false
+end note
+
+note right of CLIENT_VERIFIED
+    Livraison confirmée
+    missionQueue dépilée
+    missionStates[id] nettoyé
+end note
+
+@enduml

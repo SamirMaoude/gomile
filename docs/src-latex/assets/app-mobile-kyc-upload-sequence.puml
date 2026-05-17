@@ -1,0 +1,55 @@
+@startuml app-mobile-kyc-upload-sequence
+title KYC Upload Sequence: Fichier → S3 → Document
+
+participant "Livreur" as UI
+participant "KYCScreen" as KYC
+participant "media-picker" as Picker
+participant "API Backend" as API
+participant "S3 AWS" as S3
+
+UI -> KYC: Tap "Ajouter document" slot IDENTITY
+KYC -> Picker: Ouvre sélecteur (Caméra/Galerie/Fichier)
+Picker -> Picker: Demande permissions (camera, photos)
+UI -> Picker: Choisit fichier
+Picker --> KYC: Retourne URI fichier + contentType
+
+activate KYC
+KYC -> API: presignDocument(filename, contentType)
+API --> KYC: {uploadUrl: "https://s3.../presigned", fileUrl: "https://..."}
+
+KYC --> UI: Indicateur loading "Envoi en cours..."
+KYC -> S3: PUT fichier vers uploadUrl
+S3 --> KYC: 200 OK
+
+KYC -> API: createMyDocument("CNI", fileUrl)
+API --> KYC: {id, type, url, verified: false}
+
+KYC --> UI: Puce document BLEU (En attente d'examen)
+UI -> KYC: Voit tous les docs uploadés
+
+UI -> KYC: Tap "SOUMETTRE MA DEMANDE KYC"
+KYC -> API: submitMyKyc()
+API --> KYC: {message}
+
+KYC --> UI: Statut KYC global = PENDING
+UI --> UI: Badge "Vérification en cours"
+
+deactivate KYC
+
+note right of Picker
+    média-picker gère:
+    - Permissions (iOS + Android)
+    - Sélection depuis galerie
+    - Capture depuis caméra
+    - Retour URI fichier
+end note
+
+note right of S3
+    Upload direct S3:
+    - URL signée (5 min)
+    - Bypass backend
+    - Plus rapide
+    - Sécurisé
+end note
+
+@enduml

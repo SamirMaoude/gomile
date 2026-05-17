@@ -1,0 +1,45 @@
+\newpage
+
+\section{Introduction}
+
+\subsection{Contexte du Projet}
+Dans un paysage économique marqué par la transition numérique accélérée, le commerce de proximité fait face à un défi majeur : la \textbf{logistique du dernier kilomètre}. Si les grandes plateformes e-commerce disposent d'infrastructures massives, les commerçants indépendants (restaurants, fleuristes, boutiques de prêt-à-porter) peinent à proposer une expérience de livraison rapide, fiable et automatisée sans sacrifier leurs marges ou leur indépendance.
+
+Le présent projet vise à combler ce fossé technologique en offrant une solution de gestion de livraison \textit{end-to-end}. Il ne s'agit pas simplement d'une application de mise en relation, mais d'un écosystème complet intégrant la gestion des stocks, le dispatch intelligent et le suivi sécurisé.
+
+\subsection{Problématique}
+Le marché actuel de la livraison est paradoxal : alors que la demande pour le "cliquer-récupérer" et la livraison instantanée n'a jamais été aussi forte, les solutions existantes créent des barrières infranchissables pour les petits acteurs et les nouveaux entrepreneurs du web. Notre analyse identifie trois problèmes majeurs :
+
+\begin{itemize}
+    \item \textbf{La rupture de flux et synchronisation :} Actuellement, un commerçant doit souvent gérer deux interfaces distinctes : son catalogue de vente (WooCommerce) et son interface de livraison (Uber, Stuart, ou services postaux). Cette absence d'interopérabilité force une saisie manuelle des données client, augmentant drastiquement le risque d'erreurs d'adressage et le temps de traitement par commande.
+    
+    \item \textbf{La complexité d'accès pour les nouveaux acteurs :} Les solutions de livraison "à la demande" sont souvent conçues pour de grandes enseignes avec des équipes techniques dédiées. Pour un \textbf{vendeur indépendant ou un influenceur} lançant sa propre boutique, l'intégration d'un service comme Uber Direct est techniquement complexe et contractuellement rigide. Ces acteurs se retrouvent alors contraints d'utiliser des services postaux traditionnels (type La Poste), inadaptés à la livraison locale immédiate et n'offrant pas de suivi dynamique.
+
+    \item \textbf{Les barrières financières et techniques au développement :} Développer un module de livraison personnalisé au sein d'une boutique en ligne représente un coût de développement et de maintenance prohibitif pour une PME. En l'absence d'une solution "Plug-and-Play" abordable, beaucoup renoncent à proposer la livraison, perdant ainsi une part de marché considérable face aux géants du secteur.
+
+    \item \textbf{L'absence de suivi en temps réel pour le client final :} La frustration du client provient souvent de l'opacité du trajet du colis. Le manque d'outils simples permettant de visualiser le livreur sur une carte, sans obliger le client à installer une application mobile supplémentaire, dégrade l'expérience d'achat globale.
+\end{itemize}
+\subsection{Présentation de la Solution}
+Le projet repose sur une architecture modulaire composée de quatre piliers technologiques :
+\begin{enumerate}
+    \item \textbf{Le Plugin (Focus initial : WooCommerce) :} Une extension installée directement sur la boutique du commerçant qui automatise la transmission des commandes à notre infrastructure.
+    \item \textbf{L'Espace Web (SaaS) :} Un tableau de bord centralisé permettant aux enseignes de gérer leurs locaux, de consulter leurs historiques, de gérer leurs abonnements et de soumettre leurs documents de conformité.
+    \item \textbf{L'Application Mobile Livreur :} Un outil de terrain dédié à la réception des missions, à la navigation GPS et à la sécurisation des transactions via un système de double validation par code (Handshake).
+    \item \textbf{L'API Centrale :} Le cerveau du système qui orchestre l'algorithme de dispatching, la gestion de la base de données géographique et la communication inter-modules.
+\end{enumerate}
+
+\subsection{Objectifs et Portée}
+L'objectif final est de fournir une infrastructure scalable. Bien que le lancement se concentre sur l'écosystème WordPress/WooCommerce, la conception de l'API permet une extension rapide vers Shopify ou des systèmes de caisse physiques (POS). Le projet garantit une transparence totale grâce à un système de notation bidirectionnel et une gestion de portefeuille (Wallet) permettant aux livreurs une flexibilité totale dans la perception de leurs revenus.
+
+En résumé, notre solution transforme la livraison locale en un service industriel, sécurisé et accessible, replaçant le commerçant au centre de sa relation client.
+
+
+
+
+
+
+
+
+
+
+

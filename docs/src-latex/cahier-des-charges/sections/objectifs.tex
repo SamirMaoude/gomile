@@ -1,0 +1,80 @@
+\newpage
+
+\section{Objectifs du projet}
+
+L'objectif principal de ce projet est de concevoir une infrastructure technologique robuste capable d'orchestrer en temps réel le flux complexe de la livraison urbaine. Cette section détaille les ambitions stratégiques, fonctionnelles et techniques du système.
+
+\subsection{Objectifs Stratégiques}
+\begin{itemize}
+    \item \textbf{Démocratisation de la logistique premium :} Permettre à des acteurs de petite taille (indépendants, artisans, influenceurs) d'accéder à une puissance logistique équivalente aux géants du secteur via une installation simplifiée ("Plug-and-Play").
+    \item \textbf{Indépendance des commerçants :} Offrir une alternative directe aux places de marché centralisées en permettant aux commerçants de conserver la propriété de leur relation client et de leurs données.
+    \item \textbf{Valorisation du métier de livreur :} Créer un écosystème de travail transparent où la qualité de service est récompensée par un système de notation équitable et une gestion financière autonome (Wallet).
+\end{itemize}
+
+\subsection{Objectifs Fonctionnels}
+\begin{itemize}
+    \item \textbf{Zéro saisie manuelle (Frictionless) :} L'automatisation doit être totale. Dès qu'une commande est validée sur le CMS (WooCommerce), le processus de recherche de livreur doit se déclencher sans intervention humaine.
+    \item \textbf{Sécurisation du transfert de responsabilité :} Garantir l'intégrité de la chaîne de livraison via un protocole de "Double Handshake" (codes OTP générés par l'API) à chaque étape critique (Enlèvement et Remise).
+    \item \textbf{Gestion Multi-Entités :} Permettre à une seule enseigne de piloter dynamiquement plusieurs points de vente physiques, chacun associé à son propre stock et ses propres clés d'identification API.
+    \item \textbf{Traçabilité totale :} Fournir un historique immuable des opérations, incluant le suivi géographique, les délais de traitement et les flux financiers.
+\end{itemize}
+
+\subsection{Objectifs Techniques}
+\begin{itemize}
+    \item \textbf{Performance du Dispatching :} L'algorithme de matching doit être capable de traiter les requêtes de proximité en quelques secondes pour garantir une réactivité optimale.
+    \item \textbf{Haute Disponibilité :} Assurer un taux de disponibilité du service (Uptime) de 99.9\%, le suivi client par SMS étant une fonction critique pour l'image de marque du commerçant.
+    
+    \item \textbf{Conformité et Sécurité :} Automatisation des processus de vérification (KYC/KYB) et respect strict des directives RGPD concernant les données de géolocalisation et les informations personnelles des clients.
+\end{itemize}
+
+% --- VERSION CORRIGÉE DU DIAGRAMME TIKZ ---
+\begin{figure}[htb]
+    \centering
+    \resizebox{\textwidth}{!}{ 
+    \begin{tikzpicture}[
+        node distance = 2cm and 4cm, % Augmentation de la distance horizontale
+        auto,
+        actor/.style = {rectangle, rounded corners=5pt, minimum width=2.8cm, minimum height=1.2cm, align=center, draw=corpoblue, fill=corpoblue!10, blur shadow={shadow blur steps=5}, font=\small\bfseries, text width=2.5cm},
+        system/.style = {circle, minimum size=3.2cm, align=center, draw=corpored, thick, fill=corpored!10, blur shadow, font=\small\bfseries, text width=2.8cm},
+        security/.style = {rectangle, draw=corpoyellow!80!black, fill=corpoyellow!20, rounded corners, font=\scriptsize\bfseries, align=center, minimum height=0.8cm, text width=2.2cm},
+        mainflow/.style = {-{Latex[length=3mm, width=2mm]}, line width=1.5pt, draw=corpoblue},
+        secflow/.style = {{Latex[length=2mm, width=2mm]}-{Latex[length=2mm, width=2mm]}, dashed, draw=corpored, line width=0.8pt},
+        codegen/.style = {-{Latex[length=2mm, width=2mm]}, dotted, draw=gray, line width=0.8pt}
+    ]
+
+        % --- 1. Placement des Nœuds ---
+        \node[actor, fill=corpogreen!10, draw=corpogreen] (shop) {Boutique\\WooCommerce};
+        \node[system, right=of shop] (api) {API Centrale\\\& Algorithme\\de Dispatch};
+        \node[actor, right=of api] (driver) {Livreur\\(App Mobile)};
+        \node[actor, right=of driver, fill=gray!10, draw=gray] (client) {Client Final};
+
+        % --- 2. Flux Principal (Haut) ---
+        \draw[mainflow] (shop) -- node[above=2pt, font=\scriptsize, align=center] {1. Commande\\automatique} (api);
+        \draw[mainflow] (api) -- node[above=2pt, font=\scriptsize, align=center] {2. Notification\\Push } (driver);
+        \draw[mainflow] (driver) -- node[above=2pt, font=\scriptsize, align=center] {3. Livraison\\physique} (client);
+
+        % --- 3. Sécurité / Handshake (Bas) ---
+        % On descend les boîtes de sécurité plus bas pour éviter l'entremêlement
+        \node[security, below=2.5cm of $(shop)!0.5!(api)$] (hs1) {HANDSHAKE 1\\(Enlèvement)};
+        \node[security, below=2.5cm of $(driver)!0.5! (client)$] (hs2) {HANDSHAKE 2\\(Remise)};
+
+        % --- 4. Flux de Sécurité ---
+        % Flèches de génération de code (courbes ajustées)
+        \draw[codegen] (api.south) to[bend left=15] node[left=3pt, font=\tiny, gray, align=center] {Génération\\OTP A} (hs1.east);
+        \draw[codegen] (api.south) to[bend right=15] node[right=3pt, font=\tiny, gray, align=center] {Génération\\OTP B} (hs2.west);
+
+        % Liaisons de vérification (flèches rouges)
+        \draw[secflow] (shop.south) -- (hs1.north) node[midway, left=2pt, font=\tiny, corpored, align=center] {Code A};
+        \draw[secflow] (driver.south) -- ([xshift=-10pt]hs1.north) node[midway, right=10pt, font=\tiny, corpored, align=center] {Vérification};
+        
+        \draw[secflow] (driver.south) -- (hs2.north) node[midway, left=2pt, font=\tiny, corpored, align=center] {Code B};
+        \draw[secflow] (client.south) -- (hs2.north) node[midway, right=2pt, font=\tiny, corpored, align=center] {Vérification};
+
+        % Titre
+        \node[above=0.8cm of api, font=\bfseries, corpoblue] {Architecture du Flux Sécurisé};
+
+    \end{tikzpicture}
+    }
+    \caption{Schéma des objectifs : Automatisation et sécurisation des échanges.}
+    \label{fig:objectifs_flow_v2}
+\end{figure}

@@ -1,0 +1,41 @@
+@startuml app-mobile-wallet-withdrawal-sequence
+title Séquence: Wallet Withdrawal (Solde → Modal → Confirmation)
+
+participant "Livreur" as UI
+participant "WalletScreen" as Wallet
+participant "Modal Retrait" as Modal
+participant "API Backend" as API
+
+UI -> Wallet: Naviguer vers Portefeuille
+activate Wallet
+Wallet -> API: getWallet()
+API --> Wallet: {balance, pendingAmount, currency}
+Wallet -> API: getWalletEntries()
+API --> Wallet: [transactionList]
+Wallet --> UI: Affiche solde + historique
+
+UI -> Wallet: Tap "DEMANDER UN VIREMENT"
+Wallet -> Modal: Ouvre modal
+activate Modal
+Modal --> UI: Affiche champ montant + boutons rapides
+
+UI -> Modal: Tap bouton "50%"
+Modal -> Modal: Calcule (balance * 0.5)
+Modal --> UI: Remplit champ avec montant
+
+UI -> Modal: Tap "CONFIRMER"
+Modal -> Modal: Valide montant (> 0 et <= balance)
+Modal -> API: requestWithdrawal(amount)
+API --> Modal: {message: "Demande envoyée"}
+
+Modal -> Wallet: Ferme modal
+Modal --> UI: Alert "Succès: Virement de XXX€ envoyé"
+
+Wallet -> API: getWallet() refresh
+API --> Wallet: {balance mis à jour}
+Wallet --> UI: Affiche nouveau solde
+
+deactivate Modal
+deactivate Wallet
+
+@enduml

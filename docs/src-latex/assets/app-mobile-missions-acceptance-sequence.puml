@@ -1,0 +1,67 @@
+@startuml app-mobile-missions-acceptance-sequence
+title Séquence: Acceptance Mission → Focus → Vérification Codes
+
+participant "Livreur" as UI
+participant "MissionsScreen" as Missions
+participant "MissionDetailsScreen" as Details
+participant "Zustand Store" as Store
+participant "API Backend" as API
+participant "MissionFocusScreen" as Focus
+
+UI -> Missions: Affichage onglet Missions
+Missions -> API: fetchAllMissions()
+API --> Missions: [available[], active[], history[]]
+Missions -> Store: setState
+Missions --> UI: Affiche 3 onglets + missions
+
+UI -> Missions: Tap "VOIR LES DÉTAILS"
+Missions -> Details: navigate('MissionDetails', {mission})
+
+UI -> Details: Consulte infos mission
+Details -> API: getDrivingRoute()
+API --> Details: {distance, duration}
+Details --> UI: Affiche carte + détails
+
+UI -> Details: Tap "ACCEPTER"
+Details -> API: acceptMission(missionId)
+API --> Details: {message}
+
+Details -> Store: acceptMission(missionCard)
+Store --> Store: missionQueue.push(mission)\nfocusedMissionId = id\nmissionStates[id] = {merchantVerified: false, clientVerified: false}
+
+Details -> Focus: navigate('MissionFocus')
+Focus --> UI: Affiche carte GPS
+
+UI -> Focus: GPS tracking démarre
+activate Focus
+Focus -> API: watchPosition() continu
+API --> Focus: position updates
+Focus -> Focus: recalculate route
+
+UI -> Focus: Arrive commerçant
+Focus -> API: getMissionPickupCode(missionId)
+API --> Focus: {pickupCode}
+Focus --> UI: Affiche code commerçant
+
+UI -> Focus: Tap "VALIDER IDENTIFICATION COMMERÇANT"
+Focus -> Store: markMerchantVerified(missionId)
+Store --> Store: missionStates[id].merchantVerified = true
+Focus --> UI: Déverrouille champ code client
+
+UI -> Focus: Saisit code client (6 chiffres)
+Focus --> UI: Affiche code entré
+
+UI -> Focus: Tap "VALIDER ET TERMINER"
+Focus -> API: verifyClientHandshake(missionId, code)
+API --> Focus: {message} ✓
+
+Focus -> Store: markClientVerified(missionId)
+Store --> Store: missionStates[id].clientVerified = true
+
+Focus -> Store: clearMission(missionId)
+Store --> Store: missionQueue.filter()\nfocusedMissionId = next mission or null
+
+Focus --> UI: Alert "Mission terminée!"
+deactivate Focus
+
+@enduml

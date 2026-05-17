@@ -1,0 +1,64 @@
+@startuml app-mobile-kyc-verification-states
+title KYC Verification States
+
+[*] --> NOT_SUBMITTED_GLOBAL
+
+state NOT_SUBMITTED_GLOBAL {
+    NOT_SUBMITTED_GLOBAL : Aucun document
+    NOT_SUBMITTED_GLOBAL : Badge: Orange
+    NOT_SUBMITTED_GLOBAL : Slots: Tous gris
+}
+
+state PENDING_GLOBAL {
+    PENDING_GLOBAL : Documents uploadés
+    PENDING_GLOBAL : Badge: Bleu
+    PENDING_GLOBAL : Slots: 1+ bleu/vert
+}
+
+state ACCEPTED_GLOBAL {
+    ACCEPTED_GLOBAL : Tous docs OK
+    ACCEPTED_GLOBAL : Badge: Vert
+    ACCEPTED_GLOBAL : Slots: 5/5 vert
+}
+
+state REJECTED_GLOBAL {
+    REJECTED_GLOBAL : Documents refusés
+    REJECTED_GLOBAL : Badge: Rouge
+    REJECTED_GLOBAL : Slots: 1+ rouge
+}
+
+NOT_SUBMITTED_GLOBAL --> PENDING_GLOBAL: submitMyKyc()
+PENDING_GLOBAL --> ACCEPTED_GLOBAL: All verified
+PENDING_GLOBAL --> REJECTED_GLOBAL: Some rejected
+REJECTED_GLOBAL --> PENDING_GLOBAL: Reupload + resubmit
+
+state DOCUMENT_SLOTS {
+    [*] --> NOT_PROVIDED
+    
+    state NOT_PROVIDED {
+        NOT_PROVIDED : Puce GRISE
+        NOT_PROVIDED : Pas de fichier
+    }
+    
+    state AWAITING {
+        AWAITING : Puce BLEUE
+        AWAITING : Uploadé
+    }
+    
+    state VERIFIED {
+        VERIFIED : Puce VERTE
+        VERIFIED : Validé
+    }
+    
+    state REJECTED_DOC {
+        REJECTED_DOC : Puce ROUGE
+        REJECTED_DOC : Refusé
+    }
+    
+    NOT_PROVIDED --> AWAITING: Upload
+    AWAITING --> VERIFIED: Backend OK
+    AWAITING --> REJECTED_DOC: Backend FAIL
+    REJECTED_DOC --> AWAITING: Reupload
+}
+
+@enduml

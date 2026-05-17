@@ -1,0 +1,28 @@
+@startuml
+title Cycle d'inscription, connexion et réinitialisation
+
+hide empty description
+skinparam state {
+  BackgroundColor #F9FBFF
+  BorderColor #1E5AA8
+  ArrowColor #1E5AA8
+}
+
+[ * ] --> LoginScreen
+
+LoginScreen --> RegisterStep1 : devenir livreur
+RegisterStep1 --> RegisterStep2Identity : champs obligatoires valides
+RegisterStep2Identity --> RegisterStep2 : identité complète
+RegisterStep2 --> EmailVerificationPending : compte créé
+EmailVerificationPending --> MainDashboard : email confirmé
+
+LoginScreen --> ResetPasswordRequest : mot de passe oublié
+ResetPasswordRequest --> ResetPasswordEmailSent : email de reset envoyé
+ResetPasswordEmailSent --> LoginScreen : nouveau mot de passe défini
+
+LoginScreen --> MainDashboard : connexion OK
+LoginScreen --> EmailVerificationPending : EMAIL_NOT_VERIFIED
+
+MainDashboard --> LoginScreen : déconnexion
+
+@enduml

@@ -1,0 +1,53 @@
+@startuml app-mobile-dashboard-sequence
+!define AWSPUML https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v14.0/dist
+!include AWSPUML/AWSCommon.puml
+
+title Séquence: Tableau de Bord → Détails Mission → Focus Mission
+
+participant "Livreur\n(UI)" as UI
+participant "TableauDeBord.js" as Dashboard
+participant "Zustand Store\n(useMissionStore)" as Store
+participant "Backend\nAPI" as API
+participant "MissionDetailsScreen" as Details
+participant "MissionFocusScreen" as Focus
+
+UI -> Dashboard: Naviguer vers Tableau de Bord
+activate Dashboard
+Dashboard -> API: getDriverDashboard()
+API --> Dashboard: {isOnline, todayEarnings, todayTrips}
+Dashboard -> API: updateDriverLocation(lat, lng)
+API --> Dashboard: {message}
+Dashboard -> API: getAvailableMissions()
+API --> Dashboard: [missionCard[], ...]
+Dashboard -> Store: useMissionsPoller() fetch
+activate Store
+Store -> API: getAvailableMissions()
+API --> Store: [missions]
+Store --> Store: setState({availableMissions})
+deactivate Store
+Dashboard --> UI: Affiche carte + statistiques + missions
+
+UI -> Dashboard: Tap sur une mission
+Dashboard -> Details: navigate('MissionDetails', {mission})
+activate Details
+Details -> API: getDrivingRoute([currentPos, pickup, dropoff])
+API --> Details: {distance, duration, coordinates}
+Details --> UI: Affiche détails + trajet sur carte
+
+UI -> Details: Tap ACCEPTER
+Details -> API: acceptMission(missionId)
+API --> Details: {message}
+Details -> Store: acceptMission(missionCard)
+activate Store
+Store --> Store: setState({missionQueue, focusedMissionId})
+deactivate Store
+Details -> Focus: navigate('MissionFocus')
+deactivate Details
+activate Focus
+Focus --> UI: Affiche carte GPS interactive + codes
+
+deactivate Dashboard
+deactivate Focus
+deactivate API
+
+@enduml

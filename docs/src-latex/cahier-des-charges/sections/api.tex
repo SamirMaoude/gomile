@@ -1,0 +1,175 @@
+\newpage
+
+
+% N'oublie pas d'ajouter ces lignes dans le préambule de ton main.tex si ce n'est pas déjà fait :
+% \usepackage{tikz}
+% \usetikzlibrary{arrows.meta, positioning, calc, shapes.multipart}
+% \usepackage{tabularx}
+% \usepackage{booktabs}
+
+\section{Architecture Backend \& Conception de l'API}
+\label{sec:architecture_backend}
+
+Le serveur (Backend) centralise la logique métier, assure l'intégrité des transactions (ACID) et orchestre les communications en temps réel. Cette section définit les standards technologiques et architecturaux que l'équipe de développement devra scrupuleusement respecter.
+
+\subsection{Directives Techniques : La Stack Backend}
+
+Pour garantir la cohérence avec le Front-End et assurer une grande maintenabilité, l'écosystème Node.js/TypeScript a été retenu, structuré autour d'un framework d'entreprise.
+
+\subsubsection{Cœur du Serveur et Logique Métier}
+\begin{itemize}
+    \item \textbf{NestJS (Framework Node.js) :} L'API sera développée avec NestJS. Son architecture modulaire (basée sur Angular), son injection de dépendances et son utilisation intensive des décorateurs (\texttt{@Controller}, \texttt{@Injectable}) forcent les développeurs à écrire un code propre (Clean Architecture).
+    \item \textbf{TypeScript (Langage) :} Typage strict obligatoire. Les développeurs devront utiliser des \textit{Data Transfer Objects} (DTO) validés par \texttt{class-validator} pour s'assurer que les payloads (JSON) reçus du Front-End ou des plugins e-commerce sont parfaitement conformes avant tout traitement.
+\end{itemize}
+
+\subsubsection{Persistance et Base de Données}
+\begin{itemize}
+    \item \textbf{PostgreSQL + PostGIS (SGBD) :} Base de données relationnelle principale. L'extension PostGIS est indispensable pour stocker les coordonnées GPS des locaux commerciaux et des livreurs, et permettre des requêtes spatiales efficaces (ex: "Trouver les livreurs dans un rayon de 5km").
+    \item \textbf{Prisma (ORM) :} Utilisé pour interagir avec PostgreSQL. Prisma génère un client typé dynamiquement depuis le schéma de base de données, offrant une auto-complétion parfaite et prévenant les injections SQL.
+\end{itemize}
+
+\subsubsection{Temps Réel, Cache et Tâches de Fond}
+\begin{itemize}
+    \item \textbf{Redis (In-Memory Data Store) :} Utilisé pour trois rôles cruciaux : 
+    \begin{enumerate}
+        \item Stocker la position GPS éphémère des livreurs.
+        \item Gérer le système de file d'attente (Queues) avec la librairie \textbf{BullMQ} pour distribuer les requêtes de livraison (dispatch).
+        \item Gérer le cache des requêtes API fréquentes.
+    \end{enumerate}
+    \item \textbf{Socket.io (WebSockets) :} Intégré via les \textit{Gateways} de NestJS pour émettre les événements bidirectionnels (tracking, notifications de nouvelle course) avec une faible latence.
+\end{itemize}
+
+\subsection{Diagramme d'Architecture et Flux de Données}
+
+Le diagramme ci-dessous illustre comment les différents composants du Backend interagissent pour traiter une requête de création de commande depuis un plugin E-commerce, jusqu'à la notification des livreurs.
+
+
+
+\begin{figure}[ht!]
+    \centering
+    \begin{tikzpicture}[
+        font=\sffamily\footnotesize,
+        >=stealth,
+        box/.style={draw, thick, rounded corners, minimum width=2.8cm, minimum height=1.2cm, align=center},
+        db/.style={draw, thick, cylinder, shape border rotate=90, aspect=0.25, minimum height=1.5cm, minimum width=2cm, align=center, fill=gray!10},
+        arrow/.style={->, thick}
+    ]
+
+    % Disposition orthogonale (en croix autour de l'API)
+    \node[box, fill=orange!10] (client) at (0, 0) {Plugin\\Commerçant};
+    
+    \node[box, fill=blue!10] (api) at (5, 0) {API Gateway\\(NestJS REST)};
+    
+    \node[box, fill=green!10] (auth) at (5, 2.5) {Guard / Auth\\(JWT \& API Key)};
+    \node[db] (postgres) at (5, -3) {PostgreSQL};
+    
+    \node[box, fill=purple!10] (queue) at (10, 0) {Redis Queue\\(Dispatching)};
+    
+    \node[box, fill=yellow!10] (ws) at (14, 0) {WebSocket\\Gateway};
+    \node[box, fill=gray!20] (livreur) at (14, -3) {App Livreur};
+
+    % Flèches (Toutes sont horizontales ou verticales, aucune diagonale)
+    \draw[arrow] (client) -- node[above]{\texttt{POST /order}} (api);
+    
+    \draw[<->, thick, dashed] (api) -- node[right]{Validation} (auth);
+    \draw[arrow] (api) -- node[right]{Transaction} (postgres);
+    
+    \draw[arrow] (api) -- node[above]{Job: Find Driver} (queue);
+    
+    \draw[arrow] (queue) -- node[above]{Event} (ws);
+    
+    \draw[arrow] (ws) -- node[right]{Push Notif} (livreur);
+
+    \end{tikzpicture}
+    \caption{Architecture des composants Backend (Vue orthogonale sans chevauchement).}
+    \label{fig:backend_arch}
+\end{figure}
+
+
+
+
+\subsection{Modélisation de la Base de Données (MCD Simplifié)}
+
+
+
+Le schéma relationnel doit être strict. L'équipe Backend utilisera le concept de transactions ACID pour toute modification impliquant les codes de sécurité ou le solde financier. Voici les entités principales de notre domaine :
+
+
+
+% \begin{figure}[ht!]
+%     \centering
+%     \begin{tikzpicture}[
+%         >=stealth,
+%         class/.style={
+%             draw, thick, fill=white, rounded corners=2pt,
+%             inner sep=0pt % Permet au tableau de toucher les bords
+%         }
+%     ]
+
+%     % 1. Commerçant en haut
+%     \node[class] (commercant) at (0, 5) {
+%         \renewcommand{\arraystretch}{1.2} % Espace un peu les lignes
+%         \begin{tabular}{p{6cm}}
+%         \centering\textbf{Commerçant} \\
+%         \hline
+%         + id : UUID [PK] \\
+%         + nom\_enseigne : String \\
+%         + api\_key\_hash : String \\
+%         + is\_verified : Boolean \\
+%         \end{tabular}
+%     };
+
+%     % 2. Commande au centre
+%     \node[class] (commande) at (0, 0) {
+%         \renewcommand{\arraystretch}{1.2}
+%         \begin{tabular}{p{6cm}}
+%         \centering\textbf{Commande} \\
+%         \hline
+%         + id : UUID [PK] \\
+%         + statut : Enum \\
+%         + code\_A : String (Hash) \\
+%         + code\_B : String (Hash) \\
+%         + prix : Decimal \\
+%         + commercant\_id : UUID [FK] \\
+%         + livreur\_id : UUID [FK] (Nullable) \\
+%         \end{tabular}
+%     };
+
+%     % 3. Livreur en bas
+%     \node[class] (livreur) at (0, -5.5) {
+%         \renewcommand{\arraystretch}{1.2}
+%         \begin{tabular}{p{6cm}}
+%         \centering\textbf{Livreur} \\
+%         \hline
+%         + id : UUID [PK] \\
+%         + kyc\_status : Enum \\
+%         + location\_lat : Float \\
+%         + location\_lng : Float \\
+%         + solde\_wallet : Decimal \\
+%         \end{tabular}
+%     };
+
+%     % Relations (Traits reliant les tables)
+%     \draw[-, thick] (commercant.south) -- 
+%         node[right, near start]{1} 
+%         node[right, near end]{0..N} 
+%         (commande.north);
+        
+%     \draw[-, thick] (livreur.north) -- 
+%         node[right, near start]{1} 
+%         node[right, near end]{0..N} 
+%         (commande.south);
+
+%     \end{tikzpicture}
+%     \caption{Diagramme de classes physique (Version robuste avec tableaux).}
+%     \label{fig:db_schema}
+% \end{figure}
+
+
+
+\subsection{Directives Opérationnelles pour les Développeurs Backend}
+\begin{itemize}
+    \item \textbf{Sécurité des "Handshakes" :} Les codes A (ramassage) et B (livraison) générés par le Backend ne doivent jamais transiter en clair dans les logs.
+    \item \textbf{Gestion des accès concurrents (Race Conditions) :} Lors de l'acceptation d'une course par un livreur, le Backend \underline{doit} utiliser un verrouillage de ligne de base de données (\texttt{SELECT ... FOR UPDATE} via Prisma) ou un mutex Redis pour garantir que deux livreurs ne peuvent pas s'assigner la même commande simultanément.
+    \item \textbf{RBAC (Role-Based Access Control) :} Utiliser les \textit{Guards} de NestJS pour interdire l'accès à certaines routes. Par exemple, seul le rôle \texttt{ADMIN} peut accéder à la route \texttt{PUT /livreurs/:id/kyc-approve}.
+\end{itemize}

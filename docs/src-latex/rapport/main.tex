@@ -1,0 +1,161 @@
+\documentclass[a4paper,12pt]{report}
+
+% Packages pour la gestion des accents
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{hyperref}
+
+\usepackage{tikz}
+\usetikzlibrary{positioning, calc, arrows.meta}
+
+% Couleurs (définition simple pour éviter erreurs)
+\usepackage{xcolor}
+\definecolor{corpoblue}{RGB}{30,90,160}
+\definecolor{corpored}{RGB}{180,40,40}
+\definecolor{corpogreen}{RGB}{40,140,80}
+\definecolor{corpoyellow}{RGB}{220,170,40}
+% ---------------------------------------------
+
+% Package pour figures flottantes avec option [H]
+\usepackage{float}
+
+% Package pour insérer des images et gérer l'arrière-plan
+\usepackage{graphicx}
+\usepackage{background}
+
+% Marges
+\usepackage{geometry}
+\geometry{
+    a4paper,
+    left=2.5cm,
+    right=2.5cm,
+    top=3cm,
+    bottom=3cm,
+}
+
+\usepackage{seqsplit}
+
+% Package pour changer l'espacement entre les lignes
+\usepackage{setspace}
+\onehalfspacing % 1.5x espacement
+
+% Configuration de l'image en arrière-plan
+\backgroundsetup{
+    scale=1, % Échelle de l'image
+    color=black, % Couleur du fond (ici noir, mais peut être ajusté)
+    opacity=0.055, % Opacité (1 = opaque, 0 = transparent)
+    angle=0, % Angle de l'image
+    position=current page.south, % Position de l'image (en bas de page)
+    vshift=15cm, % Ajuste la hauteur
+    hshift=0cm, % Ajuste la largeur
+    contents={\includegraphics[width=\paperwidth]{../assets/logoEnsimag1.png}} % Image à insérer
+}
+
+\begin{document}
+\sloppy
+
+% Réinitialisation de la numérotation des sections à 1
+\setcounter{section}{0}  % Réinitialiser la numérotation des sections à 0
+\renewcommand{\thesection}{\arabic{section}}  % Modifier la numérotation des sections
+
+% Page de garde
+\begin{titlepage}
+\centering
+
+% --- Haut de page ---
+\begin{minipage}{0.48\textwidth}
+    \raggedright
+    \textbf{GRENOBLE-INP ENSIMAG}\\
+    \rule{3cm}{0.3pt}\\
+    INGÉNIERIE DES SYSTÈMES\\
+    D'INFORMATION\\
+    \rule{3cm}{0.3pt}\\
+    2A ISI
+\end{minipage}
+\hfill
+\begin{minipage}{0.48\textwidth}
+    \raggedleft
+    \textbf{GRENOBLE-INP ENSIMAG}\\
+    \rule{3cm}{0.3pt}\\
+    INFORMATION SYSTEMS\\
+    ENGINEERING\\
+    \rule{3cm}{0.3pt}\\
+    2A ISI
+\end{minipage}
+
+\vspace{1.5cm}
+
+% --- Logo ---
+\includegraphics[width=0.25\textwidth]{../assets/logoEnsimag1.png}
+
+\vspace{1.5cm}
+
+% --- Titre principal ---
+{\Large \textbf{ÉCOLE NATIONALE SUPÉRIEURE D’INFORMATIQUE ET DE MATHÉMATIQUES APPLIQUÉES DE GRENOBLE}}\\[1.2cm]
+
+{\huge \textbf{PROJET GoMile}}\\[0.8cm]
+
+\hrule height 0.8pt
+\vspace{0.8cm}
+{\Large \textbf{Rapport}}\\[0.8cm]
+\hrule height 0.8pt
+
+\vfill
+
+% --- Auteurs et encadrant ---
+\begin{minipage}{0.48\textwidth}
+    \raggedright
+    \textbf{Réalisé par :}\\[0.2cm]
+    DUONG DANG KHOA DANG\\
+    DIAKITE ALPHA OUSMANE\\
+    JOUINI YOUSSEF\\
+    MAOUDE SAMIR\\
+    OUDRHIRI IDRISSI SAFWANE
+\end{minipage}
+\hfill
+\begin{minipage}{0.48\textwidth}
+    \raggedleft
+    \textbf{CLIENT :}\\[0.2cm]
+    GoMile Entreprise
+\end{minipage}
+
+\vspace{2cm}
+
+\textbf{2026--2027}
+
+\end{titlepage}
+
+
+\newpage
+
+
+
+% Table des matières
+\tableofcontents
+
+\newpage
+
+% sections du document 
+\input{sections/introduction}
+\input{sections/manuel-user}
+\input{sections/backend}
+\input{sections/front-admin}
+\input{sections/front-commercial}
+\input{sections/app-mobile}
+\input{sections/plugin}
+\input{sections/test-validation}
+
+
+
+
+
+
+
+
+
+
+
+
+
+\end{document}

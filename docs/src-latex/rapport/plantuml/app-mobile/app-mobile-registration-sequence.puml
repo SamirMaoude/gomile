@@ -1,0 +1,32 @@
+@startuml
+title Séquence technique - Inscription et vérification email
+
+actor Livreur
+participant "App mobile" as App
+participant "API GoMile" as API
+participant "Service email" as Mail
+
+Livreur -> App : Saisie des étapes d'inscription
+App -> API : POST /driver/register
+API -> Mail : Envoi du lien de vérification
+Mail --> Livreur : Email de confirmation
+App <-- API : Compte créé / statut en attente
+
+loop Polling de vérification
+  App -> API : GET /auth/email-status
+  API --> App : emailVerified = false
+end
+
+Livreur -> Mail : Clique sur le lien de validation
+Mail -> API : callback de vérification
+
+loop Requête de statut jusqu'à confirmation
+  App -> API : GET /auth/email-status
+  API --> App : emailVerified = true
+end
+
+App -> API : PATCH /driver/me/session-vehicle
+App -> App : resetForm()
+App -> App : navigation.replace(MainApp)
+
+@enduml

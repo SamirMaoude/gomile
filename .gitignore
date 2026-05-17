@@ -38,8 +38,18 @@ Thumbs.db
 
 # Local planning/state files
 local/
+pnpm-lock.yaml
 apps/api/prisma/migrations/migration_lock.toml
+pnpm-lock.yaml
+pnpm-lock.yaml
+package-lock.json
 apps/api/requests.http
-apps/api/gomile-api-dev_accessKeys.csv
-apps/plugin/woocommerce/docs/*
-apps/plugin/woocommerce/gomile-shipment
+
+# pour les fichier latex
+
+*.aux
+*.fdb_latexmk
+*.fls
+*.out
+*.toc
+

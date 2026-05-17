@@ -1,0 +1,49 @@
+@startuml app-mobile-mission-verification-states
+title États de Vérification: MissionFocusScreen
+
+state "MISSION\nINITIÉE" as INITIATED {
+    state "En attente code\ncommerçant" as AWAIT_MERCHANT
+    [*] --> AWAIT_MERCHANT
+}
+
+state "CODE\nCOMMERÇANT\nVÉRIFIÉ" as MERCHANT_OK {
+    state "En attente code\nclient" as AWAIT_CLIENT
+    [*] --> AWAIT_CLIENT
+}
+
+state "CODE\nCLIENT\nVÉRIFIÉ" as CLIENT_OK {
+    state "Mission terminée\narchivée" as COMPLETED
+    [*] --> COMPLETED
+}
+
+INITIATED --> MERCHANT_OK: markMerchantVerified()\nmissionStates[id].merchantVerified = true\nBouton "VALIDER IDENTIFICATION OK"
+MERCHANT_OK --> CLIENT_OK: verifyClientHandshake() success\nmarkClientVerified()\nmissionStates[id].clientVerified = true
+CLIENT_OK --> [*]
+
+note right of AWAIT_MERCHANT
+    getMissionPickupCode() affiche code
+    Livreur attend validation commerçant
+    Bouton: VALIDER IDENTIFICATION COMMERÇANT
+end note
+
+note right of AWAIT_CLIENT
+    Champ saisie code client = ACTIF
+    Clavier 6 chiffres numériques
+    Bouton: VALIDER ET TERMINER
+end note
+
+note right of COMPLETED
+    clearMission(missionId)
+    Dépile de missionQueue
+    Affiche prochaine mission si existe
+    ou message "Aucune mission active"
+end note
+
+note left of INITIATED
+    missionStates[id] = {
+      merchantVerified: false,
+      clientVerified: false
+    }
+end note
+
+@enduml
