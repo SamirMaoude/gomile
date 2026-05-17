@@ -132,7 +132,7 @@ function DocStatusChip({ doc, isUploading }) {
     return (
       <View style={styles.chipRow}>
         <MaterialCommunityIcons name="check-circle" size={13} color="#2E7D32" />
-        <Text style={[styles.chipText, { color: '#2E7D32' }]}>Vérifié ✓</Text>
+        <Text style={[styles.chipText, { color: '#2E7D32' }]}>Vérifié </Text>
       </View>
     );
   }

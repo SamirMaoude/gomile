@@ -17,6 +17,13 @@
 \definecolor{corpoyellow}{RGB}{220,170,40}
 % ---------------------------------------------
 
+% Pour redimensionner proprement des tableaux larges
+\usepackage{adjustbox}
+% Activer les couleurs pour les tableaux (cellcolor, rowcolors)
+\usepackage[table]{xcolor}
+% Permet d'afficher proprement des pages en paysage
+\usepackage{pdflscape}
+
 % Package pour figures flottantes avec option [H]
 \usepackage{float}
 
@@ -36,6 +43,9 @@
 
 \usepackage{seqsplit}
 \usepackage{amssymb}
+
+% Helper to break long literal paths or endpoints inside typewriter font
+\newcommand{\breakpath}[1]{\texttt{#1}}
 
 % Package pour changer l'espacement entre les lignes
 \usepackage{setspace}

@@ -71,16 +71,14 @@ export default function MainTabs() {
         console.warn('[MainTabs] aucun token disponible → socket non initialisé');
         return;
       }
-      console.log('[MainTabs] token trouvé, connexion socket…');
       const socket = connectSocket(tokens.accessToken);
 
       // Nouvelle mission disponible → refresh le store + notif locale
       const handleNewOrder = async (payload) => {
-        console.log('[socket] 📦 order:new reçu:', JSON.stringify(payload));
         if (cancelled) return;
         try {
           const newMissions = await fetchAvailableMissions();
-          console.log('[socket] fetchAvailableMissions →', newMissions?.length, 'nouvelles missions');
+          ('[socket] fetchAvailableMissions →', newMissions?.length, 'nouvelles missions');
           const match = newMissions?.find((m) => m.id === payload.orderId);
           const toNotify = match ?? {
             id: payload.orderId,
@@ -88,9 +86,7 @@ export default function MainTabs() {
             distance: `${payload.distanceKm ?? 0} km`,
             reward: String(payload.reward ?? 0),
           };
-          console.log('[socket] appel notifyNewMissions avec:', JSON.stringify(toNotify));
           await notifyNewMissions([toNotify]);
-          console.log('[socket] notifyNewMissions ✓');
         } catch (err) {
           console.warn('[socket] handleNewOrder failed', err?.message ?? err);
         }
@@ -105,7 +101,7 @@ export default function MainTabs() {
       // Rattrapage après reconnexion : les events émis pendant la coupure sont perdus
       socket.io.on('reconnect', async () => {
         if (cancelled) return;
-        console.log('[socket] reconnecté → rattrapage des missions manquées');
+        ('[socket] reconnecté → rattrapage des missions manquées');
         try {
           const missed = await fetchAvailableMissions();
           if (missed?.length > 0) await notifyNewMissions(missed);
@@ -118,7 +114,6 @@ export default function MainTabs() {
       // Rattrapage quand l'app revient au premier plan (app en fond = socket coupé)
       const appStateSub = AppState.addEventListener('change', async (nextState) => {
         if (cancelled || nextState !== 'active') return;
-        console.log('[AppState] app au premier plan → rattrapage missions');
         try {
           const missed = await fetchAvailableMissions();
           if (missed?.length > 0) await notifyNewMissions(missed);

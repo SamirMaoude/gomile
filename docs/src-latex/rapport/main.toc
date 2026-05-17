@@ -1,85 +1,96 @@
 \babel@toc {french}{}\relax 
 \contentsline {chapter}{\numberline {1} Introduction }{3}{chapter.1}%
-\contentsline {chapter}{\numberline {2} Manuel Utilistaeur }{4}{chapter.2}%
-\contentsline {section}{\numberline {1}Pluggin}{4}{section.2.1}%
-\contentsline {section}{\numberline {2}API}{4}{section.2.2}%
-\contentsline {section}{\numberline {3}Web admin}{4}{section.2.3}%
-\contentsline {section}{\numberline {4}web commercial}{4}{section.2.4}%
-\contentsline {section}{\numberline {5}App livreur}{4}{section.2.5}%
-\contentsline {chapter}{\numberline {3}Documentation de conception}{5}{chapter.3}%
-\contentsline {section}{\numberline {1} Backend et API }{5}{section.3.1}%
-\contentsline {section}{\numberline {2} Interface Web }{5}{section.3.2}%
-\contentsline {subsection}{\numberline {2.1}Partie Administrateur}{5}{subsection.3.2.1}%
-\contentsline {subsection}{\numberline {2.2} Partie Commerciale : }{5}{subsection.3.2.2}%
-\contentsline {section}{\numberline {3}Application Mobile Livreur}{5}{section.3.3}%
-\contentsline {subsection}{\numberline {3.1}Rôle de la partie mobile}{5}{subsection.3.3.1}%
-\contentsline {subsection}{\numberline {3.2}Architecture générale et technologies}{5}{subsection.3.3.2}%
-\contentsline {subsubsection}{Pourquoi Zustand avant de décrire les étapes}{6}{section*.2}%
-\contentsline {subsection}{\numberline {3.3}Parcours d'inscription}{6}{subsection.3.3.3}%
-\contentsline {subsubsection}{Point d'entrée et logique de découpage}{6}{section*.3}%
-\contentsline {subsubsection}{Étape 1: identité de base (\texttt {RegisterStep1})}{7}{section*.4}%
-\contentsline {subsubsection}{Étape 2: identité complémentaire (\texttt {RegisterStep2Identity})}{7}{section*.5}%
-\contentsline {subsubsection}{Étape 3: logistique de livraison (\texttt {RegisterStep2})}{7}{section*.6}%
-\contentsline {subsubsection}{Séquence technique d'inscription}{8}{section*.7}%
-\contentsline {subsection}{\numberline {3.4}Connexion et vérification email}{8}{subsection.3.3.4}%
-\contentsline {subsection}{\numberline {3.5}Réinitialisation du mot de passe}{8}{subsection.3.3.5}%
-\contentsline {subsection}{\numberline {3.6}Diagramme d'état global authentification}{9}{subsection.3.3.6}%
-\contentsline {subsection}{\numberline {3.7}Décisions UX abandonnées ou déplacées}{10}{subsection.3.3.7}%
-\contentsline {subsection}{\numberline {3.8}Navigation et écrans post-connexion}{11}{subsection.3.3.8}%
-\contentsline {subsubsection}{Architecture de navigation principale (MainTabs)}{11}{section*.8}%
-\contentsline {subsubsection}{Header personnalisé avec toggle en ligne/hors ligne}{11}{section*.9}%
-\contentsline {subsubsection}{Écran 1: Tableau de Bord (Dashboard / TableauDeBord.js)}{12}{section*.10}%
-\contentsline {subsubsection}{Purpose et composition}{12}{section*.11}%
-\contentsline {subsubsection}{Logique de localisation et mise à jour}{13}{section*.12}%
-\contentsline {subsubsection}{Intégration des stores et hooks}{13}{section*.13}%
-\contentsline {subsubsection}{Interaction utilisateur}{14}{section*.14}%
-\contentsline {subsection}{\numberline {3.9}Écran enfant: Détails Mission (MissionDetailsScreen)}{14}{subsection.3.3.9}%
-\contentsline {subsubsection}{Purpose et composition}{14}{section*.15}%
-\contentsline {subsubsection}{Logique d'acceptation et refus}{14}{section*.16}%
-\contentsline {subsubsection}{Calcul du trajet et géocodage}{14}{section*.17}%
-\contentsline {subsection}{\numberline {3.10}Diagramme de flux: Navigation Tableau de Bord → Détails Mission → Focus}{16}{subsection.3.3.10}%
-\contentsline {subsection}{\numberline {3.11}Diagramme d'état: Cycle de vie d'une mission acceptée}{17}{subsection.3.3.11}%
-\contentsline {subsection}{\numberline {3.12}Écran 2: Missions (MissionsScreen)}{18}{subsection.3.3.12}%
-\contentsline {subsubsection}{Purpose et organisation par onglets}{18}{section*.18}%
-\contentsline {subsubsection}{Stores et intégration Zustand}{18}{section*.19}%
-\contentsline {subsubsection}{Polling et refresh}{19}{section*.20}%
-\contentsline {subsubsection}{Navigation et actions utilisateur}{19}{section*.21}%
-\contentsline {subsection}{\numberline {3.13}Écran enfant: Focus Mission (MissionFocusScreen)}{19}{subsection.3.3.13}%
-\contentsline {subsubsection}{Purpose: suivi GPS en direct et vérification codes}{19}{section*.22}%
-\contentsline {subsubsection}{Logique de vérification: deux étapes}{20}{section*.23}%
-\contentsline {subsubsection}{Suivi GPS continu}{20}{section*.24}%
-\contentsline {subsubsection}{Sélecteur de missions (si plusieurs en file)}{21}{section*.25}%
-\contentsline {subsubsection}{Endpoints API utilisés}{21}{section*.26}%
-\contentsline {subsection}{\numberline {3.14}Diagramme de flux: Acceptation mission → Focus → Vérification codes}{22}{subsection.3.3.14}%
-\contentsline {subsection}{\numberline {3.15}Diagramme d'état: Transition états mission dans MissionFocusScreen}{23}{subsection.3.3.15}%
-\contentsline {subsection}{\numberline {3.16}Écran 3: Portefeuille (WalletScreen)}{24}{subsection.3.3.16}%
-\contentsline {subsubsection}{Purpose: gestion du solde et retrait}{24}{section*.27}%
-\contentsline {subsubsection}{Modal de retrait}{24}{section*.28}%
-\contentsline {subsubsection}{Endpoints API}{24}{section*.29}%
-\contentsline {subsection}{\numberline {3.17}Écran 4: Profil (ProfileScreen)}{25}{subsection.3.3.17}%
-\contentsline {subsubsection}{Purpose: gestion identité et KYC}{25}{section*.30}%
-\contentsline {subsubsection}{Statut KYC sur ProfileScreen}{25}{section*.31}%
-\contentsline {subsubsection}{Endpoints API}{25}{section*.32}%
-\contentsline {subsection}{\numberline {3.18}Diagramme de flux: Wallet (solde → retrait → confirmation)}{27}{subsection.3.3.18}%
-\contentsline {subsection}{\numberline {3.19}Diagramme d'état: Profil et transitions KYC}{28}{subsection.3.3.19}%
-\contentsline {section}{\numberline {4}Écran enfant: KYC (KYCScreen)}{29}{section.3.4}%
-\contentsline {subsection}{\numberline {4.1}Slots et types de documents}{29}{subsection.3.4.1}%
-\contentsline {subsection}{\numberline {4.2}États de vérification d'un document}{29}{subsection.3.4.2}%
-\contentsline {subsection}{\numberline {4.3}Statut KYC global}{29}{subsection.3.4.3}%
-\contentsline {subsection}{\numberline {4.4}Workflow d'upload de document}{30}{subsection.3.4.4}%
-\contentsline {subsubsection}{Étape 1: Sélection du fichier}{30}{section*.33}%
-\contentsline {subsubsection}{Étape 2: Presignage URL S3}{30}{section*.34}%
-\contentsline {subsubsection}{Étape 3: Upload S3 direct}{30}{section*.35}%
-\contentsline {subsubsection}{Étape 4: Liaison document au slot}{30}{section*.36}%
-\contentsline {subsubsection}{Étape 5: Soumission KYC (optionnel)}{30}{section*.37}%
-\contentsline {subsection}{\numberline {4.5}Suppression document}{31}{subsection.3.4.5}%
-\contentsline {subsection}{\numberline {4.6}Endpoints API pour KYC}{31}{subsection.3.4.6}%
-\contentsline {subsection}{\numberline {4.7}Diagramme de flux: Upload document KYC complet}{32}{subsection.3.4.7}%
-\contentsline {subsection}{\numberline {4.8}Diagramme d'état: KYC global + transitions documents}{34}{subsection.3.4.8}%
-\contentsline {section}{\numberline {5}Services et stores partagés}{35}{section.3.5}%
-\contentsline {subsection}{\numberline {5.1}useMissionStore (Zustand)}{35}{subsection.3.5.1}%
-\contentsline {subsection}{\numberline {5.2}useAvailabilityStore (Zustand)}{35}{subsection.3.5.2}%
-\contentsline {subsection}{\numberline {5.3}useMissionsPoller (Hook personnalisé)}{35}{subsection.3.5.3}%
-\contentsline {subsection}{\numberline {5.4}socketService (WebSocket)}{36}{subsection.3.5.4}%
-\contentsline {subsection}{\numberline {5.5}driver-client.ts (API endpoints)}{36}{subsection.3.5.5}%
-\contentsline {subsection}{\numberline {5.6}Récapitulatif: flux complet d'une session livreur}{37}{subsection.3.5.6}%
+\contentsline {chapter}{\numberline {2}Manuel utilisateur}{4}{chapter.2}%
+\contentsline {section}{\numberline {1}App mobile}{4}{section.2.1}%
+\contentsline {subsection}{\numberline {1.1}But de l'application}{4}{subsection.2.1.1}%
+\contentsline {subsection}{\numberline {1.2}Installation et première ouverture}{4}{subsection.2.1.2}%
+\contentsline {subsection}{\numberline {1.3}Inscription (par étapes)}{6}{subsection.2.1.3}%
+\contentsline {subsection}{\numberline {1.4}Écran principal — Tableau de bord}{6}{subsection.2.1.4}%
+\contentsline {subsection}{\numberline {1.5}Liste des missions}{8}{subsection.2.1.5}%
+\contentsline {subsection}{\numberline {1.6}Focus mission et navigation}{10}{subsection.2.1.6}%
+\contentsline {subsection}{\numberline {1.7}Détail d'une mission}{12}{subsection.2.1.7}%
+\contentsline {subsection}{\numberline {1.8}Portefeuille (Wallet)}{14}{subsection.2.1.8}%
+\contentsline {subsection}{\numberline {1.9}Profil et vérification KYC}{14}{subsection.2.1.9}%
+\contentsline {chapter}{\numberline {3}Documentation de conception}{16}{chapter.3}%
+\contentsline {section}{\numberline {1} Backend et API }{16}{section.3.1}%
+\contentsline {section}{\numberline {2} Interface Web }{16}{section.3.2}%
+\contentsline {subsection}{\numberline {2.1}Partie Administrateur}{16}{subsection.3.2.1}%
+\contentsline {subsection}{\numberline {2.2} Partie Commerciale : }{16}{subsection.3.2.2}%
+\contentsline {section}{\numberline {3}Application Mobile Livreur}{17}{section.3.3}%
+\contentsline {subsection}{\numberline {3.1}Rôle de la partie mobile}{17}{subsection.3.3.1}%
+\contentsline {subsection}{\numberline {3.2}Architecture générale et technologies}{17}{subsection.3.3.2}%
+\contentsline {subsubsection}{Local storage avec Zustand}{17}{section*.2}%
+\contentsline {subsection}{\numberline {3.3}Parcours d'inscription}{18}{subsection.3.3.3}%
+\contentsline {subsubsection}{Point d'entrée et logique de découpage}{18}{section*.3}%
+\contentsline {subsubsection}{Étape 1: identité de base (\texttt {RegisterStep1.js})}{18}{section*.4}%
+\contentsline {subsubsection}{Étape 2: identité complémentaire (\texttt {RegisterStep2Identity.js})}{19}{section*.5}%
+\contentsline {subsubsection}{Étape 3: logistique de livraison (\texttt {RegisterStep2.js})}{19}{section*.6}%
+\contentsline {subsubsection}{Séquence technique d'inscription}{20}{section*.7}%
+\contentsline {subsection}{\numberline {3.4}Connexion et vérification email}{20}{subsection.3.3.4}%
+\contentsline {subsection}{\numberline {3.5}Réinitialisation du mot de passe}{21}{subsection.3.3.5}%
+\contentsline {subsection}{\numberline {3.6}Diagramme d'état global authentification}{22}{subsection.3.3.6}%
+\contentsline {subsection}{\numberline {3.7}Décisions UX abandonnées ou déplacées}{22}{subsection.3.3.7}%
+\contentsline {subsection}{\numberline {3.8}Navigation et écrans post-connexion}{23}{subsection.3.3.8}%
+\contentsline {subsubsection}{Architecture de navigation principale (MainTabs)}{23}{section*.8}%
+\contentsline {subsubsection}{Header personnalisé avec toggle en ligne/hors ligne}{24}{section*.9}%
+\contentsline {subsubsection}{Écran 1: Tableau de Bord (Dashboard / TableauDeBord.js)}{24}{section*.10}%
+\contentsline {subsubsection}{Purpose et composition}{24}{section*.11}%
+\contentsline {subsubsection}{Logique de localisation et mise à jour}{24}{section*.12}%
+\contentsline {subsubsection}{Intégration des stores et hooks}{25}{section*.13}%
+\contentsline {subsubsection}{Interaction utilisateur}{25}{section*.14}%
+\contentsline {subsection}{\numberline {3.9}Écran enfant: Détails Mission (MissionDetailsScreen)}{25}{subsection.3.3.9}%
+\contentsline {subsubsection}{Purpose et composition}{25}{section*.15}%
+\contentsline {subsubsection}{Logique d'acceptation et refus}{26}{section*.16}%
+\contentsline {subsubsection}{Calcul du trajet et géocodage}{26}{section*.17}%
+\contentsline {subsection}{\numberline {3.10}Diagramme de flux: Navigation Tableau de Bord → Détails Mission → Focus}{27}{subsection.3.3.10}%
+\contentsline {subsection}{\numberline {3.11}Diagramme d'état: Cycle de vie d'une mission acceptée}{28}{subsection.3.3.11}%
+\contentsline {subsection}{\numberline {3.12}Écran 2: Missions (MissionsScreen)}{29}{subsection.3.3.12}%
+\contentsline {subsubsection}{Purpose et organisation par onglets}{29}{section*.18}%
+\contentsline {subsubsection}{Stores et intégration Zustand}{29}{section*.19}%
+\contentsline {subsubsection}{Polling et refresh}{30}{section*.20}%
+\contentsline {subsubsection}{Navigation et actions utilisateur}{30}{section*.21}%
+\contentsline {subsection}{\numberline {3.13}Écran enfant: Focus Mission (MissionFocusScreen)}{30}{subsection.3.3.13}%
+\contentsline {subsubsection}{Purpose: suivi GPS en direct et vérification codes}{30}{section*.22}%
+\contentsline {subsubsection}{Logique de vérification: deux étapes}{31}{section*.23}%
+\contentsline {subsubsection}{Suivi GPS continu}{31}{section*.24}%
+\contentsline {subsubsection}{Sélecteur de missions (si plusieurs en file)}{32}{section*.25}%
+\contentsline {subsubsection}{Endpoints API utilisés}{32}{section*.26}%
+\contentsline {subsection}{\numberline {3.14}Diagramme de flux: Acceptation mission → Focus → Vérification codes}{33}{subsection.3.3.14}%
+\contentsline {subsection}{\numberline {3.15}Diagramme d'état: Transition états mission dans MissionFocusScreen}{34}{subsection.3.3.15}%
+\contentsline {subsection}{\numberline {3.16}Écran 3: Portefeuille (WalletScreen)}{35}{subsection.3.3.16}%
+\contentsline {subsubsection}{Purpose: gestion du solde et retrait}{35}{section*.27}%
+\contentsline {subsubsection}{Modal de retrait}{35}{section*.28}%
+\contentsline {subsubsection}{Endpoints API}{35}{section*.29}%
+\contentsline {subsection}{\numberline {3.17}Diagramme de flux: Wallet (solde → retrait → confirmation)}{36}{subsection.3.3.17}%
+\contentsline {subsection}{\numberline {3.18}Écran 4: Profil (ProfileScreen)}{36}{subsection.3.3.18}%
+\contentsline {subsubsection}{Purpose: gestion identité et KYC}{36}{section*.30}%
+\contentsline {subsubsection}{Statut KYC sur ProfileScreen}{37}{section*.31}%
+\contentsline {subsubsection}{Endpoints API}{37}{section*.32}%
+\contentsline {subsection}{\numberline {3.19}Diagramme d'état: Profil et transitions KYC}{38}{subsection.3.3.19}%
+\contentsline {section}{\numberline {4}Écran enfant: KYC (KYCScreen)}{39}{section.3.4}%
+\contentsline {subsection}{\numberline {4.1}Slots et types de documents}{39}{subsection.3.4.1}%
+\contentsline {subsection}{\numberline {4.2}États de vérification d'un document}{39}{subsection.3.4.2}%
+\contentsline {subsection}{\numberline {4.3}Statut KYC global}{39}{subsection.3.4.3}%
+\contentsline {subsection}{\numberline {4.4}Workflow d'upload de document}{40}{subsection.3.4.4}%
+\contentsline {subsubsection}{Étape 1: Sélection du fichier}{40}{section*.33}%
+\contentsline {subsubsection}{Étape 2: Presignage URL S3}{40}{section*.34}%
+\contentsline {subsubsection}{Étape 3: Upload S3 direct}{40}{section*.35}%
+\contentsline {subsubsection}{Étape 4: Liaison document au slot}{40}{section*.36}%
+\contentsline {subsubsection}{Étape 5: Soumission KYC (optionnel)}{41}{section*.37}%
+\contentsline {subsection}{\numberline {4.5}Suppression document}{41}{subsection.3.4.5}%
+\contentsline {subsection}{\numberline {4.6}Endpoints API pour KYC}{41}{subsection.3.4.6}%
+\contentsline {subsection}{\numberline {4.7}Diagramme de flux: Upload document KYC complet}{42}{subsection.3.4.7}%
+\contentsline {subsection}{\numberline {4.8}Diagramme d'état: KYC global + transitions documents}{44}{subsection.3.4.8}%
+\contentsline {section}{\numberline {5}Services et stores partagés}{45}{section.3.5}%
+\contentsline {subsection}{\numberline {5.1}Choix d'architecture pour la persistance des missions}{45}{subsection.3.5.1}%
+\contentsline {subsection}{\numberline {5.2}useMissionStore (Zustand)}{45}{subsection.3.5.2}%
+\contentsline {subsection}{\numberline {5.3}useAvailabilityStore (Zustand)}{46}{subsection.3.5.3}%
+\contentsline {subsection}{\numberline {5.4}useMissionsPoller (Hook personnalisé)}{46}{subsection.3.5.4}%
+\contentsline {subsection}{\numberline {5.5}socketService (WebSocket)}{46}{subsection.3.5.5}%
+\contentsline {subsection}{\numberline {5.6}driver-client.ts (API endpoints)}{47}{subsection.3.5.6}%
+\contentsline {subsection}{\numberline {5.7}Récapitulatif: flux complet d'une session livreur}{47}{subsection.3.5.7}%
+\contentsline {section}{\numberline {6}Tests de l'application mobile}{48}{section.3.6}%
+\contentsline {subsection}{\numberline {6.1}Ce qui est testé}{48}{subsection.3.6.1}%
+\contentsline {subsection}{\numberline {6.2}Ce que montrent les résultats}{49}{subsection.3.6.2}%
+\contentsline {subsection}{\numberline {6.3}Lecture rapide du dossier de tests}{49}{subsection.3.6.3}%
+\contentsline {subsection}{\numberline {6.4}Couverture des tests (coverage)}{49}{subsection.3.6.4}%

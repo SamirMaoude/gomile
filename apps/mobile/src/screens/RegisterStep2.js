@@ -93,7 +93,7 @@ export default function RegisterStep2({ navigation }) {
 
   return (
     <FormLayout title="LOGISTIQUE" progress={60}>
-      <SectionTitle>Logistique (3/4)</SectionTitle>
+      <SectionTitle>Logistique (3/3)</SectionTitle>
 
       <AddressAutocomplete
         label="Adresse de résidence"

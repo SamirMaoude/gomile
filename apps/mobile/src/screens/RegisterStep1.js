@@ -48,7 +48,7 @@ export default function RegisterStep1({ navigation }) {
 
   return (
     <FormLayout title="IDENTITÉ" progress={20}>
-      <SectionTitle>Informations de base (1/5)</SectionTitle>
+      <SectionTitle>Informations de base (1/3)</SectionTitle>
 
       <DocPicker
         label="Photo de profil"

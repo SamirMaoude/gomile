@@ -34,7 +34,7 @@ export default function RegisterStep3({ navigation }) {
 
   return (
     <FormLayout title="DOCUMENTS" progress={80}>
-      <SectionTitle>Justificatifs (4/5)</SectionTitle>
+      <SectionTitle>Justificatifs (4/3)</SectionTitle>
       
       <DocPicker 
         label="Pièce d'identité (CNI ou Titre de séjour)" 

@@ -55,7 +55,7 @@ export default function RegisterStep2Identity({ navigation }) {
 
   return (
     <FormLayout title="IDENTITÉ" progress={40}>
-      <SectionTitle>Complète ton identité (2/5)</SectionTitle>
+      <SectionTitle>Complète ton identité (2/3)</SectionTitle>
 
       <DocPicker
         label="Photo de profil"

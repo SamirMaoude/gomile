@@ -6,7 +6,7 @@ participant "App mobile" as App
 participant "API GoMile" as API
 participant "Écran de vérification" as Verify
 
-Livreur -> App : Saisie email/téléphone + mot de passe
+Livreur -> App : Saisie email + mot de passe
 App -> API : POST /auth/login
 API --> App : succès ou erreur
 

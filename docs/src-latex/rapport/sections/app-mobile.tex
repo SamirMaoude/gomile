@@ -1,3 +1,4 @@
+\newpage
 \section{Application Mobile Livreur}
 
 \subsection{Rôle de la partie mobile}
@@ -7,7 +8,7 @@ L'application mobile constitue l'interface dédiée aux livreurs du projet GoMil
     \item créer un compte et finaliser l'activation,
     \item consulter et accepter des missions,
     \item suivre une livraison avec vérification par code,
-    \item gérer leur profil, leur disponibilité et leurs documents KYC.
+    \item gérer leur profil, leur disponibilité et leurs documents  (aka Know Your Customers).
 \end{itemize}
 
 Cette partie a été développée en React Native avec Expo et Expo Go pour accélérer les itérations et faciliter les démonstrations sur téléphone pendant le projet. Les builds prennant beaucoup de temps, nous les consacrons pour les démos de la soutenance.
@@ -22,7 +23,7 @@ L'application mobile repose sur les briques suivantes:
     \item[Modules externes] \texttt{@react-native-community/datetimepicker} pour la date, composants média pour photo/document, services d'adressage pour fiabiliser les adresses.
 \end{description}
 
-\subsubsection{Pourquoi Zustand avant de décrire les étapes}
+\subsubsection{Local storage avec Zustand}
 
 Le flux d'inscription traverse plusieurs écrans successifs. Les données doivent donc être partagées entre écrans, conservées pendant la navigation, et réutilisées au moment de l'appel API final. Pour cette raison, nous avons retenu \texttt{Zustand} (\texttt{useRegistrationStore}) plutôt qu'un simple objet JavaScript local à un écran. Ce choix apporte:
 \begin{itemize}
@@ -37,7 +38,7 @@ La description détaillée des champs arrive ensuite, pour montrer concrètement
 
 \subsubsection{Point d'entrée et logique de découpage}
 
-Le parcours d'inscription ne démarre pas directement au lancement de l'application. L'utilisateur arrive d'abord sur \texttt{LoginScreen}. Depuis cet écran, l'action \texttt{Devenir livreur} ouvre le circuit d'inscription.
+Depuis l'écran \texttt{LoginScreen}, le bouton \texttt{Devenir livreur} ouvre le circuit d'inscription.
 
 Le parcours a été progressivement retravaillé lors des suivis avec M. Viardot pour améliorer l'UX: simplification des écrans, réduction des frictions, repositionnement des informations administratives, et validation plus claire des champs. Le flux actuel est volontairement découpé en \textbf{trois étapes d'inscription}:
 \begin{itemize}
@@ -48,7 +49,7 @@ Le parcours a été progressivement retravaillé lors des suivis avec M. Viardot
 
 Un ancien écran de finalisation (ancien \texttt{RegisterStep4}) existe encore dans le code, mais il ne fait plus partie du flux UX principal, car les retours d'usage ont montré qu'il vaut mieux finaliser certains éléments après création du compte.
 
-\subsubsection{Étape 1: identité de base (\texttt{RegisterStep1})}
+\subsubsection{Étape 1: identité de base (\texttt{RegisterStep1.js})}
 
 \textbf{Champs demandés et types:}
 \begin{itemize}
@@ -63,18 +64,17 @@ Un ancien écran de finalisation (ancien \texttt{RegisterStep4}) existe encore d
 \textbf{Modules et UX:}
 \begin{itemize}
     \item Le choix de la photo passe par le module \texttt{media-picker}, qui encapsule les permissions système et la sélection de média.
-    \item Le champ email utilise un clavier adapté à la saisie email (présence de \texttt{@}).
-    \item Dans cette version de l'UX d'inscription, le mot de passe n'est pas masqué dans ce parcours afin de limiter les erreurs de saisie constatées pendant les tests utilisateurs.
+    \item Le champ email utilise un clavier adapté à la saisie email (présence du caractère "\texttt{@}" facilitant la saisie).
 \end{itemize}
 
 \textbf{Validation et stockage Zustand:}
 \begin{itemize}
     \item Vérification des champs obligatoires.
     \item Vérification de la cohérence mot de passe / confirmation.
-    \item Stockage des champs dans \texttt{useRegistrationStore}: \texttt{firstName}, \texttt{lastName}, \texttt{email}, \texttt{password}, \texttt{confirmPassword}, \texttt{avatarUrl}.
+    \item Stockage des champs avec le hook personnalisé \texttt{useRegistrationStore}: \texttt{firstName}, \texttt{lastName}, \texttt{email}, \texttt{password}, \texttt{confirmPassword}, \texttt{avatarUrl} sont les nom de contenant Zustand que nous avons utilisé.
 \end{itemize}
 
-\subsubsection{Étape 2: identité complémentaire (\texttt{RegisterStep2Identity})}
+\subsubsection{Étape 2: identité complémentaire (\texttt{RegisterStep2Identity.js})}
 
 \textbf{Champs demandés et types:}
 \begin{itemize}
@@ -93,10 +93,10 @@ Un ancien écran de finalisation (ancien \texttt{RegisterStep4}) existe encore d
 \textbf{Validation et stockage Zustand:}
 \begin{itemize}
     \item Champs obligatoires contrôlés avant passage à l'étape suivante.
-    \item Stockage dans \texttt{useRegistrationStore}: \texttt{phone}, \texttt{birthDate}, \texttt{gender}.
+    \item Stockage dans \texttt{useRegistrationStore} avec \texttt{phone}, \texttt{birthDate}, \texttt{gender} utilisés comme contenants.
 \end{itemize}
 
-\subsubsection{Étape 3: logistique de livraison (\texttt{RegisterStep2})}
+\subsubsection{Étape 3: logistique de livraison (\texttt{RegisterStep2.js})}
 
 \textbf{Champs demandés et types:}
 \begin{itemize}
@@ -108,7 +108,7 @@ Un ancien écran de finalisation (ancien \texttt{RegisterStep4}) existe encore d
 
 \textbf{Modules et UX:}
 \begin{itemize}
-    \item Adresse gérée via un composant d'autocomplétion connecté au backend et à l'API d'adressage gouvernementale pour récupérer des adresses fiables.
+    \item Adresse gérée via un composant d'autocomplétion connecté au backend et à l'API d'adressage gouvernementale "\texttt{https://api-adresse.data.gouv.fr/}" pour récupérer des adresses fiables.
     \item Le rayon impose une saisie numérique uniquement.
     \item Le mode de transport est proposé sous forme de cartes de sélection pour une lecture rapide.
 \end{itemize}
@@ -125,33 +125,35 @@ Un ancien écran de finalisation (ancien \texttt{RegisterStep4}) existe encore d
 
 Le diagramme suivant décrit le chemin complet: saisie des étapes, création du compte, envoi de l'email de vérification, attente active côté mobile, puis redirection automatique après confirmation.
 
+
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=0.95\textwidth]{../assets/app-mobile-registration-sequence.png}
-    \caption{Séquence technique d'inscription avec vérification email}
+    \includegraphics[width=0.8\textwidth]{../assets/app-mobile-registration-sequence.png}
+    \caption{S\'equence technique d'inscription avec v\'erification email}
 \end{figure}
 
 \subsection{Connexion et vérification email}
 
-Après lancement de l'application, l'utilisateur arrive sur \texttt{LoginScreen}. Il saisit son identifiant (email ou téléphone) et son mot de passe.
+Après lancement de l'application, l'utilisateur arrive sur \texttt{LoginScreen}. Il saisit son identifiant (email) et son mot de passe.
 
 \begin{itemize}
     \item Si le compte est valide, l'application ouvre directement l'espace principal.
     \item Si l'email n'est pas vérifié, l'utilisateur est redirigé vers \texttt{EmailVerificationScreen}.
 \end{itemize}
 
-Cet écran de vérification interroge périodiquement le backend. Une fois le mail confirmé via le lien reçu, l'application met à jour la session et redirige automatiquement vers le tableau de bord.
+Cet écran de vérification interroge périodiquement le backend (chaque 2000ms). En effet, nous attendons une amélioration de la part du backend pour utiliser les websockets pour améliorer les performances. Une fois le mail confirmé via le lien reçu, l'application met à jour la session et redirige automatiquement vers le tableau de bord.
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=0.95\textwidth]{../assets/app-mobile-login-sequence.png}
-    \caption{Séquence technique de connexion avec gestion de l'email non vérifié}
+    \includegraphics[width=0.8\textwidth]{../assets/app-mobile-login-sequence.png}
+    \caption{S\'equence technique de connexion avec gestion de l'email non v\'erifi\'e}
 \end{figure}
 
 \subsection{Réinitialisation du mot de passe}
 
-Depuis \texttt{LoginScreen}, l'action \texttt{Mot de passe oublié} ouvre le flux de réinitialisation:
+Depuis \texttt{LoginScreen}, le bouton \texttt{Mot de passe oublié} ouvre le flux de réinitialisation:
 \begin{itemize}
+    \item saisie du mail du livreur
     \item envoi d'une demande de reset,
     \item réception d'un email,
     \item définition d'un nouveau mot de passe,
@@ -159,11 +161,11 @@ Depuis \texttt{LoginScreen}, l'action \texttt{Mot de passe oublié} ouvre le flu
 \end{itemize}
 
 Cette séparation permet de garder un écran de connexion simple tout en offrant un parcours de récupération complet.
-
+\newpage
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=0.95\textwidth]{../assets/app-mobile-reset-password-sequence.png}
-    \caption{Séquence technique de réinitialisation du mot de passe}
+    \includegraphics[width=0.8\textwidth]{../assets/app-mobile-reset-password-sequence.png}
+    \caption{S\'equence technique de r\'einitialisation du mot de passe}
 \end{figure}
 
 \subsection{Diagramme d'état global authentification}
@@ -172,8 +174,8 @@ Le diagramme d'état ci-dessous résume les transitions entre les états princip
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=0.95\textwidth]{../assets/app-mobile-auth-state.png}
-    \caption{Diagramme d'état global du cycle inscription-connexion-reset}
+    \includegraphics[width=0.8\textwidth]{../assets/app-mobile-auth-state.png}
+    \caption{Diagramme d'\'etat global du cycle inscription-connexion-reset}
 \end{figure}
 
 \subsection{Décisions UX abandonnées ou déplacées}
@@ -182,7 +184,7 @@ Les évolutions du parcours ont conduit à déplacer plusieurs éléments hors d
 \begin{itemize}
     \item Les documents KYC ne sont plus demandés pendant les trois étapes d'inscription: ils sont traités après création du compte, depuis le profil.
     \item L'ancien écran de finalisation (ancien \texttt{RegisterStep4}) reste présent dans le code, mais n'est plus intégré au flux UX principal.
-    \item La vérification SMS complète n'est pas activée à ce stade; une vérification de validité du numéro est appliquée, avec arbitrage coût/complexité sur les services externes.
+    \item La verification du numéro de téléphone (OTP) n'est pas faite pour le moment pour des questions de budget car nous utilisons Twilio qui peut vite être couteux au vu de nos tests quotidiens
 \end{itemize}
 
 \newpage
@@ -198,6 +200,7 @@ Une fois connecté, le livreur arrive sur \texttt{MainTabs.js}, qui constitue le
     \item[Push Notifications] configuration des notifications à ce niveau, avec enregistrement du token et liaison WebSocket.
     \item[Suivi GPS] mise à jour de la position du livreur à intervalle régulier pour enrichir les suggestions de missions.
     \item[WebSocket (socket.io)] connexion établie ici pour recevoir les événements en temps réel (nouvelles missions, changements de statut).
+    \item[Action rapide globale] (très utile, et dont nous sommes beaucoup fier!) un bouton flottant de mission apparaît au-dessus des onglets dès qu'il existe au moins une mission active; il renvoie directement vers \texttt{MissionFocusScreen} depuis n'importe quel onglet.
 \end{description}
 
 \subsubsection{Header personnalisé avec toggle en ligne/hors ligne}
@@ -205,13 +208,13 @@ Une fois connecté, le livreur arrive sur \texttt{MainTabs.js}, qui constitue le
 Le header \texttt{Header.js} affiche:
 \begin{itemize}
     \item Le titre de la page courante (ex: <<TABLEAU DE BORD>>, <<MISSIONS>>).
-    \item Un indicateur \texttt{EN LIGNE} / \texttt{HORS LIGNE} avec switch.
+    \item Un indicateur \texttt{EN LIGNE} / \texttt{HORS LIGNE} avec un bouton switch.
     \item Lorsque le livreur bascule \textbf{en ligne}, il devient visible dans les requêtes de mission; \textbf{hors ligne}, aucune mission ne lui est proposée.
-    \item La transition repose sur un appel à \texttt{toggleDriverAvailability()} (endpoint PATCH \texttt{/driver/me/availability}).
+    \item La transition repose sur un appel à \texttt{toggleDriverAvailability()} (endpoint PATCH \path{/driver/me/availability}).
     \item Sécurité: un livreur ne peut pas se mettre hors ligne s'il a une mission active en cours.
 \end{itemize}
 
-\textbf{Magasin partagé:} \texttt{useAvailabilityStore} (simple toggle Zustand) maintient l'état \texttt{isOnline} en mémoire de session.
+\textbf{Magasin d'informations partagées:} \texttt{useAvailabilityStore} (simple toggle Zustand) maintient l'état \texttt{isOnline} en mémoire de session.
 
 \subsubsection{Écran 1: Tableau de Bord (Dashboard / TableauDeBord.js)}
 
@@ -236,13 +239,13 @@ Le Tableau de Bord est l'écran d'accueil principal post-connexion. Il présente
 
 \subsubsection{Logique de localisation et mise à jour}
 
-À l'ouverture du Dashboard:
+À l'ouverture du Dashboard, on :
 \begin{enumerate}
     \item Demande de permission de géolocalisation (\texttt{Location.requestForegroundPermissionsAsync}).
-    \item Récupère la position courante avec précision \texttt{Balanced}.
+    \item Récupère la position courante avec précision \texttt{Balanced} sous condition de statut onLine du livreur.
     \item Appelle immédiatement \texttt{updateDriverLocation(lat, lng)} pour synchroniser la position backend (nécessaire pour la requête géospatiale ST\_DWithin).
     \item Charge le dashboard via \texttt{getDriverDashboard()} pour les statistiques du jour.
-    \item Lance le hook de polling \texttt{useMissionsPoller({ fetchAll: false })} qui va rafraîchir les missions disponibles au focus et à intervalle régulier.
+    \item Lance le hook de polling \texttt{useMissionsPoller({ fetchAll: false })} qui va rafraîchir les missions disponibles au focus une fois qu'il y a de nouvelle mission avec les websockets.
 \end{enumerate}
 
 \subsubsection{Intégration des stores et hooks}
@@ -260,9 +263,9 @@ Le Tableau de Bord est l'écran d'accueil principal post-connexion. Il présente
 
 \textbf{Endpoints API appelés:}
 \begin{itemize}
-    \item \texttt{getDriverDashboard()}: GET \texttt{/driver/me/dashboard} → retourne \texttt{\{isOnline, todayEarnings, todayTrips\}}.
-    \item \texttt{updateDriverLocation(lat, lng)}: PATCH \texttt{/driver/me/location} → envoie la position actuelle.
-    \item \texttt{getAvailableMissions()}: GET \texttt{/driver/me/missions/available} → retourne tableau de missions.
+    \item \texttt{getDriverDashboard()}: GET \breakpath{/driver/me/dashboard} -> retourne \texttt{\{isOnline, todayEarnings, todayTrips\}}.
+    \item \texttt{updateDriverLocation(lat, lng)}: PATCH \breakpath{/driver/me/location} -> envoie la position actuelle.
+    \item \texttt{getAvailableMissions()}: GET \breakpath{/driver/me/missions/available} -> retourne tableau de missions.
 \end{itemize}
 
 \subsubsection{Interaction utilisateur}
@@ -291,7 +294,7 @@ Contenu affiché:
 
 \textbf{Accepter:}
 \begin{enumerate}
-    \item Appel API \texttt{acceptMission(missionId)}: POST \texttt{/driver/me/missions/\{id\}/accept}.
+    \item Appel API \texttt{acceptMission(missionId)}: POST \breakpath{/driver/me/missions/\{id\}/accept}.
     \item Dispatch action Zustand \texttt{acceptMission(missionCard)} qui ajoute la mission à \texttt{missionQueue}.
     \item Navigation vers \texttt{MissionFocusScreen} pour débuter le suivi GPS en direct.
 \end{enumerate}
@@ -327,9 +330,9 @@ Contenu affiché:
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.9\textwidth]{../assets/app-mobile-dashboard-sequence.png}
+    \includegraphics[width=0.85\textwidth]{../assets/app-mobile-dashboard-sequence.png}
     \caption{
-        Séquence technique: le livreur arrive sur le Tableau de Bord, consulte une mission via MissionDetailsScreen, puis l'accepte pour passer en MissionFocusScreen et débuter le suivi GPS. Les stores Zustand maintiennent l'état entre chaque transition.
+        S\'equence technique: le livreur arrive sur le Tableau de Bord, consulte une mission via MissionDetailsScreen, puis l'accepte pour passer en MissionFocusScreen et d\'ebuter le suivi GPS. Les stores Zustand maintiennent l'\'etat entre chaque transition.
     }
     \label{fig:app-mobile-dashboard-sequence}
 \end{figure}
@@ -338,9 +341,9 @@ Contenu affiché:
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.9\textwidth]{../assets/app-mobile-mission-lifecycle.png}
+    \includegraphics[width=0.85\textwidth]{../assets/app-mobile-mission-lifecycle.png}
     \caption{
-        États d'une mission: disponible → acceptée (EN ROUTE vers commerçant) → récupérée (RÉCUPÉRÉ colis, EN ROUTE vers client) → livrée (LIVRÉ). Les codes marchant et client actent le passage entre états.
+        \'Etats d'une mission: disponible $\to$ accept\'ee (EN ROUTE vers commer\c{c}ant) $\to$ r\'ecup\'er\'ee (R\'ECUP\'ER\'E colis, EN ROUTE vers client) $\to$ livr\'ee (LIVR\'E). Les codes marchant et client actent le passage entre \'etats.
     }
     \label{fig:app-mobile-mission-lifecycle}
 \end{figure}
@@ -369,9 +372,9 @@ Comportement selon le statut en ligne:
 
 \textbf{Store \texttt{useMissionStore} - lectures:}
 \begin{itemize}
-    \item \texttt{availableMissions}: missions proposées à proximité (GET \texttt{/driver/me/missions/available}).
-    \item \texttt{activeMissions}: missions en cours acceptées (GET \texttt{/driver/me/missions/active}).
-    \item \texttt{historyMissions}: missions archivées (GET \texttt{/driver/me/missions/history}).
+    \item \texttt{availableMissions}: missions proposées à proximité (GET \breakpath{/driver/me/missions/available}).
+    \item \texttt{activeMissions}: missions en cours acceptées (GET \breakpath{/driver/me/missions/active}).
+    \item \texttt{historyMissions}: missions archivées (GET \breakpath{/driver/me/missions/history}).
     \item \texttt{lastRefreshAt}: timestamp du dernier fetch.
     \item \texttt{isLoadingMissions}: indicateur de chargement.
 \end{itemize}
@@ -403,9 +406,9 @@ Le hook \texttt{useMissionsPoller({ fetchAll: true })} gère:
 \subsubsection{Navigation et actions utilisateur}
 
 \begin{itemize}
-    \item \textbf{Tap <<VOIR LES DÉTAILS>>}: ouvre MissionDetailsScreen pour consultation et décision.
-    \item \textbf{Tap <<REPRENDRE LA MISSION>>}: appelle \texttt{acceptMission()}, navigue immédiatement vers MissionFocusScreen.
-    \item \textbf{Tap <<RAFRAÎCHIR>>}: appelle \texttt{refresh()} du hook de polling.
+    \item \textbf{Si on clique sur <<VOIR LES DÉTAILS>>}: ça ouvre MissionDetailsScreen pour consultation et décision.
+    \item \textbf{Clique sur <<REPRENDRE LA MISSION>>}: on appelle \texttt{acceptMission()}, navigue immédiatement vers MissionFocusScreen.
+    \item \textbf{Clique <<RAFRAÎCHIR>>}: on appelle \texttt{refresh()} du hook de polling.
 \end{itemize}
 
 \subsection{Écran enfant: Focus Mission (MissionFocusScreen)}
@@ -418,7 +421,7 @@ Cet écran est le cœur de la livraison. Il affiche:
     \begin{itemize}
         \item Marqueur bleu: position actuelle du livreur (mise à jour en temps réel).
         \item Marqueurs rouges: toutes les missions en cours (pick-up en rouge, livraison en rose).
-        \item Polyline: trajet calculé vers la cible courante.
+        \item Polyline: trajet calculé vers la cible courante (malheureusement react-native-maps a des performances limitées au vu des tests réalisés et en comparaison de l'appli googleMaps)
     \end{itemize}
     \item \textbf{Panneau bas} (collapsible) contenant:
     \begin{itemize}
@@ -446,9 +449,9 @@ Cet écran est le cœur de la livraison. Il affiche:
 \begin{enumerate}
     \item Livreur arrive au point de livraison.
     \item Champ de saisie code client devient actif (6 chiffres).
-    \item Client fournit le code (via SMS ou interface app).
+    \item Client fournit le code (qu'il a reçut via SMS).
     \item Livreur saisit le code.
-    \item Appel API \texttt{verifyClientHandshake(missionId, code)}: POST \texttt{/driver/me/missions/\{id\}/handshake/client/verify}.
+    \item Appel API \texttt{verifyClientHandshake(missionId, code)}: POST \path{/driver/me/missions/\{id\}/handshake/client/verify}.
     \item Si succès: action \texttt{markClientVerified(missionId)}.
     \item Alerte: <<Mission terminée, Livraison confirmée!>>.
     \item Action \texttt{clearMission(missionId)}: dépile de \texttt{missionQueue}, met à jour \texttt{focusedMissionId}.
@@ -475,15 +478,15 @@ Si \texttt{missionQueue.length > 1}:
 \begin{itemize}
     \item Affiche composant \texttt{MissionPicker} permettant de basculer entre missions.
     \item À chaque sélection, \texttt{setFocusedMission(id)} met à jour \texttt{focusedMissionId}.
-    \item La carte et le panneau se réajustent instantanément.
+    \item La carte et le panneau se réajustent instantanément ! (magie de useEffect())
     \item Affichage du statut de chaque mission: EN ROUTE, RÉCUPÉRÉ, LIVRÉ.
 \end{itemize}
 
 \subsubsection{Endpoints API utilisés}
 
 \begin{itemize}
-    \item \texttt{getMissionPickupCode(missionId)}: GET \texttt{/driver/me/missions/\{id\}/handshake/pickup-code} → code commerçant.
-    \item \texttt{verifyClientHandshake(missionId, code)}: POST \texttt{/driver/me/missions/\{id\}/handshake/client/verify} → validation livraison.
+    \item \texttt{getMissionPickupCode(missionId)}: GET \breakpath{/driver/me/missions/\{id\}/handshake/pickup-code} → code commerçant.
+    \item \texttt{verifyClientHandshake(missionId, code)}: POST \breakpath{/driver/me/missions/\{id\}/handshake/client/verify} → validation livraison.
     \item \texttt{getDrivingRoute([coords])}: calcul route.
 \end{itemize}
 
@@ -492,9 +495,9 @@ Si \texttt{missionQueue.length > 1}:
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.95\textwidth]{../assets/app-mobile-missions-acceptance-sequence.png}
+    \includegraphics[width=0.85\textwidth]{../assets/app-mobile-missions-acceptance-sequence.png}
     \caption{
-        Séquence technique: depuis MissionsScreen, le livreur accepte une mission via MissionDetailsScreen. La mission s'ajoute à la file (missionQueue). MissionFocusScreen s'affiche avec suivi GPS. Codes commerçant et client sont vérifiés séquentiellement, puis la mission est archivée.
+        S\'equence technique: depuis MissionsScreen, le livreur accepte une mission via MissionDetailsScreen. La mission s'ajoute \`a la file (missionQueue). MissionFocusScreen s'affiche avec suivi GPS. Codes commer\c{c}ant et client sont v\'erifi\'es s\'equentiellement, puis la mission est archiv\'ee.
     }
     \label{fig:app-mobile-missions-acceptance-sequence}
 \end{figure}
@@ -503,9 +506,9 @@ Si \texttt{missionQueue.length > 1}:
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.9\textwidth]{../assets/app-mobile-mission-verification-states.png}
+    \includegraphics[width=0.8\textwidth]{../assets/app-mobile-mission-verification-states.png}
     \caption{
-        États de vérification dans MissionFocusScreen: INITIÉE → COMMERÇANT VÉRIFIÉ (merchantVerified=true) → CLIENT VÉRIFIÉ (clientVerified=true) → TERMINÉE. À chaque étape, le panneau se met à jour pour afficher le code suivant ou le message de fin.
+        \'Etats de v\'erification dans MissionFocusScreen: INITI\'EE $\to$ COMMER\c{c}ANT V\'ERIFI\'E (merchantVerified=true) $\to$ CLIENT V\'ERIFI\'E (clientVerified=true) $\to$ TERMIN\'EE. \`A chaque \'etape, le panneau se met \`a jour pour afficher le code suivant ou le message de fin.
     }
     \label{fig:app-mobile-mission-verification-states}
 \end{figure}
@@ -521,7 +524,7 @@ Le Portefeuille affiche les gains du livreur et permet les demandes de virement.
     \item \textbf{Carte solde principal}: affiche le solde disponible et le montant en attente de paiement.
     \item \textbf{Historique des transactions}: liste des crédits et débits avec dates, montants, statuts.
     \item \textbf{Bouton <<Demander un virement>>}: ouvre modal de retrait.
-    \item \textbf{Modal de retrait}: saisie montant, boutons rapides (25%, 50%, 75%, 100%), validation.
+    \item \textbf{Modal de retrait}: saisie montant ou boutons rapides 
 \end{itemize}
 
 \subsubsection{Modal de retrait}
@@ -540,17 +543,28 @@ Le Portefeuille affiche les gains du livreur et permet les demandes de virement.
         \item Montant doit être > 0.
         \item Montant doit être $\leq$ solde disponible.
     \end{itemize}
-    \item Appel API \texttt{requestWithdrawal(amount)}: POST \texttt{/driver/me/wallet/withdrawals}.
+    \item Appel API \texttt{requestWithdrawal(amount)}: POST \breakpath{/driver/me/wallet/withdrawals}.
     \item Sur succès: alerte confirmation + rechargement du solde.
 \end{enumerate}
 
 \subsubsection{Endpoints API}
 
 \begin{itemize}
-    \item \texttt{getWallet()}: GET \texttt{/driver/me/wallet} → \texttt{\{balance, pendingAmount, currency\}}.
-    \item \texttt{getWalletEntries()}: GET \texttt{/driver/me/wallet/entries} → historique transactions.
-    \item \texttt{requestWithdrawal(amount)}: POST \texttt{/driver/me/wallet/withdrawals} → demande virement.
+    \item \texttt{getWallet()}: GET \breakpath{/driver/me/wallet} → \texttt{\{balance, pendingAmount, currency\}}.
+    \item \texttt{getWalletEntries()}: GET \breakpath{/driver/me/wallet/entries} → historique transactions.
+    \item \texttt{requestWithdrawal(amount)}: POST \breakpath{/driver/me/wallet/withdrawals} → demande virement.
 \end{itemize}
+
+\subsection{Diagramme de flux: Wallet (solde → retrait → confirmation)}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../assets/app-mobile-wallet-withdrawal-sequence.png}
+    \caption{
+        Séquence: livreur consulte solde, ouvre modal retrait, calcule montant (rapide ou saisie), valide. API confirme, solde est mis à jour.
+    }
+    \label{fig:app-mobile-wallet-withdrawal-sequence}
+\end{figure}
 
 \subsection{Écran 4: Profil (ProfileScreen)}
 
@@ -561,7 +575,7 @@ Le Profil réunit les informations personnelles du livreur et l'accès au parcou
 \begin{itemize}
     \item \textbf{Carte identité principale}:
     \begin{itemize}
-        \item Avatar circulaire (stocké sur S3 ou placeholder).
+        \item Avatar circulaire (stocké sur Amazon AWS S3).
         \item Nom et prénom.
         \item Note moyenne (rating) et nombre total de courses.
         \item Véhicule actuel (BIKE, SCOOTER, etc.).
@@ -590,30 +604,21 @@ Tap sur le widget: redirection vers KYCScreen avec le statut courant.
 \subsubsection{Endpoints API}
 
 \begin{itemize}
-    \item \texttt{getDriverProfile()}: GET \texttt{/driver/me/profile} → infos perso.
-    \item \texttt{updateSessionVehicle(vehicleType)}: PATCH \texttt{/driver/me/session-vehicle}.
-    \item \texttt{getMyKycStatus()}: GET \texttt{/driver/me/kyc} → statut KYC.
-    \item \texttt{getMyReferral()}: GET \texttt{/driver/me/referral} → code parrainage.
+    \item \texttt{getDriverProfile()}: GET \breakpath{/driver/me/profile} → infos perso.
+    \item \texttt{updateSessionVehicle(vehicleType)}: PATCH \breakpath{/driver/me/session-vehicle}.
+    \item \texttt{getMyKycStatus()}: GET \breakpath{/driver/me/kyc} → statut KYC.
+    \item \texttt{getMyReferral()}: GET \breakpath{/driver/me/referral} → code parrainage.
     \item \texttt{logout()}: clear tokens (local storage).
 \end{itemize}
 
 \newpage
-\subsection{Diagramme de flux: Wallet (solde → retrait → confirmation)}
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\textwidth]{../assets/app-mobile-wallet-withdrawal-sequence.png}
-    \caption{
-        Séquence: livreur consulte solde, ouvre modal retrait, calcule montant (rapide ou saisie), valide. API confirme, solde est mis à jour.
-    }
-    \label{fig:app-mobile-wallet-withdrawal-sequence}
-\end{figure}
 
 \subsection{Diagramme d'état: Profil et transitions KYC}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.85\textwidth]{../assets/app-mobile-profile-kyc-states.png}
+    \includegraphics[width=0.8\textwidth]{../assets/app-mobile-profile-kyc-states.png}
     \caption{
         État du profil: affichage des infos de base. Widget KYC avec 4 états colorés (NOT\_SUBMITTED → PENDING → APPROVED ou REJECTED). Tap sur widget navigue vers KYCScreen.
     }
@@ -627,7 +632,7 @@ KYCScreen est l'écran dédié à la vérification d'identité et à la gestion 
 
 \subsection{Slots et types de documents}
 
-GoMile demande 5 emplacements (slots) de documents:
+GoMile demande 5 emplacements (slots) de documents (Cette partie est succeptible de beaucoup changer car nous avons pas fini de discuter sur la notion de KYC avec les collègues):
 
 \begin{description}
     \item[\textbf{IDENTITY}] accepte <<\textbf{Carte nationale d'identité}>> (CNI) OU <<\textbf{Passeport}>>. Un seul des deux suffit.
@@ -675,7 +680,7 @@ Le statut global du compte KYC a aussi quatre états:
 \subsubsection{Étape 2: Presignage URL S3}
 
 \begin{enumerate}
-    \item Appel API \texttt{presignDocument(filename, contentType)}: POST \texttt{/driver/me/documents/presign}.
+    \item Appel API \texttt{presignDocument(filename, contentType)}: POST \path{/driver/me/documents/presign}.
     \item Backend retourne: \texttt{\{uploadUrl, fileUrl\}}.
     \item \texttt{uploadUrl} est une URL S3 signée (temporaire, ~5 min).
     \item \texttt{fileUrl} est l'URL finale du fichier stocké.
@@ -693,7 +698,7 @@ Le statut global du compte KYC a aussi quatre états:
 \subsubsection{Étape 4: Liaison document au slot}
 
 \begin{enumerate}
-    \item Appel API \texttt{createMyDocument(type, fileUrl)}: POST \texttt{/driver/me/documents}.
+    \item Appel API \texttt{createMyDocument(type, fileUrl)}: POST \path{/driver/me/documents}.
     \item Backend enregistre le document lié au slot.
     \item État du document: \texttt{\{id, type, url, verified: false, rejectionReason: null, createdAt\}}.
 \end{enumerate}
@@ -702,34 +707,33 @@ Le statut global du compte KYC a aussi quatre états:
 
 \begin{enumerate}
     \item Livreur voit tous les documents uploadés.
-    \item Bouton <<SOUMETTRE MA DEMANDE KYC>>: appel API \texttt{submitMyKyc()}: POST \texttt{/driver/me/kyc}.
+    \item Bouton <<SOUMETTRE MA DEMANDE KYC>>: appel API \texttt{submitMyKyc()}: POST \path{/driver/me/kyc}.
     \item Statut passe à PENDING; backend commence vérification.
 \end{enumerate}
 
 \subsection{Suppression document}
 
-Livreur peut supprimer un document via bouton \texttt{deleteDocument(documentId)}: DELETE \texttt{/driver/me/documents/\{id\}}.
+Livreur peut supprimer un document via bouton \texttt{deleteDocument(documentId)}: DELETE \path{/driver/me/documents/\{id\}}.
 
 La puce revient à <<Non fourni>>.
 
 \subsection{Endpoints API pour KYC}
 
 \begin{itemize}
-    \item \texttt{getMyKycStatus()}: GET \texttt{/driver/me/kyc} → \texttt{\{status: 'NOT\_SUBMITTED'|'PENDING'|'ACCEPTED'|'REJECTED', latestSubmission\}}.
-    \item \texttt{getMyDocuments()}: GET \texttt{/driver/me/documents} → liste des documents uploadés.
-    \item \texttt{presignDocument(filename, contentType)}: POST \texttt{/driver/me/documents/presign} → \texttt{\{uploadUrl, fileUrl\}}.
+    \item \texttt{getMyKycStatus()}: GET \path{/driver/me/kyc} → \texttt{\{status: 'NOT\_SUBMITTED'|'PENDING'|'ACCEPTED'|'REJECTED', latestSubmission\}}.
+    \item \texttt{getMyDocuments()}: GET \path{/driver/me/documents} → liste des documents uploadés.
+    \item \texttt{presignDocument(filename, contentType)}: POST \path{/driver/me/documents/presign} → \texttt{\{uploadUrl, fileUrl\}}.
     \item \texttt{uploadFileToPresignedUrl(uploadUrl, file, contentType)}: PUT vers S3 (hors API GoMile).
-    \item \texttt{createMyDocument(type, fileUrl)}: POST \texttt{/driver/me/documents} → enregistre document.
-    \item \texttt{deleteDocument(documentId)}: DELETE \texttt{/driver/me/documents/\{id\}}.
-    \item \texttt{submitMyKyc()}: POST \texttt{/driver/me/kyc} → soumet au backend pour vérification.
+    \item \texttt{createMyDocument(type, fileUrl)}: POST \path{/driver/me/documents} → enregistre document.
+    \item \texttt{deleteDocument(documentId)}: DELETE \path{/driver/me/documents/\{id\}}.
+    \item \texttt{submitMyKyc()}: POST \path{/driver/me/kyc} → soumet au backend pour vérification.
 \end{itemize}
 
-\newpage
 \subsection{Diagramme de flux: Upload document KYC complet}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.95\textwidth]{../assets/app-mobile-kyc-upload-sequence.png}
+    \includegraphics[width=0.85\textwidth]{../assets/app-mobile-kyc-upload-sequence.png}
     \caption{
         Séquence technique: livreur sélectionne fichier → presignage URL S3 → upload direct S3 → création document backend. État passe à <<En attente d'examen>>. Soumission optionnelle vérrouille les modifications.
     }
@@ -740,15 +744,22 @@ La puce revient à <<Non fourni>>.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.9\textwidth]{../assets/app-mobile-kyc-verification-states.png}
+    \includegraphics[width=0.8\textwidth]{../assets/app-mobile-kyc-verification-states.png}
     \caption{
         États: NOT\_SUBMITTED → PENDING (documents uploadés) → ACCEPTED (tous vérifiés) ou REJECTED (révision nécessaire). Chaque slot a ses propres états (Non fourni, En attente, Vérifié, Refusé). Livreur peut reupload et resubmit.
     }
     \label{fig:app-mobile-kyc-verification-states}
 \end{figure}
 
-\newpage
 \section{Services et stores partagés}
+
+\subsection{Choix d'architecture pour la persistance des missions}
+
+Au début du projet, l'état des stores Zustand était partiellement sauvegardé localement dans un fichier JSON sur le téléphone. L'idée était simple: si l'application était relancée, on relisait cette sauvegarde locale pour reconstruire l'état de navigation et de mission. Cette approche pouvait sembler pratique pour un prototype, mais elle introduisait un risque important: si le téléphone du livreur s'éteignait, redémarrait, ou perdait son stockage temporaire pendant une livraison, l'application pouvait restaurer une mission qui n'existait plus réellement côté serveur. On se retrouvait alors avec une \emph{mission fantôme}: l'interface affichait une livraison en cours alors que le backend ne pouvait plus garantir la cohérence de cet état.
+
+Après concertation avec l'équipe, nous avons donc décidé de déplacer la source de vérité vers le backend. Désormais, les stores Zustand restent utiles pour l'interface et la synchronisation en mémoire de session, mais l'état métier critique est reconstruit à partir des API serveur au démarrage et lors des rafraîchissements. Ce choix rend l'application plus robuste face aux pertes de contexte, supprime les divergences entre téléphone et serveur, et garantit qu'une mission en cours reste traçable même si le mobile se coupe brutalement ou devient indisponible.
+
+En pratique, cela signifie que: 1) le téléphone n'est plus responsable de conserver durablement l'état d'une mission; 2) le backend garde l'historique, les statuts et les vérifications; 3) au relancement, l'application interroge le serveur pour reconstruire un état fiable au lieu de faire confiance à une sauvegarde locale possiblement obsolète.
 
 \subsection{useMissionStore (Zustand)}
 
@@ -824,26 +835,26 @@ Socket reste actif pendant toute la durée de session (MainTabs et enfants).
 Tous les appels API sont centralisés ici. Endpoints post-connexion:
 
 \begin{itemize}
-    \item \texttt{getDriverDashboard()}: GET \texttt{/driver/me/dashboard}.
-    \item \texttt{toggleDriverAvailability()}: PATCH \texttt{/driver/me/availability}.
-    \item \texttt{updateDriverLocation(lat, lng)}: PATCH \texttt{/driver/me/location}.
-    \item \texttt{getAvailableMissions()}: GET \texttt{/driver/me/missions/available}.
-    \item \texttt{acceptMission(id)}: POST \texttt{/driver/me/missions/\{id\}/accept}.
-    \item \texttt{getActiveMissions()}: GET \texttt{/driver/me/missions/active}.
-    \item \texttt{getMissionHistory()}: GET \texttt{/driver/me/missions/history}.
-    \item \texttt{getMissionPickupCode(id)}: GET \texttt{/driver/me/missions/\{id\}/handshake/pickup-code}.
-    \item \texttt{verifyClientHandshake(id, code)}: POST \texttt{/driver/me/missions/\{id\}/handshake/client/verify}.
-    \item \texttt{getWallet()}: GET \texttt{/driver/me/wallet}.
-    \item \texttt{getWalletEntries()}: GET \texttt{/driver/me/wallet/entries}.
-    \item \texttt{requestWithdrawal(amount)}: POST \texttt{/driver/me/wallet/withdrawals}.
-    \item \texttt{getDriverProfile()}: GET \texttt{/driver/me/profile}.
-    \item \texttt{updateSessionVehicle(vehicleType)}: PATCH \texttt{/driver/me/session-vehicle}.
-    \item \texttt{getMyKycStatus()}: GET \texttt{/driver/me/kyc}.
-    \item \texttt{getMyDocuments()}: GET \texttt{/driver/me/documents}.
-    \item \texttt{presignDocument(filename, contentType)}: POST \texttt{/driver/me/documents/presign}.
-    \item \texttt{createMyDocument(type, fileUrl)}: POST \texttt{/driver/me/documents}.
-    \item \texttt{deleteDocument(id)}: DELETE \texttt{/driver/me/documents/\{id\}}.
-    \item \texttt{submitMyKyc()}: POST \texttt{/driver/me/kyc}.
+    \item \texttt{getDriverDashboard()}: GET \path{/driver/me/dashboard}.
+    \item \texttt{toggleDriverAvailability()}: PATCH \path{/driver/me/availability}.
+    \item \texttt{updateDriverLocation(lat, lng)}: PATCH \path{/driver/me/location}.
+    \item \texttt{getAvailableMissions()}: GET \path{/driver/me/missions/available}.
+    \item \texttt{acceptMission(id)}: POST \path{/driver/me/missions/\{id\}/accept}.
+    \item \texttt{getActiveMissions()}: GET \path{/driver/me/missions/active}.
+    \item \texttt{getMissionHistory()}: GET \path{/driver/me/missions/history}.
+    \item \texttt{getMissionPickupCode(id)}: GET \path{/driver/me/missions/\{id\}/handshake/pickup-code}.
+    \item \texttt{verifyClientHandshake(id, code)}: POST \path{/driver/me/missions/\{id\}/handshake/client/verify}.
+    \item \texttt{getWallet()}: GET \path{/driver/me/wallet}.
+    \item \texttt{getWalletEntries()}: GET \path{/driver/me/wallet/entries}.
+    \item \texttt{requestWithdrawal(amount)}: POST \path{/driver/me/wallet/withdrawals}.
+    \item \texttt{getDriverProfile()}: GET \path{/driver/me/profile}.
+    \item \texttt{updateSessionVehicle(vehicleType)}: PATCH \path{/driver/me/session-vehicle}.
+    \item \texttt{getMyKycStatus()}: GET \path{/driver/me/kyc}.
+    \item \texttt{getMyDocuments()}: GET \path{/driver/me/documents}.
+    \item \texttt{presignDocument(filename, contentType)}: POST \path{/driver/me/documents/presign}.
+    \item \texttt{createMyDocument(type, fileUrl)}: POST \path{/driver/me/documents}.
+    \item \texttt{deleteDocument(id)}: DELETE \path{/driver/me/documents/\{id\}}.
+    \item \texttt{submitMyKyc()}: POST \path{/driver/me/kyc}.
 \end{itemize}
 
 Gestion d'erreurs centralisée: redirection si token invalide, parsing des erreurs backend, retry logic.
@@ -861,3 +872,4 @@ Gestion d'erreurs centralisée: redirection si token invalide, parsing des erreu
     \item Livreur manage profil, KYC, données personnelles.
     \item Déconnexion: suppression tokens, fermeture WebSocket.
 \end{enumerate}
+

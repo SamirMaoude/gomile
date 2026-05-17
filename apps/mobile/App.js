@@ -23,7 +23,7 @@ const Stack = createNativeStackNavigator(); // Changement ici
 
 export default function App() {
   useEffect(() => {
-    useMissionStore.getState().initStore();
+    // useMissionStore.getState().initStore();
     Asset.loadAsync([
       require('./assets/background_login.png'),
       require('./assets/livreur.jpg'),

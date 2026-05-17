@@ -1,18 +1,97 @@
 \newline
 
-\chapter{ Manuel Utilistaeur }
-\section{Pluggin}
-tout ce qu'on doit savoir
+\chapter{Manuel utilisateur}
 
-\section{API}
-tout  ce qu'il ya a savoir pour deployer ça , (par exemple comme t'a fait sur la rasberry etc .... (et toute info que tu juges utile pour le client finale))
+\section{App mobile}
+\subsection{But de l'application}
+Cette application mobile s'adresse aux livreurs : elle permet de s'inscrire, de se connecter, de recevoir et d'accepter des missions, de suivre un trajet, de gérer son portefeuille et son profil.
 
+\subsection{Installation et première ouverture}
+Procédure rapide depuis la racine du projet (développeur/testeur) :
+\begin{enumerate}
+	\item Installer \texttt{pnpm} si nécessaire :
+	\begin{itemize}
+		\item Option simple : \texttt{npm install -g pnpm}
+		\item Ou activer Corepack et préparer pnpm : \texttt{corepack enable \&\& corepack prepare pnpm@latest --activate}
+	\end{itemize}
+	\item Installer toutes les dépendances (depuis la racine du dépôt) : \texttt{pnpm install}.
+	
+	\item Lancer en mode Tunnel pour tester sur un vrai téléphone via l'App Expo Go :
+	\begin{itemize}
+		\item \texttt{pnpm run mobile:tunnel}  \quad (ou \texttt{corepack pnpm run mobile:tunnel})
+	\end{itemize}
+    \item OU Lancer l'application mobile en mode LAN (réseau local) si vous voulez utiliser un simulateur sur PC :
+	\begin{itemize}
+		\item \texttt{pnpm run mobile:lan}  \quad (ou \texttt{corepack pnpm run mobile:lan})
+	\end{itemize}
+	\item Installer Expo Go sur le téléphone OU configurer un émulateur sur le PC. Expo Go est recommandé pour les tests réels (plus simple et fiable).
+\end{enumerate}
 
-\section{Web admin}
-tout ce qu'on doit savoir
+Après ces étapes, ouvrir l'application via Expo (QR code ou lien) ; l'utilisateur arrive sur l'écran de connexion.
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.6\textwidth]{assets/login.PNG}
+\caption{Écran de connexion — saisie email / mot de passe ou démarrer l'inscription}
+\end{figure}
 
-\section{web commercial}
-tout ce qu'on doit savoir
+\subsection{Inscription (par étapes)}
+L'inscription se déroule en plusieurs étapes : informations de base, identité (photo, nom, prénom, date de naissance, téléphone) et logistique (adresse, véhicule). Les captures ci‑dessous montrent les étapes.
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.32\textwidth]{assets/step1.PNG}\hfill
+\includegraphics[width=0.32\textwidth]{assets/step2.PNG}\hfill
+\includegraphics[width=0.32\textwidth]{assets/step3.PNG}
+\caption{Étapes d'inscription 1/3, 2/3, 3/3}
+\end{figure}
 
-\section{App livreur}
-Le boss Ousmane qui doit faire l'honneur de faire ce qu'il veut !!!
+\subsection{Écran principal — Tableau de bord}
+Une fois connecté et validé, l'application ouvre le tableau de bord. Il affiche la carte, le solde rapide du jour et les missions proposées à proximité.
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.6\textwidth]{assets/tableaudebord.PNG}
+\caption{Tableau de bord — carte et cartes de missions proposées}
+\end{figure}
+
+\subsection{Liste des missions}
+L'onglet "Missions" regroupe : notifications, missions en cours et missions à proximité. Chaque carte propose un aperçu rapide et un bouton \textit{Voir les détails}.
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.6\textwidth]{assets/missions.PNG}
+\caption{Écran Missions — liste et état}
+\end{figure}
+
+\subsection{Focus mission et navigation}
+Lorsqu'une mission est sélectionnée, l'écran Mission Focus montre le tracé sur la carte, les points pickup / delivery et les actions principales (valider identification commerçant, valider code client, terminer mission).
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.6\textwidth]{assets/missionfocus.PNG}
+\caption{Mission Focus — itinéraire et actions métier}
+\end{figure}
+
+\subsection{Détail d'une mission}
+La fiche détail expose les informations métier : adresses, type (FOOD, OTHER...), prix proposé, distance et temps estimé. Les boutons d'acceptation/refus sont clairement identifiés.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.6\textwidth]{assets/detailmission.PNG}
+\caption{Détail mission — infos et actions}
+\end{figure}
+
+\subsection{Portefeuille (Wallet)}
+L'onglet "Gains" montre le solde disponible et les montants en attente. L'utilisateur peut demander un virement depuis le modal de retrait.
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.48\textwidth]{assets/wallet.PNG}\hfill
+\includegraphics[width=0.48\textwidth]{assets/wallet_demande_withdraw.PNG}
+\caption{Portefeuille — solde et modal de demande de virement}
+\end{figure}
+
+\subsection{Profil et vérification KYC}
+L'écran Profil permet de consulter et modifier les informations du livreur, choisir le véhicule de la session et suivre l'état KYC (non soumis / en attente / approuvé / rejeté). La vignette KYC s'affiche en tête de section.
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.48\textwidth]{assets/profil.PNG}\hfill
+\includegraphics[width=0.48\textwidth]{assets/profil_plus_bas.PNG}
+\caption{Profil — résumé et section KYC / logistique}
+\end{figure}
+

@@ -1,0 +1,67 @@
+\section{Tests de l'application mobile}
+
+Le dossier \texttt{tests/} de l'application mobile n'a pas été laissé de côté. Il sert à protéger les briques qui font réellement tenir l'app au quotidien: les stores Zustand, les clients API, les composants réutilisables, et les hooks qui pilotent les missions, la connexion ou l'upload de fichiers.
+
+Deux fichiers de setup rendent cette suite fiable: \texttt{tests/setup/jest.setup.js} installe les mocks nécessaires pour Expo, la géolocalisation, les notifications, les cartes, la navigation et le TurboModule bridge React Native; \texttt{tests/setup/jest.setup.afterFramework.js} remet à zéro les mocks et \texttt{global.fetch} avant chaque test pour éviter les effets de bord entre cas de test. C'est ce qui permet de tester des modules qui, en production, dépendent du natif ou du réseau, sans rendre les tests fragiles.
+
+\subsection{Ce qui est testé}
+
+Le contenu du dossier \texttt{tests/} couvre trois grands blocs.
+
+\textbf{1. Les composants réutilisables.} On y trouve des tests pour \texttt{Header}, \texttt{BalanceCard}, \texttt{TransactionItem}, \texttt{GoMileButton}, \texttt{GoMileInput}, \texttt{MultiOptionGrid}, \texttt{OptionCard}, \texttt{ProgressBar}, \texttt{ScreenWrapper}, \texttt{SectionTitle} et \texttt{SmartTouch}. Ces tests vérifient des choses très concrètes: affichage du titre, rendu du solde en euros, gestion de l'état loading, sélection multiple, gestion du clavier, fermeture du sélecteur de date, ou encore blocage d'une action quand un bouton est en chargement.
+
+\textbf{2. Les stores et utilitaires métier.} La suite couvre \texttt{useAvailabilityStore}, \texttt{useRegistrationStore}, \texttt{useMissionStore}, \texttt{auth-storage}, \texttt{api-errors}, \texttt{auth-contracts}, \texttt{auth-messages}, \texttt{geocode} et \texttt{socketService}. Là, les tests vérifient que l'état est bien restauré, que les missions ne sont pas dupliquées, que les erreurs API restent stables, que la géocodification met en cache ses résultats, et que la socket réagit correctement à une connexion, à une déconnexion ou à une tentative de reconnexion.
+
+\textbf{3. Les clients réseau et hooks critiques.} Les tests d'intégration valident \texttt{auth-client}, \texttt{driver-client}, \texttt{upload-client} et \texttt{useMissionsPoller}. C'est la partie la plus importante pour la robustesse, parce qu'elle vérifie les vrais scénarios métier: connexion, rafraîchissement de session, passage de l'état email non vérifié, récupération des missions, validation commerçant/client, upload presigné vers S3 et déclenchement d'un refresh manuel.
+
+\subsection{Ce que montrent les résultats}
+
+Le passage de test complet est propre: \textbf{24 suites passées sur 24}, pour \textbf{276 tests passés sur 276}, sans snapshot. La couverture confirme aussi la logique du projet: les dossiers \texttt{src/store} et une partie de \texttt{src/services} sont très bien couverts, car ils portent la logique métier la plus sensible, tandis que plusieurs écrans d'interface restent à 0\% de couverture directe parce qu'ils sont surtout validés par les composants et les hooks qu'ils consomment.
+
+Autrement dit, le plan de test n'essaie pas de tout sur-tester visuellement. Il protège surtout ce qui casserait vraiment l'expérience livreur: un token mal géré, une mission qui réapparaît mal, un bouton qui ne déclenche rien, un upload qui échoue sans message, ou une mission en cours qui perd son état.
+
+\subsection{Lecture rapide du dossier de tests}
+
+On peut lire le dossier \texttt{tests/} comme une carte de confiance du mobile:
+\begin{itemize}
+	\item \texttt{tests/setup/}: installe les mocks et stabilise l'environnement Jest.
+	\item \texttt{tests/components/}: protège le rendu et les interactions des briques visuelles.
+	\item \texttt{tests/unit/}: verrouille les stores, constantes et helpers locaux.
+	\item \texttt{tests/integration/}: valide les flux réseau simulés, là où l'app peut casser en production.
+\end{itemize}
+
+Au final, ce dossier de tests documente bien l'intention de l'équipe: garder une app mobile simple à faire évoluer, mais difficile à casser sans que les tests le signalent immédiatement. Nous effectuerons bien évidemment des tests sur les interfaces graphiques et e2e quand le temps nous le permettra, idéalemment après les examens et avant la soutenance du 20/05
+
+\subsection{Couverture des tests (coverage)}
+
+Les résultats de couverture générés lors du run des tests sont résumés ci-dessous. Les couleurs permettent d'identifier rapidement les zones critiques : vert $\geq 90\%$, orange $[70\%,90\%[$, rouge $<70\%$.
+
+\rowcolors{2}{gray!10}{white}
+\vspace{1em}
+\begin{center}
+\scriptsize
+\begin{adjustbox}{max width=\textwidth}
+\begin{tabular}{l r r r r}
+\hline
+\textbf{Cible} & \textbf{Stmts} & \textbf{Branch} & \textbf{Funcs} & \textbf{Lines} \\
+\hline
+All files & \cellcolor{corpored!30}23.19\% & \cellcolor{corpored!30}14.37\% & \cellcolor{corpored!30}27.46\% & \cellcolor{corpored!30}23.56\% \\
+lib & \cellcolor{corpoyellow!30}72.56\% & \cellcolor{corpoyellow!30}51.87\% & \cellcolor{corpoyellow!30}79.51\% & \cellcolor{corpoyellow!30}73.97\% \\
+src/store & \cellcolor{corpogreen!30}93.47\% & \cellcolor{corpoyellow!30}57.81\% & \cellcolor{corpoyellow!30}87.80\% & \cellcolor{corpogreen!30}97.14\% \\
+src/services & \cellcolor{corpored!30}67.85\% & \cellcolor{corpored!30}47.05\% & \cellcolor{corpored!30}50.00\% & \cellcolor{corpored!30}69.23\% \\
+src/components & \cellcolor{corpored!30}39.28\% & \cellcolor{corpored!30}37.03\% & \cellcolor{corpored!30}46.34\% & \cellcolor{corpored!30}38.88\% \\
+src/hooks & \cellcolor{corpogreen!30}94.73\% & \cellcolor{corpoyellow!30}66.66\% & \cellcolor{corpogreen!30}100.00\% & \cellcolor{corpogreen!30}93.33\% \\
+driver-client.ts & \cellcolor{corpogreen!30}93.44\% & \cellcolor{corpoyellow!30}62.06\% & \cellcolor{corpogreen!30}100.00\% & \cellcolor{corpogreen!30}93.44\% \\
+upload-client.ts & \cellcolor{corpogreen!30}92.45\% & \cellcolor{corpoyellow!30}75.00\% & \cellcolor{corpogreen!30}100.00\% & \cellcolor{corpogreen!30}92.00\% \\
+socketService.js & \cellcolor{corpored!30}67.85\% & \cellcolor{corpored!30}47.05\% & \cellcolor{corpored!30}50.00\% & \cellcolor{corpored!30}69.23\% \\
+useMissionStore.js & \cellcolor{corpogreen!30}97.43\% & \cellcolor{corpoyellow!30}57.81\% & \cellcolor{corpogreen!30}96.55\% & \cellcolor{corpogreen!30}100.00\% \\
+MainTabs.js & \cellcolor{corpored!30}0.00\% & \cellcolor{corpored!30}0.00\% & \cellcolor{corpored!30}0.00\% & \cellcolor{corpored!30}0.00\% \\
+\hline
+\end{tabular}
+\end{adjustbox}
+\end{center}
+\normalsize
+
+\vspace{0.5em}
+\noindent \textbf{Légende :} \textcolor{corpogreen}{\rule{1em}{1em}} \quad bon niveau de couverture (>= 90\%), \quad \textcolor{corpoyellow}{\rule{1em}{1em}} \quad couverture moyenne (70\%--90\%), \quad \textcolor{corpored}{\rule{1em}{1em}} \quad attention (< 70\%).
+

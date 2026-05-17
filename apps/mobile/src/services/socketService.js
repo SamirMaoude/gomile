@@ -37,7 +37,6 @@ export function connectSocket(token) {
   }
 
   const url = resolveApiBaseUrl();
-  console.log('[socket] tentative de connexion à :', url);
 
   _socket = io(url, {
     auth: { token: `Bearer ${token}` },
@@ -49,7 +48,6 @@ export function connectSocket(token) {
 
   _socket.on('connect', () => {
     const driverId = decodeJwtSub(token);
-    console.log('[socket] connecté ✓  id =', _socket.id, '| driverId =', driverId);
     if (driverId) _socket.emit('join-driver', { driverId });
   });
 
@@ -60,7 +58,6 @@ export function connectSocket(token) {
   });
 
   _socket.on('disconnect', (reason) => {
-    console.log('[socket] déconnecté :', reason);
   });
 
   return _socket;
