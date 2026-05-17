@@ -16,6 +16,8 @@
         packages = with pkgs; [
           nodejs_22
           pnpm
+          php83
+          php83Packages.composer
           openssl
           docker
           docker-compose

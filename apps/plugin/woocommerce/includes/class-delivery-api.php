@@ -176,7 +176,7 @@ class Gomile_Shipment_Delivery_API {
      * @return array<string,mixed>|WP_Error
      */
     public function cancel_delivery($order_reference) {
-        $response  = $this->request(
+        return $this->request(
             'POST',
             Gomile_Shipment_Admin_Settings::get_option('cancel_endpoint', '/plugin/orders/cancel'),
             array(
@@ -189,7 +189,6 @@ class Gomile_Shipment_Delivery_API {
                 ),
             )
         );
-
     }
 
     /**
