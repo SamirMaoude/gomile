@@ -75,7 +75,7 @@ cypress_web_tests:
     - pnpm --filter web start > web.log 2>&1 &
     - SERVER_PID=$!
     - sleep 15
-    - pnpm --filter web test:e2e:front
+    - pnpm --filter web test:front
     - kill $SERVER_PID || true
   after_script:
     - cat web.log || true
