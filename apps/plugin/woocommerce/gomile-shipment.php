@@ -18,9 +18,24 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+/**
+ * @brief Version courante du plugin.
+ */
 define('GOMILE_SHIPMENT_VERSION', '1.1.0');
+
+/**
+ * @brief Chemin absolu vers le fichier principal du plugin.
+ */
 define('GOMILE_SHIPMENT_PLUGIN_FILE', __FILE__);
+
+/**
+ * @brief Repertoire absolu du plugin.
+ */
 define('GOMILE_SHIPMENT_PLUGIN_DIR', plugin_dir_path(__FILE__));
+
+/**
+ * @brief URL publique du repertoire du plugin.
+ */
 define('GOMILE_SHIPMENT_PLUGIN_URL', plugin_dir_url(__FILE__));
 
 add_action('plugins_loaded', 'gomile_shipment_init_plugin', 20);
@@ -28,9 +43,9 @@ add_action('plugins_loaded', 'gomile_shipment_init_plugin', 20);
 /**
  * @brief Bootstrap du plugin.
  *
- * Charge d'abord les reglages admin pour rendre la configuration disponible
- * meme si WooCommerce n'est pas actif, puis charge les briques metier
- * dependantes de WooCommerce.
+ * Charge d'abord les réglages admin pour rendre la configuration disponible
+ * même si WooCommerce n'est pas actif, puis charge les briques métier
+ * dépendantes de WooCommerce.
  *
  * @return void
  */

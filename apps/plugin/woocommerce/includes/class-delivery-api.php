@@ -10,19 +10,27 @@ if (!defined('ABSPATH')) {
 }
 
 /**
- * @brief Client HTTP du plugin pour parler a l'API Gomile.
+ * @class Gomile_Shipment_Delivery_API
+ * @brief Client HTTP du plugin pour parler à l'API Gomile.
  *
  * Cette classe contient :
  * - la construction des payloads de devis et de livraison,
  * - la gestion de l'authentification,
  * - les appels HTTP,
- * - le parsing des reponses,
+ * - le parsing des réponses,
  * - le cache des devis.
  *
  * @package GomileShipment
  */
 class Gomile_Shipment_Delivery_API {
+    /**
+     * @brief Instance unique du client API.
+     */
     protected static $instance = null;
+
+    /**
+     * @brief Logger WooCommerce initialise a la premiere ecriture.
+     */
     protected $logger = null;
 
     /**
@@ -39,13 +47,13 @@ class Gomile_Shipment_Delivery_API {
     }
 
     /**
-     * @brief Demande un devis de livraison a l'API.
+     * @brief Demande un devis de livraison à l'API.
      *
      * Le resultat est mis en cache pour limiter les appels pendant les
      * recalculs repetes du panier et du checkout.
      *
      * @param $package Package WooCommerce.
-     * @param $shipping_method Methode d'expedition courante.
+     * @param $shipping_method Méthode d'expédition courante.
      * @return array<string,mixed>|WP_Error
      */
     public function get_delivery_quote($package, $shipping_method = null) {
@@ -103,7 +111,7 @@ class Gomile_Shipment_Delivery_API {
     }
 
     /**
-     * @brief Cree une mission de livraison pour une commande WooCommerce.
+     * @brief Crée une mission de livraison pour une commande WooCommerce.
      *
      * @param $order Commande WooCommerce.
      * @return array<string,mixed>|WP_Error
@@ -162,7 +170,7 @@ class Gomile_Shipment_Delivery_API {
     /**
      * @brief Interroge l'API pour connaitre le statut courant d'une livraison.
      *
-     * @param $delivery_id Identifiant de livraison cote API.
+     * @param $delivery_id Identifiant de livraison côté API.
      * @return array<string,mixed>|WP_Error
      */
     public function get_delivery_status($delivery_id) {
@@ -170,9 +178,9 @@ class Gomile_Shipment_Delivery_API {
     }
 
     /**
-     * @brief Demande l'annulation d'une mission cote API.
+     * @brief Demande l'annulation d'une mission côté API.
      *
-     * @param $delivery_id Identifiant de livraison cote API.
+     * @param $order_reference Référence de commande envoyée à l'API Gomile.
      * @return array<string,mixed>|WP_Error
      */
     public function cancel_delivery($order_reference) {
@@ -192,7 +200,7 @@ class Gomile_Shipment_Delivery_API {
     }
 
     /**
-     * @brief Construit le payload envoye a l'endpoint de creation de livraison.
+     * @brief Construit le payload envoyé à l'endpoint de création de livraison.
      *
      * @param $order Commande WooCommerce.
      * @return array<string,mixed>|WP_Error
@@ -230,13 +238,10 @@ class Gomile_Shipment_Delivery_API {
     }
 
     /**
-     * @brief Construit le payload envoye a l'endpoint de devis.
-     *
-     * Le payload est volontairement generique en attendant le contrat final
-     * de l'API Gomile.
+     * @brief Construit le payload envoyé à l'endpoint de devis.
      *
      * @param $package Package WooCommerce.
-     * @param $shipping_method Methode d'expedition courante.
+     * @param $shipping_method Méthode d'expédition courante.
      * @return array<string,mixed>
      */
     public function build_quote_payload($package, $shipping_method = null) {
@@ -280,8 +285,8 @@ class Gomile_Shipment_Delivery_API {
     /**
      * @brief Point unique pour tous les appels HTTP du plugin.
      *
-     * Cette methode applique l'authentification, encode le body en JSON,
-     * decode la reponse et transforme les erreurs HTTP en WP_Error.
+     * Cette méthode applique l'authentification, encode le body en JSON,
+     * décode la réponse et transforme les erreurs HTTP en WP_Error.
      *
      * @param $method Methode HTTP.
      * @param $endpoint Endpoint relatif ou absolu.
@@ -436,6 +441,12 @@ class Gomile_Shipment_Delivery_API {
         return $value;
     }
 
+    /**
+     * @brief Concatène les champs d'adresse Gomile en une adresse lisible.
+     *
+     * @param $address Adresse structuree avec numero, rue, code postal, ville et pays.
+     * @return string
+     */
     protected function get_full_adress($address) {
         $parts = array_filter(array(
             isset($address['streetNumber']) ? $address['streetNumber'] : '',
@@ -449,9 +460,9 @@ class Gomile_Shipment_Delivery_API {
     }
 
     /**
-     * @brief Retourne l'adresse d'enlevement par defaut.
+     * @brief Retourne l'adresse d'enlèvement par défaut.
      *
-     * Si aucune adresse personnalisee n'est configuree, le plugin utilise
+     * Si aucune adresse personnalisée n'est configurée, le plugin utilise
      * l'adresse de la boutique WooCommerce.
      *
      * @return string
@@ -541,6 +552,12 @@ class Gomile_Shipment_Delivery_API {
         return max(1.0, (float) $total_weight);
     }
 
+    /**
+     * @brief Nettoie une chaîne avant de l'envoyer à l'API Gomile.
+     *
+     * @param $value Valeur brute issue de WooCommerce.
+     * @return string
+     */
     protected function normalize_text($value) {
         $value = html_entity_decode((string) $value, ENT_QUOTES | ENT_HTML5, 'UTF-8');
         $value = wp_strip_all_tags($value);
@@ -566,7 +583,7 @@ class Gomile_Shipment_Delivery_API {
     }
 
     /**
-     * @brief Construit l'adresse de livraison en une chaine compatible avec l'API plugin/orders.
+     * @brief Construit l'adresse de livraison en une chaîne compatible avec l'API plugin/orders.
      *
      * @param $order Commande WooCommerce.
      * @return string
@@ -590,9 +607,9 @@ class Gomile_Shipment_Delivery_API {
 
 
     /**
-     * @brief Extrait un prix depuis des formats de reponse encore non stabilises.
+     * @brief Extrait le prix de livraison estimé
      *
-     * @param $body Corps de reponse decode.
+     * @param $body Corps de réponse décodé.
      * @return float|null
      */
     protected function extract_quote_price($body) {
@@ -606,10 +623,10 @@ class Gomile_Shipment_Delivery_API {
     }
 
     /**
-     * @brief Cree une cle de cache pour un panier donne.
+     * @brief Crée une clé de cache pour un panier donné.
      *
      * @param $package Package WooCommerce.
-     * @param $shipping_method Methode d'expedition courante.
+     * @param $shipping_method Méthode d'expédition courante.
      * @return string
      */
     protected function get_quote_cache_key($package, $shipping_method = null) {
@@ -705,7 +722,7 @@ class Gomile_Shipment_Delivery_API {
 }
 
 /**
- * @brief Helper procedural pour creer une livraison.
+ * @brief Helper pour créer une livraison.
  *
  * @param $order Commande WooCommerce.
  * @return array<string,mixed>|WP_Error
@@ -715,10 +732,10 @@ function gomile_shipment_create_delivery($order) {
 }
 
 /**
- * @brief Helper procedural pour recuperer un devis de livraison.
+ * @brief Helper pour récupérer un devis de livraison.
  *
  * @param $package Package WooCommerce.
- * @param $shipping_method Methode d'expedition courante.
+ * @param $shipping_method Méthode d'expédition courante.
  * @return array<string,mixed>|WP_Error
  */
 function gomile_shipment_get_delivery_quote($package, $shipping_method = null) {
@@ -726,9 +743,9 @@ function gomile_shipment_get_delivery_quote($package, $shipping_method = null) {
 }
 
 /**
- * @brief Helper procedural pour recuperer un statut de livraison.
+ * @brief Helper pour récupérer un statut de livraison.
  *
- * @param $delivery_id Identifiant de livraison cote API.
+ * @param $delivery_id Identifiant de livraison côté API.
  * @return array<string,mixed>|WP_Error
  */
 function gomile_shipment_get_delivery_status($delivery_id) {
@@ -736,9 +753,9 @@ function gomile_shipment_get_delivery_status($delivery_id) {
 }
 
 /**
- * @brief Helper procedural pour annuler une livraison.
+ * @brief Helper pour annuler une livraison.
  *
- * @param $delivery_id Identifiant de livraison cote API.
+ * @param $order_reference Référence de commande envoyée à l'API Gomile.
  * @return array<string,mixed>|WP_Error
  */
 function gomile_shipment_cancel_delivery($order_reference) {

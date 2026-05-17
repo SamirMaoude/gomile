@@ -1,7 +1,7 @@
 <?php
 /**
  * @file
- * @brief Endpoints REST exposes pour les webhooks Gomile.
+ * @brief Endpoints REST exposés pour les webhooks Gomile.
  * @package GomileShipment
  */
 
@@ -10,7 +10,8 @@ if (!defined('ABSPATH')) {
 }
 
 /**
- * @brief Expose les points d'entree REST utilises par l'API Gomile.
+ * @class Gomile_Shipment_REST_Endpoints
+ * @brief Expose les points d'entrée REST utilisés par l'API Gomile.
  *
  * @package GomileShipment
  */
@@ -42,7 +43,7 @@ class Gomile_Shipment_REST_Endpoints {
     }
 
     /**
-     * @brief Verifie la signature HMAC du webhook.
+     * @brief Vérifie la signature HMAC du webhook.
      *
      * @param $request Requête REST.
      * @return bool
@@ -119,6 +120,12 @@ class Gomile_Shipment_REST_Endpoints {
         return new WP_REST_Response(array('success' => true), 200);
     }
 
+    /**
+     * @brief Traite la fin de livraison et clôture la commande WooCommerce.
+     *
+     * @param $payload Données du webhook.
+     * @return WP_REST_Response
+     */
     protected static function handle_delivery_completed($payload) {
 
         $status_response = self::handle_delivery_status_changed($payload); // Met à jour le statut de livraison gomile

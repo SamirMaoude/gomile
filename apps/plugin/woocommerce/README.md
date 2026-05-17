@@ -64,6 +64,27 @@ composer test:unit
 
 Le bootstrap de tests fournit des stubs WordPress/WooCommerce minimaux. Les tests unitaires peuvent donc valider le mapping des payloads, la signature webhook et les hooks de commande sans démarrer une instance WordPress complète.
 
+## Documentation Doxygen
+
+Depuis le dossier du plugin :
+
+```bash
+cd apps/plugin/woocommerce
+composer docs
+```
+
+La documentation HTML est générée dans :
+
+```txt
+apps/plugin/woocommerce/docs/doxygen/html/index.html
+```
+
+Pour nettoyer la sortie générée :
+
+```bash
+composer docs:clean
+```
+
 ## Installation
 
 ### Installation manuelle

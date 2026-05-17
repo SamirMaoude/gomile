@@ -10,23 +10,34 @@ if (!defined('ABSPATH')) {
 }
 
 /**
- * @brief Gere toute la configuration admin du plugin.
+ * @brief Gère toute la configuration admin du plugin.
  *
  * Cette classe centralise :
- * - les valeurs par defaut,
+ * - les valeurs par défaut,
  * - l'enregistrement des options,
- * - l'affichage de la page de reglages,
+ * - l'affichage de la page de réglages,
  * - les helpers de lecture des options depuis le reste du plugin.
  *
  * @package GomileShipment
  */
 class Gomile_Shipment_Admin_Settings {
+    /**
+     * @brief Nom de l'option WordPress qui stocke les réglages du plugin.
+     */
     const OPTION_NAME = 'gomile_shipment_settings';
+
+    /**
+     * @brief Slug utilisé pour la page de configuration admin.
+     */
     const PAGE_SLUG = 'gomile-shipment';
+
+    /**
+     * @brief URL de base de production de l'API Gomile.
+     */
     const PRODUCTION_API_BASE_URL = 'https://api.gomile.delivery';
 
     /**
-     * @brief Branche la page de reglages et le lien direct depuis la liste des plugins.
+     * @brief Branche la page de réglages et le lien direct depuis la liste des plugins.
      *
      * @return void
      */
@@ -57,7 +68,7 @@ class Gomile_Shipment_Admin_Settings {
     }
 
     /**
-     * @brief Retourne les valeurs par defaut du plugin.
+     * @brief Retourne les valeurs par défaut du plugin.
      *
      * @return array<string,mixed>
      */
@@ -77,7 +88,7 @@ class Gomile_Shipment_Admin_Settings {
             'timeout'          => 20,
             'auto_create'      => 'yes',
             'webhook_secret'   => '',
-            'debug_mode'       => 'yes',
+            'debug_mode'       => 'no',
             'sender_name'      => '',
             'sender_phone'     => '',
             'sender_address_street_number' => '',
@@ -90,10 +101,10 @@ class Gomile_Shipment_Admin_Settings {
     }
 
     /**
-     * @brief Mappe chaque cle de configuration vers une constante PHP optionnelle.
+     * @brief Mappe chaque clé de configuration vers une constante PHP optionnelle.
      *
      * Si la constante est definie, sa valeur est prioritaire sur la base de
-     * donnees et sur la valeur par defaut.
+     * données et sur la valeur par défaut.
      *
      * @return array<string,string>
      */
@@ -137,9 +148,9 @@ class Gomile_Shipment_Admin_Settings {
     }
 
     /**
-     * @brief Retourne la configuration complete fusionnee avec les valeurs par defaut.
+     * @brief Retourne la configuration complète fusionnée avec les valeurs par défaut.
      *
-     * Ordre de priorite : constantes PHP > base de donnees > valeurs par defaut.
+     * Ordre de priorité : constantes PHP > base de données > valeurs par défaut.
      *
      * @return array<string,mixed>
      */
@@ -168,7 +179,7 @@ class Gomile_Shipment_Admin_Settings {
     }
 
     /**
-     * @brief Indique si une cle API est deja enregistree.
+     * @brief Indique si une clé API est déjà enregistrée.
      *
      * @return bool
      */
@@ -204,7 +215,7 @@ class Gomile_Shipment_Admin_Settings {
     }
 
     /**
-     * @brief Retourne l'URL REST du webhook expose par le plugin.
+     * @brief Retourne l'URL REST du webhook exposé par le plugin.
      *
      * @return string
      */
@@ -222,7 +233,7 @@ class Gomile_Shipment_Admin_Settings {
     }
 
     /**
-     * @brief Retourne la capacite requise pour acceder a la page de reglages.
+     * @brief Retourne la capacité requise pour accéder à la page de réglages.
      *
      * @return string
      */
@@ -235,7 +246,7 @@ class Gomile_Shipment_Admin_Settings {
     }
 
     /**
-     * @brief Retourne l'URL admin de la page de reglages.
+     * @brief Retourne l'URL admin de la page de réglages.
      *
      * @return string
      */
@@ -244,7 +255,7 @@ class Gomile_Shipment_Admin_Settings {
     }
 
     /**
-     * @brief Enregistre les points d'entree de la page de configuration.
+     * @brief Enregistre les points d'entrée de la page de configuration.
      *
      * @return void
      */
@@ -614,7 +625,7 @@ class Gomile_Shipment_Admin_Settings {
     }
 
     /**
-     * @brief Rendu de la section webhook avec l'URL a configurer cote API.
+     * @brief Rendu de la section webhook avec l'URL à configurer côté API.
      *
      * @return void
      */
@@ -631,7 +642,7 @@ class Gomile_Shipment_Admin_Settings {
     }
 
     /**
-     * @brief Champ texte generique reutilise par la plupart des reglages.
+     * @brief Champ texte générique réutilisé par la plupart des réglages.
      *
      * @param $args Definition du champ.
      * @return void
@@ -732,7 +743,7 @@ class Gomile_Shipment_Admin_Settings {
     }
 
     /**
-     * @brief Champ textarea pour les valeurs multiligne comme l'adresse d'expedition.
+     * @brief Champ textarea pour les valeurs multiligne comme l'adresse d'expédition.
      *
      * @param $args Definition du champ.
      * @return void

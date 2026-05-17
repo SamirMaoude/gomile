@@ -50,6 +50,7 @@ package-lock.json
 apps/api/requests.http
 apps/api/gomile-api-dev_accessKeys.csv
 apps/plugin/woocommerce/docs/*
+!apps/plugin/woocommerce/docs/.gitkeep
 apps/plugin/woocommerce/gomile-shipment
 apps/api/prisma/migrations/20260421233442_add_password_reset_fields/migration.sql
 infra/wordpress/*
