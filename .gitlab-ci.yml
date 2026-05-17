@@ -57,11 +57,14 @@ cypress_web_tests:
   tags:
     - docker
   image: cypress/base:22.15.0
+  variables:
+    CYPRESS_CACHE_FOLDER: "$CI_PROJECT_DIR/.cache/Cypress"
   before_script:
     - corepack enable
     - corepack prepare pnpm@10.30.3 --activate
     - pnpm config set store-dir .pnpm-store
     - pnpm install --frozen-lockfile=false --network-concurrency=1 --child-concurrency=1
+    - pnpm --filter web cypress install
   cache:
     key: "${CI_COMMIT_REF_SLUG}"
     paths:
@@ -75,7 +78,7 @@ cypress_web_tests:
     - pnpm --filter web start > web.log 2>&1 &
     - SERVER_PID=$!
     - sleep 15
-    - pnpm --filter web test:front
+    - pnpm --filter web cypress:run
     - kill $SERVER_PID || true
   after_script:
     - cat web.log || true
