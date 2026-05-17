@@ -1,9 +1,9 @@
 # Fdb version 4
-["pdflatex"] 1779026202.35042 "/Users/ousmanediakite/isi/gomile/docs/src-latex/rapport/main.tex" "main.pdf" "main" 1779026203.62669 2
+["pdflatex"] 1779027463.87866 "/Users/ousmanediakite/isi/gomile/docs/src-latex/rapport/main.tex" "main.pdf" "main" 1779027465.26679 2
   "../assets/app-mobile-auth-state.png" 0 -1 0 ""
   "../assets/app-mobile-dashboard-sequence.png" 1779025945.90674 37062 f69860a574455d060bfda81d36e11b0a ""
-  "../assets/app-mobile-kyc-upload-sequence.png" 0 -1 0 ""
-  "../assets/app-mobile-kyc-verification-states.png" 0 -1 0 ""
+  "../assets/app-mobile-kyc-upload-sequence.png" 1779026260.17466 41705 2f663692e0062ca54cacbaae50c7d06f ""
+  "../assets/app-mobile-kyc-verification-states.png" 1779026261.19743 24264 7f9bc49a0ebec163ac3987a36dbc7ad4 ""
   "../assets/app-mobile-login-sequence.png" 0 -1 0 ""
   "../assets/app-mobile-mission-lifecycle.png" 1779025946.99944 38364 49572d36b5bd5b452087c2048e3ab195 ""
   "../assets/app-mobile-mission-verification-states.png" 1779026017.86299 35400 7acfcbde75ba08a0639c954561936809 ""
@@ -179,11 +179,11 @@
   "/usr/local/texlive/2024/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1734852852.14362 5467645 128b85b7cde5f5edc5cb7f1dd7ff8736 ""
   "/usr/local/texlive/2024/texmf-var/web2c/pdftex/pdflatex.fmt" 1734852801 8221444 ae3d722c86787250f4e5d081c14b0f86 ""
   "/usr/local/texlive/2024/texmf.cnf" 1710266656 577 e590dabc9e28c5b61546e15f63eebcdf ""
-  "main.aux" 1779026203.53104 19142 29da2804b3a4a34ea7ee5d9ff7c07534 "pdflatex"
-  "main.out" 1779026203.53294 11777 2b9ef8079ad161c9ab90d9d1ea024ddc "pdflatex"
+  "main.aux" 1779027465.16977 19199 b92776860b6d001f9dde591f3f9b077b "pdflatex"
+  "main.out" 1779027465.17159 11133 73f6a7ee1b789e6714ea12738e4a6ed7 "pdflatex"
   "main.tex" 1779026037.89461 3393 5d532a5c9d3bb41edec79dc0e827a520 ""
-  "main.toc" 1779026203.53319 7790 b331e7274ca59eb2ef942686d111f629 "pdflatex"
-  "sections/app-mobile.tex" 1779026200.65838 42686 64e55ac905f42e2d14c9f59b5feb7659 ""
+  "main.toc" 1779027465.17192 7795 6c1106771df40eb9e1b8c58507f568f6 "pdflatex"
+  "sections/app-mobile.tex" 1779027461.94083 42919 0912f3f0eaae9f3d50afcc3cc8a697c8 ""
   "sections/backend.tex" 1779022895.43583 65 2c87eff06b527da5c3f3c6828ba42b84 ""
   "sections/front-admin.tex" 1779022034.71889 61 46bd665a516f445889969383b49e5ecd ""
   "sections/front-commercial.tex" 1779008634 37 fdc2e010fc30d45c73255f82e24136af ""

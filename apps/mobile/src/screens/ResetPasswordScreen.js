@@ -55,7 +55,7 @@ export default function ResetPasswordScreen({ route, navigation }) {
 
     setIsLoading(true);
     try {
-      await resetPassword({ resetToken, newPassword });
+      await resetPassword({ email, resetToken, newPassword });
       Alert.alert(
         'Succès',
         'Votre mot de passe a été réinitialisé.',
@@ -98,33 +98,33 @@ export default function ResetPasswordScreen({ route, navigation }) {
               />
             </>
           ) : (
-            <>
-              <Text style={styles.description}>
-                Choisissez votre nouveau mot de passe
-              </Text>
-              <GoMileInput
-                label="Nouveau mot de passe"
-                value={newPassword}
-                onChangeText={setNewPassword}
-                placeholder="••••••••"
-                secureTextEntry
-              />
-              <GoMileInput
-                label="Confirmer le mot de passe"
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                placeholder="••••••••"
-                secureTextEntry
-              />
-              <GoMileButton
-                title="RÉINITIALISER"
-                type="secondary"
-                onPress={handleResetPassword}
-                loading={isLoading}
-                style={styles.primaryButton}
-              />
-            </>
-          )}
+          <>
+            <Text style={styles.description}>
+              Choisissez votre nouveau mot de passe
+            </Text>
+            <GoMileInput
+              key="new-password-field" 
+              label="Nouveau mot de passe"
+              value={newPassword}
+              onChangeText={setNewPassword}
+              placeholder="Nouveau mot de passe"
+            />
+            <GoMileInput
+              key="confirm-password-field" 
+              label="Confirmer le mot de passe"
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              placeholder="Confirmer le mot de passe"
+            />
+            <GoMileButton
+              title="RÉINITIALISER"
+              type="secondary"
+              onPress={handleResetPassword}
+              loading={isLoading}
+              style={styles.primaryButton}
+            />
+          </>
+        )}
           <GoMileButton
             title="RETOUR"
             type="primary"

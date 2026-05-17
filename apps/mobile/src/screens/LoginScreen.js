@@ -54,7 +54,7 @@ export default function LoginScreen({ navigation }) {
 
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.content}>
         <View style={styles.card}>
-          <GoMileInput label="Email ou Téléphone" value={identifier} onChangeText={setIdentifier} placeholder="votre@email.com" />
+          <GoMileInput label="Email" value={identifier} onChangeText={setIdentifier} placeholder="votre@email.com"  keyboardType="email-address"/>
           <GoMileInput label="Mot de passe" value={password} onChangeText={setPassword} secureTextEntry placeholder="••••••••" />
 
           <TouchableOpacity onPress={handleGoToForgotPassword} style={styles.forgotPasswordContainer}>

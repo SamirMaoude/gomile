@@ -1,194 +1,194 @@
 \section{Application Mobile Livreur}
 
-\subsection{Role de la partie mobile}
+\subsection{Rôle de la partie mobile}
 
-L'application mobile constitue l'interface dediee aux livreurs du projet GoMile. Elle leur permet de:
+L'application mobile constitue l'interface dédiée aux livreurs du projet GoMile. Elle leur permet de:
 \begin{itemize}
-    \item creer un compte et finaliser l'activation,
+    \item créer un compte et finaliser l'activation,
     \item consulter et accepter des missions,
-    \item suivre une livraison avec verification par code,
-    \item gerer leur profil, leur disponibilite et leurs documents KYC.
+    \item suivre une livraison avec vérification par code,
+    \item gérer leur profil, leur disponibilité et leurs documents KYC.
 \end{itemize}
 
-Cette partie a ete developpee en React Native avec Expo et Expo Go pour accelerer les iterations et faciliter les demonstrations sur telephone pendant le projet.
+Cette partie a été développée en React Native avec Expo et Expo Go pour accélérer les itérations et faciliter les démonstrations sur téléphone pendant le projet.
 
-\subsection{Architecture generale et technologies}
+\subsection{Architecture générale et technologies}
 
 L'application mobile repose sur les briques suivantes:
 \begin{description}
-    \item[React Navigation] gestion des ecrans d'authentification et des onglets principaux.
-    \item[Expo] acces aux fonctionnalites natives (media, geolocalisation, notifications) avec un cycle de developpement rapide.
-    \item[API backend GoMile] authentification, missions, profil, verification et operations metier.
-    \item[Modules externes] \texttt{@react-native-community/datetimepicker} pour la date, composants media pour photo/document, services d'adressage pour fiabiliser les adresses.
+    \item[React Navigation] gestion des écrans d'authentification et des onglets principaux.
+    \item[Expo] accès aux fonctionnalités natives (média, géolocalisation, notifications) avec un cycle de développement rapide.
+    \item[API backend GoMile] authentification, missions, profil, vérification et opérations métier.
+    \item[Modules externes] \texttt{@react-native-community/datetimepicker} pour la date, composants média pour photo/document, services d'adressage pour fiabiliser les adresses.
 \end{description}
 
-\subsubsection{Pourquoi Zustand avant de decrire les etapes}
+\subsubsection{Pourquoi Zustand avant de décrire les étapes}
 
-Le flux d'inscription traverse plusieurs ecrans successifs. Les donnees doivent donc etre partagees entre ecrans, conservees pendant la navigation, et reutilisees au moment de l'appel API final. Pour cette raison, nous avons retenu \texttt{Zustand} (\texttt{useRegistrationStore}) plutot qu'un simple objet JavaScript local a un ecran. Ce choix apporte:
+Le flux d'inscription traverse plusieurs écrans successifs. Les données doivent donc être partagées entre écrans, conservées pendant la navigation, et réutilisées au moment de l'appel API final. Pour cette raison, nous avons retenu \texttt{Zustand} (\texttt{useRegistrationStore}) plutôt qu'un simple objet JavaScript local à un écran. Ce choix apporte:
 \begin{itemize}
-    \item un etat centralise lisible,
-    \item des mises a jour champ par champ,
-    \item une meilleure robustesse si l'utilisateur revient a l'etape precedente.
+    \item un état centralisé lisible,
+    \item des mises à jour champ par champ,
+    \item une meilleure robustesse si l'utilisateur revient à l'étape précédente.
 \end{itemize}
 
-La description detaillee des champs arrives ensuite, pour montrer concretement ce qui est stocke a chaque etape.
+La description détaillée des champs arrive ensuite, pour montrer concrètement ce qui est stocké à chaque étape.
 
 \subsection{Parcours d'inscription}
 
-\subsubsection{Point d'entree et logique de decoupage}
+\subsubsection{Point d'entrée et logique de découpage}
 
-Le parcours d'inscription ne demarre pas directement au lancement de l'application. L'utilisateur arrive d'abord sur \texttt{LoginScreen}. Depuis cet ecran, l'action \texttt{Devenir livreur} ouvre le circuit d'inscription.
+Le parcours d'inscription ne démarre pas directement au lancement de l'application. L'utilisateur arrive d'abord sur \texttt{LoginScreen}. Depuis cet écran, l'action \texttt{Devenir livreur} ouvre le circuit d'inscription.
 
-Le parcours a ete progressivement retravaille lors des suivis avec M. Viardot pour ameliorer l'UX: simplification des ecrans, reduction des frictions, repositionnement des informations administratives, et validation plus claire des champs. Le flux actuel est volontairement decoupe en \textbf{trois etapes d'inscription}:
+Le parcours a été progressivement retravaillé lors des suivis avec M. Viardot pour améliorer l'UX: simplification des écrans, réduction des frictions, repositionnement des informations administratives, et validation plus claire des champs. Le flux actuel est volontairement découpé en \textbf{trois étapes d'inscription}:
 \begin{itemize}
-    \item etape 1: identite de base,
-    \item etape 2: informations personnelles complementaires,
-    \item etape 3: logistique de livraison.
+    \item étape 1: identité de base,
+    \item étape 2: informations personnelles complémentaires,
+    \item étape 3: logistique de livraison.
 \end{itemize}
 
-Un ancien ecran de finalisation (ancien \texttt{RegisterStep4}) existe encore dans le code, mais il ne fait plus partie du flux UX principal, car les retours d'usage ont montre qu'il vaut mieux finaliser certains elements apres creation du compte.
+Un ancien écran de finalisation (ancien \texttt{RegisterStep4}) existe encore dans le code, mais il ne fait plus partie du flux UX principal, car les retours d'usage ont montré qu'il vaut mieux finaliser certains éléments après création du compte.
 
-\subsubsection{Etape 1: identite de base (\texttt{RegisterStep1})}
+\subsubsection{Étape 1: identité de base (\texttt{RegisterStep1})}
 
-\textbf{Champs demandes et types:}
+\textbf{Champs demandés et types:}
 \begin{itemize}
     \item photo de profil: image locale (URI),
-    \item prenom: chaine de caracteres,
-    \item nom: chaine de caracteres,
-    \item email: chaine de caracteres au format email,
-    \item mot de passe: chaine de caracteres,
-    \item confirmation mot de passe: chaine de caracteres.
+    \item prénom: chaîne de caractères,
+    \item nom: chaîne de caractères,
+    \item email: chaîne de caractères au format email,
+    \item mot de passe: chaîne de caractères,
+    \item confirmation mot de passe: chaîne de caractères.
 \end{itemize}
 
 \textbf{Modules et UX:}
 \begin{itemize}
-    \item Le choix de la photo passe par le module \texttt{media-picker}, qui encapsule les permissions systeme et la selection de media.
-    \item Le champ email utilise un clavier adapte a la saisie email (presence de \texttt{@}).
-    \item Dans cette version de l'UX d'inscription, le mot de passe n'est pas masque dans ce parcours afin de limiter les erreurs de saisie constatees pendant les tests utilisateurs.
+    \item Le choix de la photo passe par le module \texttt{media-picker}, qui encapsule les permissions système et la sélection de média.
+    \item Le champ email utilise un clavier adapté à la saisie email (présence de \texttt{@}).
+    \item Dans cette version de l'UX d'inscription, le mot de passe n'est pas masqué dans ce parcours afin de limiter les erreurs de saisie constatées pendant les tests utilisateurs.
 \end{itemize}
 
 \textbf{Validation et stockage Zustand:}
 \begin{itemize}
-    \item Verification des champs obligatoires.
-    \item Verification de la coherence mot de passe / confirmation.
+    \item Vérification des champs obligatoires.
+    \item Vérification de la cohérence mot de passe / confirmation.
     \item Stockage des champs dans \texttt{useRegistrationStore}: \texttt{firstName}, \texttt{lastName}, \texttt{email}, \texttt{password}, \texttt{confirmPassword}, \texttt{avatarUrl}.
 \end{itemize}
 
-\subsubsection{Etape 2: identite complementaire (\texttt{RegisterStep2Identity})}
+\subsubsection{Étape 2: identité complémentaire (\texttt{RegisterStep2Identity})}
 
-\textbf{Champs demandes et types:}
+\textbf{Champs demandés et types:}
 \begin{itemize}
-    \item numero de telephone: chaine normalisable en format FR/international,
+    \item numéro de téléphone: chaîne normalisable en format FR/international,
     \item date de naissance: date,
-    \item genre: valeur enumeree (Homme, Femme, Autre).
+    \item genre: valeur énumérée (Homme, Femme, Autre).
 \end{itemize}
 
 \textbf{Modules et UX:}
 \begin{itemize}
-    \item Le numero de telephone utilise un clavier numerique.
-    \item La date utilise \texttt{@react-native-community/datetimepicker}, retenu pour sa compatibilite native iOS/Android et son comportement retractable.
-    \item Le genre est selectionne avec des boutons a choix explicite.
+    \item Le numéro de téléphone utilise un clavier numérique.
+    \item La date utilise \texttt{@react-native-community/datetimepicker}, retenu pour sa compatibilité native iOS/Android et son comportement rétractable.
+    \item Le genre est sélectionné avec des boutons à choix explicite.
 \end{itemize}
 
 \textbf{Validation et stockage Zustand:}
 \begin{itemize}
-    \item Champs obligatoires controles avant passage a l'etape suivante.
+    \item Champs obligatoires contrôlés avant passage à l'étape suivante.
     \item Stockage dans \texttt{useRegistrationStore}: \texttt{phone}, \texttt{birthDate}, \texttt{gender}.
 \end{itemize}
 
-\subsubsection{Etape 3: logistique de livraison (\texttt{RegisterStep2})}
+\subsubsection{Étape 3: logistique de livraison (\texttt{RegisterStep2})}
 
-\textbf{Champs demandes et types:}
+\textbf{Champs demandés et types:}
 \begin{itemize}
-    \item adresse de residence: chaine structuree,
-    \item ville de livraison: chaine,
+    \item adresse de résidence: chaîne structurée,
+    \item ville de livraison: chaîne,
     \item rayon de livraison: entier (km),
-    \item mode de transport: enum (velo, moto, voiture, utilitaire).
+    \item mode de transport: enum (vélo, moto, voiture, utilitaire).
 \end{itemize}
 
 \textbf{Modules et UX:}
 \begin{itemize}
-    \item Adresse geree via un composant d'autocompletion connecte au backend et a l'API d'adressage gouvernementale pour recuperer des adresses fiables.
-    \item Le rayon impose une saisie numerique uniquement.
-    \item Le mode de transport est propose sous forme de cartes de selection pour une lecture rapide.
+    \item Adresse gérée via un composant d'autocomplétion connecté au backend et à l'API d'adressage gouvernementale pour récupérer des adresses fiables.
+    \item Le rayon impose une saisie numérique uniquement.
+    \item Le mode de transport est proposé sous forme de cartes de sélection pour une lecture rapide.
 \end{itemize}
 
 \textbf{Normalisation et stockage Zustand:}
 \begin{itemize}
-    \item Normalisation du telephone au format international attendu.
-    \item Conversion du rayon en entier exploitable cote API.
-    \item Mapping du transport vers les codes metier (BIKE, SCOOTER, CAR, TRUCK).
+    \item Normalisation du téléphone au format international attendu.
+    \item Conversion du rayon en entier exploitable côté API.
+    \item Mapping du transport vers les codes métier (BIKE, SCOOTER, CAR, TRUCK).
     \item Stockage dans \texttt{useRegistrationStore}: \texttt{address}, \texttt{city}, \texttt{zipCode}, \texttt{street}, \texttt{deliveryCity}, \texttt{deliveryRadius}, \texttt{transportType}.
 \end{itemize}
 
-\subsubsection{Sequence technique d'inscription}
+\subsubsection{Séquence technique d'inscription}
 
-Le diagramme suivant decrit le chemin complet: saisie des etapes, creation du compte, envoi de l'email de verification, attente active cote mobile, puis redirection automatique apres confirmation.
+Le diagramme suivant décrit le chemin complet: saisie des étapes, création du compte, envoi de l'email de vérification, attente active côté mobile, puis redirection automatique après confirmation.
 
 \begin{figure}[h!]
     \centering
     \includegraphics[width=0.95\textwidth]{../assets/app-mobile-registration-sequence.png}
-    \caption{Sequence technique d'inscription avec verification email}
+    \caption{Séquence technique d'inscription avec vérification email}
 \end{figure}
 
-\subsection{Connexion et verification email}
+\subsection{Connexion et vérification email}
 
-Apres lancement de l'application, l'utilisateur arrive sur \texttt{LoginScreen}. Il saisit son identifiant (email ou telephone) et son mot de passe.
+Après lancement de l'application, l'utilisateur arrive sur \texttt{LoginScreen}. Il saisit son identifiant (email ou téléphone) et son mot de passe.
 
 \begin{itemize}
     \item Si le compte est valide, l'application ouvre directement l'espace principal.
-    \item Si l'email n'est pas verifie, l'utilisateur est redirige vers \texttt{EmailVerificationScreen}.
+    \item Si l'email n'est pas vérifié, l'utilisateur est redirigé vers \texttt{EmailVerificationScreen}.
 \end{itemize}
 
-Cet ecran de verification interroge periodiquement le backend. Une fois le mail confirme via le lien recu, l'application met a jour la session et redirige automatiquement vers le tableau de bord.
+Cet écran de vérification interroge périodiquement le backend. Une fois le mail confirmé via le lien reçu, l'application met à jour la session et redirige automatiquement vers le tableau de bord.
 
 \begin{figure}[h!]
     \centering
     \includegraphics[width=0.95\textwidth]{../assets/app-mobile-login-sequence.png}
-    \caption{Sequence technique de connexion avec gestion de l'email non verifie}
+    \caption{Séquence technique de connexion avec gestion de l'email non vérifié}
 \end{figure}
 
-\subsection{Reinitialisation du mot de passe}
+\subsection{Réinitialisation du mot de passe}
 
-Depuis \texttt{LoginScreen}, l'action \texttt{Mot de passe oublie} ouvre le flux de reinitialisation:
+Depuis \texttt{LoginScreen}, l'action \texttt{Mot de passe oublié} ouvre le flux de réinitialisation:
 \begin{itemize}
     \item envoi d'une demande de reset,
-    \item reception d'un email,
-    \item definition d'un nouveau mot de passe,
-    \item retour a la connexion.
+    \item réception d'un email,
+    \item définition d'un nouveau mot de passe,
+    \item retour à la connexion.
 \end{itemize}
 
-Cette separation permet de garder un ecran de connexion simple tout en offrant un parcours de recuperation complet.
+Cette séparation permet de garder un écran de connexion simple tout en offrant un parcours de récupération complet.
 
 \begin{figure}[h!]
     \centering
     \includegraphics[width=0.95\textwidth]{../assets/app-mobile-reset-password-sequence.png}
-    \caption{Sequence technique de reinitialisation du mot de passe}
+    \caption{Séquence technique de réinitialisation du mot de passe}
 \end{figure}
 
-\subsection{Diagramme d'etat global authentification}
+\subsection{Diagramme d'état global authentification}
 
-Le diagramme d'etat ci-dessous resume les transitions entre les etats principaux: connexion, inscription, attente de verification email, acces au dashboard, et retour apres deconnexion ou reset du mot de passe.
+Le diagramme d'état ci-dessous résume les transitions entre les états principaux: connexion, inscription, attente de vérification email, accès au dashboard, et retour après déconnexion ou reset du mot de passe.
 
 \begin{figure}[h!]
     \centering
     \includegraphics[width=0.95\textwidth]{../assets/app-mobile-auth-state.png}
-    \caption{Diagramme d'etat global du cycle inscription-connexion-reset}
+    \caption{Diagramme d'état global du cycle inscription-connexion-reset}
 \end{figure}
 
-\subsection{Decisions UX abandonnees ou deplacees}
+\subsection{Décisions UX abandonnées ou déplacées}
 
-Les evolutions du parcours ont conduit a deplacer plusieurs elements hors du tunnel d'inscription principal:
+Les évolutions du parcours ont conduit à déplacer plusieurs éléments hors du tunnel d'inscription principal:
 \begin{itemize}
-    \item Les documents KYC ne sont plus demandes pendant les trois etapes d'inscription: ils sont traites apres creation du compte, depuis le profil.
-    \item L'ancien ecran de finalisation (ancien \texttt{RegisterStep4}) reste present dans le code, mais n'est plus integre au flux UX principal.
-    \item La verification SMS complete n'est pas activee a ce stade; une verification de validite du numero est appliquee, avec arbitrage cout/complexite sur les services externes.
+    \item Les documents KYC ne sont plus demandés pendant les trois étapes d'inscription: ils sont traités après création du compte, depuis le profil.
+    \item L'ancien écran de finalisation (ancien \texttt{RegisterStep4}) reste présent dans le code, mais n'est plus intégré au flux UX principal.
+    \item La vérification SMS complète n'est pas activée à ce stade; une vérification de validité du numéro est appliquée, avec arbitrage coût/complexité sur les services externes.
 \end{itemize}
 
 \newpage
-\section{Navigation et écrans post-connexion}
+\subsection{Navigation et écrans post-connexion}
 
-\subsection{Architecture de navigation principale (MainTabs)}
+\subsubsection{Architecture de navigation principale (MainTabs)}
 
 Une fois connecté, le livreur arrive sur \texttt{MainTabs.js}, qui constitue le cœur de l'application post-authentification. Cette structure repose sur:
 
@@ -213,7 +213,7 @@ Le header \texttt{Header.js} affiche:
 
 \textbf{Magasin partagé:} \texttt{useAvailabilityStore} (simple toggle Zustand) maintient l'état \texttt{isOnline} en mémoire de session.
 
-\subsection{Écran 1: Tableau de Bord (Dashboard / TableauDeBord.js)}
+\subsubsection{Écran 1: Tableau de Bord (Dashboard / TableauDeBord.js)}
 
 \subsubsection{Purpose et composition}
 
@@ -538,7 +538,7 @@ Le Portefeuille affiche les gains du livreur et permet les demandes de virement.
     \item Validation et vérification:
     \begin{itemize}
         \item Montant doit être > 0.
-        \item Montant doit être ≤ solde disponible.
+        \item Montant doit être $\leq$ solde disponible.
     \end{itemize}
     \item Appel API \texttt{requestWithdrawal(amount)}: POST \texttt{/driver/me/wallet/withdrawals}.
     \item Sur succès: alerte confirmation + rechargement du solde.
@@ -646,7 +646,7 @@ Chaque document dans un slot a quatre états possibles:
 \begin{description}
     \item[\textbf{Non fourni}] aucun fichier uploadé; puce grise; CTA <<Ajouter document>>.
     \item[\textbf{En attente d'examen}] document uploadé mais pas encore vérifiée par backend; icône horloge bleu; puce bleu.
-    \item[\textbf{Vérifié}] backend a validé le document; icône checkmark vert; puce vert; badge <<Vérifié ✓>>.
+    \item[\textbf{Vérifié}] backend a validé le document; icône checkmark vert; puce vert; badge <<Vérifié~\checkmark>>.
     \item[\textbf{Refusé}] backend a rejeté le document; icône X rouge; puce rouge; badge <<Refusé — à corriger>> + raison de rejet.
 \end{description}
 

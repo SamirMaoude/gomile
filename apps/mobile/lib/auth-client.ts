@@ -251,6 +251,7 @@ export async function verifyOtp(input: { email: string; otp: string }) {
 
 // Resets the password using the reset token returned by verify-otp.
 export async function resetPassword(input: {
+  email: string;
   resetToken: string;
   newPassword: string;
 }) {
