@@ -64,7 +64,7 @@ cypress_web_tests:
     - corepack prepare pnpm@10.30.3 --activate
     - pnpm config set store-dir .pnpm-store
     - pnpm install --frozen-lockfile=false --network-concurrency=1 --child-concurrency=1
-    - pnpm --filter web cypress install
+    - pnpm --filter web exec cypress install
   cache:
     key: "${CI_COMMIT_REF_SLUG}"
     paths:
