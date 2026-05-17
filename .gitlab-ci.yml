@@ -28,15 +28,65 @@ workflow:
 variables:
   EXPO_NO_TELEMETRY: "1"
 
-lint:
+linttsx_web:
   stage: validate
+  tags:
+    - docker
+  image: node:22-alpine
   script:
-    - pnpm -r lint
+    - pnpm --filter web lint:tsx
 
-typecheck:
+lintcss_web:
   stage: validate
+  tags:
+    - docker
+  image: node:22-alpine
   script:
-    - pnpm -r typecheck
+    - pnpm --filter web lint:css
+
+typecheck_web:
+  stage: validate
+  tags:
+    - docker
+  image: node:22-alpine
+  script:
+    - pnpm --filter web typecheck
+
+cypress_web_tests:
+  stage: validate
+  tags:
+    - docker
+  image: cypress/base:22.15.0
+  before_script:
+    - corepack enable
+    - corepack prepare pnpm@10.30.3 --activate
+    - pnpm config set store-dir .pnpm-store
+    - pnpm install --frozen-lockfile=false --network-concurrency=1 --child-concurrency=1
+  cache:
+    key: "${CI_COMMIT_REF_SLUG}"
+    paths:
+      - .pnpm-store/
+      - node_modules/
+      - apps/web/node_modules/
+      - .cache/Cypress/
+    policy: pull-push
+  script:
+    - pnpm --filter web build
+    - pnpm --filter web start > web.log 2>&1 &
+    - SERVER_PID=$!
+    - sleep 15
+    - pnpm --filter web test:e2e:front
+    - kill $SERVER_PID || true
+  after_script:
+    - cat web.log || true
+    - pkill -f "next start" || true
+  artifacts:
+    when: always
+    expire_in: 1 week
+    paths:
+      - web.log
+      - apps/web/cypress/screenshots/
+      - apps/web/cypress/videos/
 
 plugin_woocommerce_tests:
   stage: validate

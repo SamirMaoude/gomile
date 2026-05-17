@@ -15,7 +15,8 @@
     "quality": "pnpm lint:tsx && pnpm lint:css && pnpm typecheck",
     "cypress:open": "env -u ELECTRON_RUN_AS_NODE -u ELECTRON_NO_ATTACH_CONSOLE cypress open",
     "cypress:run": "env -u ELECTRON_RUN_AS_NODE -u ELECTRON_NO_ATTACH_CONSOLE cypress run",
-    "test:e2e:merchant": "env -u ELECTRON_RUN_AS_NODE -u ELECTRON_NO_ATTACH_CONSOLE cypress run --spec cypress/e2e/merchant.cy.ts"
+    "test:front": "env -u ELECTRON_RUN_AS_NODE -u ELECTRON_NO_ATTACH_CONSOLE cypress run --spec \"cypress/e2e/*.cy.ts\"",
+    "test:merchant": "env -u ELECTRON_RUN_AS_NODE -u ELECTRON_NO_ATTACH_CONSOLE cypress run --spec \"cypress/e2e/merchant.cy.ts\""
   },
   "dependencies": {
     "clsx": "^2.1.1",
