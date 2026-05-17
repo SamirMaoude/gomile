@@ -51,15 +51,15 @@ export default function AdminDashboardConflicts() {
           Dashboard admin - conflits
         </Typography>
         <Typography variant="p" Component="p" className="mt-2 !text-slate-600">
-          Relancez la génération de clé API liée à une commande en conflit.
+          Relancez la génération du handshake lié à une commande en conflit.
         </Typography>
       </div>
 
       <div className="max-w-2xl">
-        <AdminDashboardChartCard title="Renvoyer la clé API">
+        <AdminDashboardChartCard title="Renvoyer le handshake">
           <form className="grid gap-4" onSubmit={handleSubmit}>
             <Typography variant="p" Component="p" className="!text-sm !text-slate-600">
-              Saisissez l’identifiant de commande concerné.
+              Saisissez l'identifiant de commande concerné.
             </Typography>
 
             <Input
