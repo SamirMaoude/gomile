@@ -8,7 +8,7 @@ import DynamicTable, {
   type DynamicTableColumn,
 } from "@/components/ui/design-system/table/dynamic-table";
 
-import AdminDataTableCard from "./admin-data-table-card";
+import AdminDataTableCard from "./TableCard";
 
 type AdminEntityTableProps<T> = {
   title: string;

@@ -144,8 +144,10 @@ function buildUserLocationPopup() {
 
 export default function DeliveryMap({
   markers = [],
+  showUserLocation = true,
 }: {
   markers?: MerchantMapMarker[];
+  showUserLocation?: boolean;
 }) {
   const [isMapReady, setIsMapReady] = useState(false);
 
@@ -252,31 +254,33 @@ export default function DeliveryMap({
         );
       }
 
-      if ("geolocation" in navigator) {
-        watchPositionId = navigator.geolocation.watchPosition(
-          (position) => {
-            if (cancelled) {
-              return;
-            }
+      if (showUserLocation) {
+        if ("geolocation" in navigator) {
+          watchPositionId = navigator.geolocation.watchPosition(
+            (position) => {
+              if (cancelled) {
+                return;
+              }
 
-            const userCoordinates: [number, number] = [
-              position.coords.latitude,
-              position.coords.longitude,
-            ];
+              const userCoordinates: [number, number] = [
+                position.coords.latitude,
+                position.coords.longitude,
+              ];
 
-            placeUserMarker(userCoordinates, "precise");
-          },
-          () => {
-            void placeApproximateUserMarker();
-          },
-          {
-            enableHighAccuracy: true,
-            maximumAge: 5_000,
-            timeout: 10_000,
-          },
-        );
-      } else {
-        void placeApproximateUserMarker();
+              placeUserMarker(userCoordinates, "precise");
+            },
+            () => {
+              void placeApproximateUserMarker();
+            },
+            {
+              enableHighAccuracy: true,
+              maximumAge: 5_000,
+              timeout: 10_000,
+            },
+          );
+        } else {
+          void placeApproximateUserMarker();
+        }
       }
 
       window.requestAnimationFrame(() => {
@@ -318,7 +322,7 @@ export default function DeliveryMap({
       hasCenteredOnUserRef.current = false;
       setIsMapReady(false);
     };
-  }, []);
+  }, [showUserLocation]);
 
   useEffect(() => {
     const L = leafletRef.current;

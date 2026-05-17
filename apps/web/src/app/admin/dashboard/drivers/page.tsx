@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 import {
   AdminDashboardChartCard,
-} from "@/components/admin/dashboard/admin-dashboard-chart-card";
+} from "@/components/admin/dashboard/ChartContainer";
 import AdminDashboardShell from "@/components/admin/dashboard/admin-dashboard-shell";
 import Typography from "@/components/ui/design-system/typography";
 
