@@ -17,14 +17,14 @@
 \contentsline {subsubsection}{Pourquoi Zustand avant de décrire les étapes}{6}{section*.2}%
 \contentsline {subsection}{\numberline {3.3}Parcours d'inscription}{6}{subsection.3.3.3}%
 \contentsline {subsubsection}{Point d'entrée et logique de découpage}{6}{section*.3}%
-\contentsline {subsubsection}{Étape 1: identité de base (\texttt {RegisterStep1})}{6}{section*.4}%
+\contentsline {subsubsection}{Étape 1: identité de base (\texttt {RegisterStep1})}{7}{section*.4}%
 \contentsline {subsubsection}{Étape 2: identité complémentaire (\texttt {RegisterStep2Identity})}{7}{section*.5}%
 \contentsline {subsubsection}{Étape 3: logistique de livraison (\texttt {RegisterStep2})}{7}{section*.6}%
 \contentsline {subsubsection}{Séquence technique d'inscription}{8}{section*.7}%
 \contentsline {subsection}{\numberline {3.4}Connexion et vérification email}{8}{subsection.3.3.4}%
 \contentsline {subsection}{\numberline {3.5}Réinitialisation du mot de passe}{8}{subsection.3.3.5}%
 \contentsline {subsection}{\numberline {3.6}Diagramme d'état global authentification}{9}{subsection.3.3.6}%
-\contentsline {subsection}{\numberline {3.7}Décisions UX abandonnées ou déplacées}{9}{subsection.3.3.7}%
+\contentsline {subsection}{\numberline {3.7}Décisions UX abandonnées ou déplacées}{10}{subsection.3.3.7}%
 \contentsline {subsection}{\numberline {3.8}Navigation et écrans post-connexion}{11}{subsection.3.3.8}%
 \contentsline {subsubsection}{Architecture de navigation principale (MainTabs)}{11}{section*.8}%
 \contentsline {subsubsection}{Header personnalisé avec toggle en ligne/hors ligne}{11}{section*.9}%
