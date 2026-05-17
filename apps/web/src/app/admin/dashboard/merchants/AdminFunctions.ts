@@ -7,19 +7,18 @@ export {
 } from "../drivers/AdminFunctions";
 
 import { formatDate, type ChartDataItem } from "../drivers/AdminFunctions";
+import type { SubscriptionStatus, SubscriptionTier } from "../admin";
 
 export type MerchantStatus = "active" | "inactive" | "locked";
 export type MerchantStatusOption = "all" | MerchantStatus;
-export type MerchantProviderOption =
-  | "all"
-  | "WOOCOMMERCE"
-  | "SHOPIFY"
-  | "OTHER"
-  | "unknown";
+export type MerchantSubscriptionOption = "all" | SubscriptionTier;
+export type MerchantSubscriptionStatusOption = "all" | SubscriptionStatus;
 
 export type MerchantStore = {
   id?: string;
   name?: string;
+  address?: string;
+  createdAt?: string;
   isActive?: boolean;
   isLocked?: boolean;
   provider?: string | null;
@@ -37,8 +36,11 @@ export type MerchantWithOptionalListFields = {
   isActive?: boolean;
   isLocked?: boolean;
   status?: MerchantStatus;
+  subscription?: SubscriptionTier;
+  subscriptionStatus?: SubscriptionStatus;
   totalOrders?: number;
   storesCount?: number;
+  store?: MerchantStore[];
   stores?: MerchantStore[];
   _count?: {
     stores?: number;
@@ -55,7 +57,7 @@ export type MerchantWithOptionalListFields = {
 type MerchantFilters = {
   searchQuery: string;
   statusFilter: MerchantStatusOption;
-  providerFilter: MerchantProviderOption;
+  subscriptionFilter: MerchantSubscriptionOption;
 };
 
 export const merchantStatusLabels: Record<MerchantStatus, string> = {
@@ -68,6 +70,19 @@ const providerLabels: Record<string, string> = {
   WOOCOMMERCE: "WooCommerce",
   SHOPIFY: "Shopify",
   OTHER: "Autre",
+};
+
+const subscriptionLabels: Record<SubscriptionTier, string> = {
+  FREE: "Gratuit",
+  STARTER: "Starter",
+  PRO: "Pro",
+};
+
+const subscriptionStatusLabels: Record<SubscriptionStatus, string> = {
+  TRIAL: "Essai",
+  ACTIVE: "Actif",
+  PAST_DUE: "Paiement en retard",
+  CANCELLED: "Annule",
 };
 
 export function getMerchantId(merchant: MerchantWithOptionalListFields) {
@@ -90,8 +105,12 @@ export function getMerchantRegistrationDate(merchant: MerchantWithOptionalListFi
   return formatDate(merchant.createdAt);
 }
 
+export function getMerchantStores(merchant: MerchantWithOptionalListFields) {
+  return merchant.stores ?? merchant.store ?? [];
+}
+
 export function getMerchantStoresCount(merchant: MerchantWithOptionalListFields) {
-  return merchant.storesCount ?? merchant._count?.stores ?? merchant.stores?.length ?? 0;
+  return merchant.storesCount ?? merchant._count?.stores ?? getMerchantStores(merchant).length;
 }
 
 export function getMerchantOrdersCount(merchant: MerchantWithOptionalListFields) {
@@ -103,9 +122,9 @@ export function getMerchantOrdersCount(merchant: MerchantWithOptionalListFields)
     return merchant._count.orders;
   }
 
-  return merchant.stores?.reduce((total, store) => {
+  return getMerchantStores(merchant).reduce((total, store) => {
     return total + (store._count?.orders ?? 0);
-  }, 0) ?? 0;
+  }, 0);
 }
 
 export function getMerchantStatus(merchant: MerchantWithOptionalListFields): MerchantStatus {
@@ -113,16 +132,22 @@ export function getMerchantStatus(merchant: MerchantWithOptionalListFields): Mer
     return merchant.status;
   }
 
-  if (merchant.isLocked || merchant.stores?.some((store) => store.isLocked)) {
+  if (
+    merchant.subscriptionStatus === "CANCELLED" ||
+    merchant.isLocked ||
+    getMerchantStores(merchant).some((store) => store.isLocked)
+  ) {
     return "locked";
   }
 
-  if (merchant.isActive === false) {
+  if (merchant.subscriptionStatus === "PAST_DUE" || merchant.isActive === false) {
     return "inactive";
   }
 
-  if (merchant.stores?.length) {
-    return merchant.stores.some((store) => store.isActive !== false)
+  const stores = getMerchantStores(merchant);
+
+  if (stores.length) {
+    return stores.some((store) => store.isActive !== false)
       ? "active"
       : "inactive";
   }
@@ -135,26 +160,26 @@ export function getMerchantStatusLabel(merchant: MerchantWithOptionalListFields)
 }
 
 export function getMerchantProvider(merchant: MerchantWithOptionalListFields) {
-  const provider = merchant.stores?.find((store) => store.provider)?.provider;
+  const provider = getMerchantStores(merchant).find((store) => store.provider)?.provider;
 
   return provider ? providerLabels[provider] ?? provider : "Non renseigne";
 }
 
-export function getMerchantProviderOption(
+export function getMerchantSubscriptionLabel(merchant: MerchantWithOptionalListFields) {
+  return merchant.subscription ? subscriptionLabels[merchant.subscription] : "Non renseigne";
+}
+
+export function getMerchantSubscriptionStatusLabel(
   merchant: MerchantWithOptionalListFields,
-): MerchantProviderOption {
-  const provider = merchant.stores?.find((store) => store.provider)?.provider;
-
-  if (provider === "WOOCOMMERCE" || provider === "SHOPIFY" || provider === "OTHER") {
-    return provider;
-  }
-
-  return "unknown";
+) {
+  return merchant.subscriptionStatus
+    ? subscriptionStatusLabels[merchant.subscriptionStatus]
+    : "Non renseigne";
 }
 
 export function getFilteredMerchants<T extends MerchantWithOptionalListFields>(
   merchants: T[],
-  { searchQuery, statusFilter, providerFilter }: MerchantFilters,
+  { searchQuery, statusFilter, subscriptionFilter }: MerchantFilters,
 ) {
   const normalizedSearch = searchQuery.trim().toLowerCase();
 
@@ -163,24 +188,25 @@ export function getFilteredMerchants<T extends MerchantWithOptionalListFields>(
       getMerchantName(merchant),
       getMerchantEmail(merchant),
       getMerchantPhone(merchant),
-      getMerchantProvider(merchant),
+      getMerchantSubscriptionLabel(merchant),
+      getMerchantSubscriptionStatusLabel(merchant),
       getMerchantStatusLabel(merchant),
     ].join(" ").toLowerCase();
 
     return (
       (!normalizedSearch || searchableText.includes(normalizedSearch)) &&
       (statusFilter === "all" || getMerchantStatus(merchant) === statusFilter) &&
-      (providerFilter === "all" || getMerchantProviderOption(merchant) === providerFilter)
+      (subscriptionFilter === "all" || merchant.subscription === subscriptionFilter)
     );
   });
 }
 
-export function getMerchantProviderChartData(
+export function getMerchantSubscriptionChartData(
   merchants: MerchantWithOptionalListFields[],
 ): ChartDataItem[] {
   const counts = merchants.reduce<Record<string, number>>((countDict, merchant) => {
-    const provider = getMerchantProvider(merchant);
-    countDict[provider] = (countDict[provider] ?? 0) + 1;
+    const subscription = getMerchantSubscriptionLabel(merchant);
+    countDict[subscription] = (countDict[subscription] ?? 0) + 1;
     return countDict;
   }, {});
 
@@ -197,4 +223,61 @@ export function getMerchantStatusChartData(
   }, {});
 
   return Object.entries(counts).map(([name, value]) => ({ name, value }));
+}
+
+export function getMerchantStoresCountChartData(
+  merchants: MerchantWithOptionalListFields[],
+): ChartDataItem[] {
+  const counts = merchants.reduce<Record<string, number>>((countDict, merchant) => {
+    const storesCount = getMerchantStoresCount(merchant);
+    const label = storesCount === 0
+      ? "0 commerce"
+      : storesCount === 1
+        ? "1 commerce"
+        : storesCount <= 3
+          ? "2-3 commerces"
+          : "4+ commerces";
+
+    countDict[label] = (countDict[label] ?? 0) + 1;
+    return countDict;
+  }, {});
+
+  return Object.entries(counts).map(([name, value]) => ({ name, value }));
+}
+
+function parseValidDate(value?: string) {
+  if (!value) {
+    return null;
+  }
+
+  const date = new Date(value);
+
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function isSameDay(dateA: Date, dateB: Date) {
+  return (
+    dateA.getFullYear() === dateB.getFullYear() &&
+    dateA.getMonth() === dateB.getMonth() &&
+    dateA.getDate() === dateB.getDate()
+  );
+}
+
+export function getStoresAddedCountByDay(
+  merchants: MerchantWithOptionalListFields[],
+  day: string | Date,
+) {
+  const targetDate = typeof day === "string" ? parseValidDate(day) : day;
+
+  if (!targetDate || Number.isNaN(targetDate.getTime())) {
+    return 0;
+  }
+
+  return merchants.reduce((total, merchant) => {
+    return total + getMerchantStores(merchant).filter((store) => {
+      const storeDate = parseValidDate(store.createdAt);
+
+      return storeDate ? isSameDay(storeDate, targetDate) : false;
+    }).length;
+  }, 0);
 }

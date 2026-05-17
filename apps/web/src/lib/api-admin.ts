@@ -1,4 +1,8 @@
 import type { ListDriverOrdersItem } from "../../../../shared/order-contracts";
+import type {
+  RegisterDriverInput,
+  RegisterMerchantInput,
+} from "../../../../shared/auth-contracts";
 import { requestWithAutoRefresh } from "./protected-request";
 
 export type DriverStatus = "AVAILABLE" | "BUSY" | "OFFLINE";
@@ -100,6 +104,11 @@ export type RejectKycInput = {
   rejectionReason: string;
 };
 
+export type CreateAdminAccountInput = {
+  email: string;
+  password: string;
+};
+
 export type SubscriptionTier = "FREE" | "STARTER" | "PRO";
 export type SubscriptionStatus = "TRIAL" | "ACTIVE" | "PAST_DUE" | "CANCELLED";
 
@@ -156,6 +165,36 @@ export function resetHandshake(orderId: string) {
   return requestWithAutoRefresh<AdminMessageResponse>(
     `/api/admin/orders/${orderId}/reset`,
     { method: "POST" },
+  );
+}
+
+export function createAdminAccount(input: CreateAdminAccountInput) {
+  return requestWithAutoRefresh<AdminMessageResponse>(
+    "/api/admin/accounts/admin",
+    {
+      method: "POST",
+      body: JSON.stringify(input),
+    },
+  );
+}
+
+export function createMerchantAccount(input: RegisterMerchantInput) {
+  return requestWithAutoRefresh<AdminMessageResponse>(
+    "/api/admin/accounts/merchant",
+    {
+      method: "POST",
+      body: JSON.stringify(input),
+    },
+  );
+}
+
+export function createDriverAccount(input: RegisterDriverInput) {
+  return requestWithAutoRefresh<AdminMessageResponse>(
+    "/api/admin/accounts/driver",
+    {
+      method: "POST",
+      body: JSON.stringify(input),
+    },
   );
 }
 

@@ -20,12 +20,13 @@ import {
   getMerchantName,
   getMerchantOrdersCount,
   getMerchantPhone,
-  getMerchantProvider,
   getMerchantRegistrationDate,
+  getMerchantSubscriptionLabel,
+  getMerchantSubscriptionStatusLabel,
   getMerchantStatusLabel,
   getMerchantStoresCount,
-  type MerchantProviderOption,
   type MerchantStatusOption,
+  type MerchantSubscriptionOption,
   type MerchantWithOptionalListFields,
 } from "./AdminFunctions";
 
@@ -42,15 +43,15 @@ export default function MerchantsTable<T extends MerchantWithOptionalListFields>
 }: MerchantsTableProps<T>) {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<MerchantStatusOption>("all");
-  const [providerFilter, setProviderFilter] = useState<MerchantProviderOption>("all");
+  const [subscriptionFilter, setSubscriptionFilter] = useState<MerchantSubscriptionOption>("all");
 
   const filteredMerchants = useMemo(() => {
     return getFilteredMerchants(merchants, {
       searchQuery,
       statusFilter,
-      providerFilter,
+      subscriptionFilter,
     });
-  }, [merchants, providerFilter, searchQuery, statusFilter]);
+  }, [merchants, searchQuery, statusFilter, subscriptionFilter]);
 
   const columns: DynamicTableColumn<T>[] = [
     {
@@ -101,11 +102,11 @@ export default function MerchantsTable<T extends MerchantWithOptionalListFields>
       ),
     },
     {
-      key: "provider",
-      header: "Provider",
+      key: "subscription",
+      header: "Abonnement",
       render: (merchant) => (
         <span className="admin-data-table-primary-cell">
-          {getMerchantProvider(merchant)}
+          {getMerchantSubscriptionLabel(merchant)}
         </span>
       ),
     },
@@ -123,9 +124,14 @@ export default function MerchantsTable<T extends MerchantWithOptionalListFields>
       key: "status",
       header: "Statut",
       render: (merchant) => (
-        <span className="admin-data-table-status-text">
-          {getMerchantStatusLabel(merchant)}
-        </span>
+        <div className="admin-data-table-stack">
+          <span className="admin-data-table-status-text">
+            {getMerchantStatusLabel(merchant)}
+          </span>
+          <span className="admin-data-table-identity-meta">
+            {getMerchantSubscriptionStatusLabel(merchant)}
+          </span>
+        </div>
       ),
     },
     {
@@ -135,17 +141,6 @@ export default function MerchantsTable<T extends MerchantWithOptionalListFields>
         <span className="admin-data-table-metric">
           {getMerchantOrdersCount(merchant)}
         </span>
-      ),
-    },
-    {
-      key: "actions",
-      header: "Actions",
-      headerClassName: "admin-data-table-actions-header",
-      cellClassName: "admin-data-table-actions-cell",
-      render: () => (
-        <button type="button" className="admin-data-table-icon-button" aria-label="Actions commerçant">
-          <MoreHorizontal className="admin-data-table-action-icon" />
-        </button>
       ),
     },
   ];
@@ -180,16 +175,15 @@ export default function MerchantsTable<T extends MerchantWithOptionalListFields>
           </select>
 
           <select
-            value={providerFilter}
-            onChange={(event) => setProviderFilter(event.target.value as MerchantProviderOption)}
+            value={subscriptionFilter}
+            onChange={(event) => setSubscriptionFilter(event.target.value as MerchantSubscriptionOption)}
             className="admin-data-table-select"
-            aria-label="Filtrer par provider"
+            aria-label="Filtrer par abonnement"
           >
-            <option value="all">Tous les providers</option>
-            <option value="WOOCOMMERCE">WooCommerce</option>
-            <option value="SHOPIFY">Shopify</option>
-            <option value="OTHER">Autres</option>
-            <option value="unknown">Non renseignes</option>
+            <option value="all">Tous les abonnements</option>
+            <option value="FREE">Gratuit</option>
+            <option value="STARTER">Starter</option>
+            <option value="PRO">Pro</option>
           </select>
         </>
       }
