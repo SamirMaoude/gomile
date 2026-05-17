@@ -1,0 +1,44 @@
+PROJECT_NAME           = "Gomile Shipment"
+PROJECT_BRIEF          = "Documentation technique du plugin WooCommerce Gomile Shipment"
+PROJECT_NUMBER         = 1.1.0
+OUTPUT_DIRECTORY       = docs/doxygen
+HTML_OUTPUT            = html
+
+INPUT                  = DOXYGEN_MAINPAGE.md \
+                         README.md \
+                         gomile-shipment.php \
+                         includes
+FILE_PATTERNS          = *.php *.md
+RECURSIVE              = YES
+EXCLUDE                = vendor tests languages build docs
+EXCLUDE_PATTERNS       = */vendor/* */tests/* */languages/*
+USE_MDFILE_AS_MAINPAGE = DOXYGEN_MAINPAGE.md
+
+GENERATE_HTML          = YES
+GENERATE_LATEX         = NO
+MARKDOWN_SUPPORT       = YES
+SOURCE_BROWSER         = YES
+INLINE_SOURCES         = NO
+GENERATE_TREEVIEW      = YES
+FULL_PATH_NAMES        = NO
+STRIP_FROM_PATH        = .
+
+OPTIMIZE_OUTPUT_FOR_C  = NO
+OPTIMIZE_OUTPUT_JAVA   = NO
+EXTENSION_MAPPING      = php=PHP
+EXTRACT_ALL            = NO
+EXTRACT_STATIC         = YES
+EXTRACT_LOCAL_CLASSES  = YES
+EXTRACT_PRIVATE        = NO
+EXTRACT_PACKAGE        = NO
+
+QUIET                  = YES
+WARNINGS               = YES
+WARN_IF_UNDOCUMENTED   = YES
+WARN_IF_DOC_ERROR      = NO
+WARN_NO_PARAMDOC       = YES
+WARN_AS_ERROR          = NO
+
+HAVE_DOT               = NO
+CALL_GRAPH             = NO
+CALLER_GRAPH           = NO

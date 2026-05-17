@@ -12,6 +12,8 @@
     }
   },
   "scripts": {
+    "docs": "doxygen Doxyfile",
+    "docs:clean": "rm -rf docs/doxygen",
     "lint": "find . -path ./vendor -prune -o -name '*.php' -print -exec php -l {} \\;",
     "test": "phpunit --configuration phpunit.xml.dist",
     "test:unit": "phpunit --configuration phpunit.xml.dist --testsuite Unit"

@@ -1,7 +1,7 @@
 <?php
 /**
  * @file
- * @brief Hooks WooCommerce lies a la commande et a la creation de livraison.
+ * @brief Hooks WooCommerce liés à la commande et à la création de livraison.
  * @package GomileShipment
  */
 
@@ -17,7 +17,7 @@ add_action('woocommerce_store_api_checkout_order_processed', 'gomile_shipment_ha
 add_action('woocommerce_order_status_cancelled', 'gomile_shipment_cancel_delivery_on_order_cancelled', 10, 1);
 
 /**
- * @brief Point d'entree checkout classique.
+ * @brief Point d'entrée checkout classique.
  *
  * @param $order_id Identifiant de commande WooCommerce.
  * @return void
@@ -33,9 +33,9 @@ function gomile_shipment_handle_order($order_id) {
 }
 
 /**
- * @brief Point d'entree checkout blocs / Store API.
+ * @brief Point d'entrée checkout blocs / Store API.
  *
- * @param $order Commande WooCommerce deja instanciee.
+ * @param $order Commande WooCommerce déjà instanciée.
  * @return void
  */
 function gomile_shipment_handle_block_order($order) {
@@ -47,7 +47,7 @@ function gomile_shipment_handle_block_order($order) {
 }
 
 /**
- * @brief Initialise les metadonnees Gomile puis cree la commande cote API au checkout.
+ * @brief Initialise les métadonnées Gomile puis crée la commande côté API au checkout.
  *
  * @param $order Commande WooCommerce.
  * @param $trigger Origine de l'appel.
@@ -80,7 +80,7 @@ function gomile_shipment_process_order($order, $trigger = 'manual') {
 }
 
 /**
- * @brief Cree la commande Gomile si elle n'existe pas deja.
+ * @brief Crée la commande Gomile si elle n'existe pas déjà.
  *
  * @param $order Commande WooCommerce.
  * @param $trigger Origine de l'appel.
@@ -179,7 +179,7 @@ function gomile_shipment_dispatch_delivery($order, $trigger = 'manual') {
 }
 
 /**
- * @brief Verifie si la commande utilise la methode d'expedition Gomile.
+ * @brief Vérifie si la commande utilise la méthode d'expédition Gomile.
  *
  * @param $order Commande WooCommerce.
  * @return bool
@@ -198,7 +198,12 @@ function gomile_shipment_order_uses_method($order) {
     return false;
 }
 
-
+/**
+ * @brief Annule la livraison Gomile quand la commande WooCommerce est annulée.
+ *
+ * @param $order_id Identifiant de commande WooCommerce.
+ * @return void
+ */
 function gomile_shipment_cancel_delivery_on_order_cancelled($order_id) {
     $order = wc_get_order($order_id);
 
