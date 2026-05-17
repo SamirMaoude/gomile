@@ -143,17 +143,6 @@ export default function MerchantsTable<T extends MerchantWithOptionalListFields>
         </span>
       ),
     },
-    {
-      key: "actions",
-      header: "Actions",
-      headerClassName: "admin-data-table-actions-header",
-      cellClassName: "admin-data-table-actions-cell",
-      render: () => (
-        <button type="button" className="admin-data-table-icon-button" aria-label="Actions commerçant">
-          <MoreHorizontal className="admin-data-table-action-icon" />
-        </button>
-      ),
-    },
   ];
 
   return (

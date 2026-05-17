@@ -136,8 +136,8 @@ export default function AdminDashboardAddMember() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
-    const formData = new FormData(event.currentTarget);
+    const form = event.currentTarget;
+    const formData = new FormData(form);
     const email = getFormValue(formData, "email");
     const password = String(formData.get("password") ?? "");
     const missingField = fields.find((field) => {
@@ -204,7 +204,7 @@ export default function AdminDashboardAddMember() {
         setSuccessMessage(response.message);
       }
 
-      event.currentTarget.reset();
+      form.reset();
     } catch (submitError: unknown) {
       setError(submitError instanceof Error ? submitError.message : "Erreur");
     } finally {

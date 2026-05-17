@@ -11,7 +11,7 @@ import {
   formatWeekday,
   getCurrentWeekDays,
   parseDateInputValue,
-} from "./chart-date-helpers";
+} from "./DateFunctions";
 
 type AdminWeeklyBarChartProps = {
   getValueForDay: (date: Date) => number;

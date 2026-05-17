@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 
 import Typography from "@/components/ui/design-system/typography";
 
-import "./admin-data-table-card.css";
+import "./TableCard.css";
 
 type AdminDataTableCardProps = {
   title: string;
