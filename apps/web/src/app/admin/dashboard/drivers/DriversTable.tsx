@@ -6,16 +6,13 @@ import {
   Mail,
   MapPin,
   Phone,
-  Search,
   Star,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
+import AdminEntityTable from "@/components/admin/dashboard/admin-entity-table";
 import Avatar from "@/components/ui/design-system/avatar";
-import Input from "@/components/ui/design-system/input/input";
-import DynamicTable, {
-  type DynamicTableColumn,
-} from "@/components/ui/design-system/table/dynamic-table";
+import type { DynamicTableColumn } from "@/components/ui/design-system/table/dynamic-table";
 import Typography from "@/components/ui/design-system/typography";
 
 import type { Driver } from "../admin";
@@ -34,7 +31,6 @@ import {
   type StatusOption,
   type VehicleOption,
 } from "./AdminFunctions";
-import "./DriversTable.css";
 
 type DriversTableProps = {
   drivers: Driver[];
@@ -66,7 +62,7 @@ export default function DriversTable({
     {
       key: "driver",
       header: "Livreur",
-      cellClassName: "admin-drivers-driver-cell",
+      cellClassName: "admin-data-table-identity-cell",
       render: (driver) => {
         const currentDriver = driver as DriverWithOptionalListFields;
         const name = getDriverName(currentDriver);
@@ -74,19 +70,19 @@ export default function DriversTable({
         return (
           <>
             <Avatar name={name} size="sm" />
-            <div className="admin-drivers-driver-text">
+            <div className="admin-data-table-identity-text">
               <Typography
                 variant="span"
                 Component="span"
                 weight="semibold"
-                className="admin-drivers-driver-name"
+                className="admin-data-table-identity-name"
               >
                 {name}
               </Typography>
               <Typography
                 variant="span"
                 Component="span"
-                className="admin-drivers-driver-meta"
+                className="admin-data-table-identity-meta"
               >
                 Inscrit le {getDriverRegistrationDate(currentDriver)}
               </Typography>
@@ -99,13 +95,13 @@ export default function DriversTable({
       key: "contact",
       header: "Contact",
       render: (driver) => (
-        <div className="admin-drivers-stack">
-          <span className="admin-drivers-icon-text">
-            <Mail className="admin-drivers-cell-icon" />
+        <div className="admin-data-table-stack">
+          <span className="admin-data-table-icon-text">
+            <Mail className="admin-data-table-cell-icon" />
             {getDriverEmail(driver)}
           </span>
-          <span className="admin-drivers-icon-text">
-            <Phone className="admin-drivers-cell-icon" />
+          <span className="admin-data-table-icon-text">
+            <Phone className="admin-data-table-cell-icon" />
             {getDriverPhone(driver)}
           </span>
         </div>
@@ -115,7 +111,7 @@ export default function DriversTable({
       key: "vehicle",
       header: "Vehicule",
       render: (driver) => (
-        <span className="admin-drivers-primary-cell">
+        <span className="admin-data-table-primary-cell">
           {getDriverVehicle(driver as DriverWithOptionalListFields)}
         </span>
       ),
@@ -124,8 +120,8 @@ export default function DriversTable({
       key: "zone",
       header: "Zone",
       render: (driver) => (
-        <span className="admin-drivers-icon-text">
-          <MapPin className="admin-drivers-cell-icon" />
+        <span className="admin-data-table-icon-text">
+          <MapPin className="admin-data-table-cell-icon" />
           {getDriverZone(driver as DriverWithOptionalListFields)}
         </span>
       ),
@@ -134,7 +130,7 @@ export default function DriversTable({
       key: "status",
       header: "Statut activite",
       render: (driver) => (
-        <span className="admin-drivers-status-text">
+        <span className="admin-data-table-status-text">
           {getDriverStatusLabel(driver.status)}
         </span>
       ),
@@ -143,7 +139,7 @@ export default function DriversTable({
       key: "kyc",
       header: "Statut KYC",
       render: (driver) => (
-        <span className="admin-drivers-status-text">
+        <span className="admin-data-table-status-text">
           {getDriverKycStatusLabel(driver.kycStatus)}
         </span>
       ),
@@ -152,7 +148,7 @@ export default function DriversTable({
       key: "deliveries",
       header: "Livraisons",
       render: (driver) => (
-        <span className="admin-drivers-metric">{driver.totalTrips}</span>
+        <span className="admin-data-table-metric">{driver.totalTrips}</span>
       ),
     },
     {
@@ -162,8 +158,8 @@ export default function DriversTable({
         const rating = (driver as DriverWithOptionalListFields).rating;
 
         return (
-          <span className="admin-drivers-rating">
-            <Star className="admin-drivers-star-icon" />
+          <span className="admin-data-table-rating">
+            <Star className="admin-data-table-star-icon" />
             {rating ? rating.toFixed(1) : "--"}
           </span>
         );
@@ -172,17 +168,17 @@ export default function DriversTable({
     {
       key: "actions",
       header: "Actions",
-      headerClassName: "admin-drivers-actions-header",
-      cellClassName: "admin-drivers-actions-cell",
+      headerClassName: "admin-data-table-actions-header",
+      cellClassName: "admin-data-table-actions-cell",
       render: (driver) => {
         return (
           <button
             type="button"
-            className="admin-drivers-details-button"
+            className="admin-data-table-details-button"
             onClick={() => router.push(`/admin/dashboard/drivers/${driver.userId}`)}
           >
-            <Eye className="admin-drivers-details-icon" />
-            Get details
+            <Eye className="admin-data-table-details-icon" />
+            Details
           </button>
         );
       },
@@ -190,33 +186,25 @@ export default function DriversTable({
   ];
 
   return (
-    <section className="admin-drivers-card">
-      <div className="admin-drivers-toolbar">
-        <div className="admin-drivers-title-block">
-          <Typography variant="h3" Component="h3" className="admin-drivers-title">
-            Liste des livreurs
-          </Typography>
-          <Typography variant="span" Component="span" className="admin-drivers-count">
-            ({filteredDrivers.length})
-          </Typography>
-        </div>
-
-        <div className="admin-drivers-controls">
-          <Input
-            type="search"
-            value={searchQuery}
-            onChange={(event) => setSearchQuery(event.target.value)}
-            placeholder="Rechercher..."
-            aria-label="Rechercher un livreur"
-            leftIcon={<Search className="admin-drivers-search-icon" />}
-            containerClassName="admin-drivers-search-container"
-            inputWrapperClassName="admin-drivers-search-wrapper"
-          />
-
+    <AdminEntityTable
+      title="Liste des livreurs"
+      rows={filteredDrivers}
+      columns={columns}
+      rowKey={(driver) => driver.userId}
+      gridTemplateColumns="1.5fr 1.9fr 1.1fr 1.05fr 1fr 1.05fr 0.8fr 0.7fr 0.9fr"
+      searchQuery={searchQuery}
+      onSearchQueryChange={setSearchQuery}
+      searchAriaLabel="Rechercher un livreur"
+      error={error}
+      isLoading={isLoading}
+      loadingMessage="Chargement des livreurs..."
+      emptyMessage="Aucun livreur ne correspond aux filtres."
+      filters={
+        <>
           <select
             value={statusFilter}
             onChange={(event) => setStatusFilter(event.target.value as StatusOption)}
-            className="admin-drivers-select"
+            className="admin-data-table-select"
             aria-label="Filtrer par statut d'activite"
           >
             <option value="all">Tous les statuts activite</option>
@@ -228,7 +216,7 @@ export default function DriversTable({
           <select
             value={kycFilter}
             onChange={(event) => setKycFilter(event.target.value as KycOption)}
-            className="admin-drivers-select"
+            className="admin-data-table-select"
             aria-label="Filtrer par statut KYC"
           >
             <option value="all">Tous les statuts KYC</option>
@@ -241,7 +229,7 @@ export default function DriversTable({
           <select
             value={vehicleFilter}
             onChange={(event) => setVehicleFilter(event.target.value as VehicleOption)}
-            className="admin-drivers-select"
+            className="admin-data-table-select"
             aria-label="Filtrer par vehicule"
           >
             <option value="all">Tous les vehicules</option>
@@ -251,32 +239,8 @@ export default function DriversTable({
             <option value="truck">Camions</option>
             <option value="unknown">Non renseignes</option>
           </select>
-        </div>
-      </div>
-
-      <div className="admin-drivers-table-overflow">
-        {isLoading ? (
-          <p className="admin-drivers-feedback">Chargement des livreurs...</p>
-        ) : error ? (
-          <p className="admin-drivers-error">{error}</p>
-        ) : filteredDrivers.length === 0 ? (
-          <p className="admin-drivers-feedback">Aucun livreur ne correspond aux filtres.</p>
-        ) : (
-          <div className="admin-drivers-table-min">
-            <DynamicTable
-              columns={columns}
-              rows={filteredDrivers}
-              rowKey={(driver) => driver.userId}
-              gridTemplateColumns="1.5fr 1.9fr 1.1fr 1.05fr 1fr 1.05fr 0.8fr 0.7fr 0.9fr"
-              headerRowClassName="admin-drivers-table-head"
-              bodyClassName="admin-drivers-table-body"
-              rowClassName="admin-drivers-table-row"
-              rowsPerPageOptions={[5, 10, 20]}
-              defaultRowsPerPage={10}
-            />
-          </div>
-        )}
-      </div>
-    </section>
+        </>
+      }
+    />
   );
 }

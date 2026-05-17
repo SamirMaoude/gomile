@@ -1,4 +1,4 @@
-.admin-drivers-card {
+.admin-data-table-card {
   overflow: hidden;
   border: 1px solid #e2e8f0;
   border-radius: 1.75rem;
@@ -6,39 +6,39 @@
   box-shadow: 0 16px 40px rgba(15, 23, 42, 0.06);
 }
 
-.admin-drivers-toolbar {
+.admin-data-table-toolbar {
   display: grid;
   gap: 1.25rem;
   border-bottom: 1px solid #e2e8f0;
   padding: 1.25rem;
 }
 
-.admin-drivers-title-block {
+.admin-data-table-title-block {
   display: flex;
   align-items: flex-start;
   gap: 0.25rem;
 }
 
-.admin-drivers-title,
-.admin-drivers-count {
+.admin-data-table-title,
+.admin-data-table-count {
   color: #020617 !important;
   font-size: 1.25rem;
   font-weight: 700;
   line-height: 1.75rem;
 }
 
-.admin-drivers-controls {
+.admin-data-table-controls {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 0.75rem;
 }
 
-.admin-drivers-search-container {
+.admin-data-table-search-container {
   width: 100%;
 }
 
-.admin-drivers-search-wrapper {
+.admin-data-table-search-wrapper {
   height: 2.5rem !important;
   border-color: #cbd5e1 !important;
   border-radius: 0.75rem !important;
@@ -46,18 +46,18 @@
   padding-right: 0.75rem !important;
 }
 
-.admin-drivers-search-wrapper:focus-within {
+.admin-data-table-search-wrapper:focus-within {
   border-color: var(--color-primary-light) !important;
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary-light) 10%, transparent);
 }
 
-.admin-drivers-search-icon {
+.admin-data-table-search-icon {
   width: 1rem;
   height: 1rem;
   color: #64748b;
 }
 
-.admin-drivers-select {
+.admin-data-table-select {
   height: 2.5rem;
   min-width: 9.5rem;
   border: 1px solid #cbd5e1;
@@ -71,20 +71,24 @@
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-.admin-drivers-select:focus {
+.admin-data-table-select:focus {
   border-color: var(--color-primary-light);
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary-light) 10%, transparent);
 }
 
-.admin-drivers-table-overflow {
+.admin-data-table-overflow {
   overflow-x: auto;
 }
 
-.admin-drivers-table-min {
+.admin-data-table-min {
   min-width: 74rem;
 }
 
-.admin-drivers-table-head {
+.admin-data-table-min-compact {
+  min-width: 68rem;
+}
+
+.admin-data-table-head {
   display: grid;
   align-items: center;
   gap: 1rem;
@@ -96,11 +100,11 @@
   font-weight: 700;
 }
 
-.admin-drivers-table-body > * + * {
+.admin-data-table-body > * + * {
   border-top: 1px solid #e2e8f0;
 }
 
-.admin-drivers-table-row {
+.admin-data-table-row {
   display: grid;
   align-items: center;
   gap: 1rem;
@@ -109,35 +113,35 @@
   font-size: 0.875rem;
 }
 
-.admin-drivers-driver-cell {
+.admin-data-table-identity-cell {
   display: flex;
   align-items: center;
   gap: 0.75rem;
 }
 
-.admin-drivers-driver-text {
+.admin-data-table-identity-text {
   min-width: 0;
 }
 
-.admin-drivers-driver-name {
+.admin-data-table-identity-name {
   display: block;
   color: #020617 !important;
   font-size: 1rem !important;
 }
 
-.admin-drivers-driver-meta {
+.admin-data-table-identity-meta {
   display: block;
   margin-top: 0.25rem;
   color: #64748b !important;
   font-size: 0.75rem !important;
 }
 
-.admin-drivers-stack {
+.admin-data-table-stack {
   display: grid;
   gap: 0.375rem;
 }
 
-.admin-drivers-icon-text {
+.admin-data-table-icon-text {
   display: inline-flex;
   min-width: 0;
   align-items: center;
@@ -146,31 +150,26 @@
   font-size: 0.875rem;
 }
 
-.admin-drivers-cell-icon {
+.admin-data-table-cell-icon {
   width: 1rem;
   height: 1rem;
   flex-shrink: 0;
   color: #64748b;
 }
 
-.admin-drivers-primary-cell {
+.admin-data-table-primary-cell,
+.admin-data-table-status-text {
   color: #334155;
   font-size: 0.875rem;
   font-weight: 500;
 }
 
-.admin-drivers-status-text {
-  color: #334155;
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-.admin-drivers-metric {
+.admin-data-table-metric {
   color: #020617;
   font-weight: 700;
 }
 
-.admin-drivers-rating {
+.admin-data-table-rating {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
@@ -178,23 +177,23 @@
   font-weight: 600;
 }
 
-.admin-drivers-star-icon {
+.admin-data-table-star-icon {
   width: 1rem;
   height: 1rem;
   fill: #fbbf24;
   color: #fbbf24;
 }
 
-.admin-drivers-actions-header {
+.admin-data-table-actions-header {
   text-align: right;
 }
 
-.admin-drivers-actions-cell {
+.admin-data-table-actions-cell {
   display: flex;
   justify-content: flex-end;
 }
 
-.admin-drivers-details-button {
+.admin-data-table-details-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -212,45 +211,69 @@
   white-space: nowrap;
 }
 
-.admin-drivers-details-button:hover {
+.admin-data-table-details-button:hover {
   border-color: #94a3b8;
   background: #f1f5f9;
   color: #0f172a;
 }
 
-.admin-drivers-details-icon {
+.admin-data-table-details-icon {
   width: 1rem;
   height: 1rem;
 }
 
-.admin-drivers-feedback,
-.admin-drivers-error {
+.admin-data-table-icon-button {
+  display: inline-flex;
+  width: 2.25rem;
+  height: 2.25rem;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 0.75rem;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.admin-data-table-icon-button:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+}
+
+.admin-data-table-action-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.admin-data-table-feedback,
+.admin-data-table-error {
   padding: 2rem 1.25rem;
   font-size: 0.875rem;
   font-weight: 500;
 }
 
-.admin-drivers-feedback {
+.admin-data-table-feedback {
   color: #475569;
 }
 
-.admin-drivers-error {
+.admin-data-table-error {
   color: #e11d48;
 }
 
 @media (min-width: 640px) {
-  .admin-drivers-search-container {
+  .admin-data-table-search-container {
     width: 14.5rem;
   }
 }
 
 @media (min-width: 1024px) {
-  .admin-drivers-toolbar {
-    grid-template-columns: 10rem 1fr;
+  .admin-data-table-toolbar {
+    grid-template-columns: 11rem 1fr;
     align-items: flex-start;
   }
 
-  .admin-drivers-title-block {
+  .admin-data-table-title-block {
     display: block;
   }
 }

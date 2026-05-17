@@ -1,39 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
-import SimpleBarChart from "@/components/ui/charts/barchart";
+import AdminWeeklyBarChart from "@/components/admin/dashboard/WeekleyBarChart";
 
-import {
-  getDeliveriesCountByDay,
-  type ChartDataItem,
-  type Order,
-} from "./AdminFunctions";
 import { getAllDriverOrders } from "../admin";
+import { getDeliveriesCountByDay, type Order } from "./AdminFunctions";
 
 type DeliveriesChartProps = {
   orders?: Order[];
   referenceDate?: Date;
 };
-
-function getCurrentWeekDays(referenceDate = new Date()) {
-  const currentDay = referenceDate.getDay();
-  const mondayOffset = currentDay === 0 ? -6 : 1 - currentDay;
-  const monday = new Date(referenceDate);
-
-  monday.setHours(0, 0, 0, 0);
-  monday.setDate(referenceDate.getDate() + mondayOffset);
-
-  return Array.from({ length: 7 }, (_, index) => {
-    const date = new Date(monday);
-    date.setDate(monday.getDate() + index);
-    return date;
-  });
-}
-
-function formatWeekday(date: Date) {
-  return new Intl.DateTimeFormat("fr-FR", { weekday: "short" }).format(date);
-}
 
 export default function DeliveriesChart({
   orders: providedOrders,
@@ -57,12 +34,9 @@ export default function DeliveriesChart({
       .finally(() => setIsLoading(false));
   }, [providedOrders]);
 
-  const data = useMemo<ChartDataItem[]>(() => {
-    return getCurrentWeekDays(referenceDate).map((date) => ({
-      name: formatWeekday(date),
-      value: getDeliveriesCountByDay(orders, date),
-    }));
-  }, [orders, referenceDate]);
+  const getValueForDay = useCallback((date: Date) => {
+    return getDeliveriesCountByDay(orders, date);
+  }, [orders]);
 
   if (isLoading) {
     return <p>Chargement des livraisons...</p>;
@@ -72,5 +46,10 @@ export default function DeliveriesChart({
     return <p>{error}</p>;
   }
 
-  return <SimpleBarChart data={data} />;
+  return (
+    <AdminWeeklyBarChart
+      getValueForDay={getValueForDay}
+      referenceDate={referenceDate}
+    />
+  );
 }

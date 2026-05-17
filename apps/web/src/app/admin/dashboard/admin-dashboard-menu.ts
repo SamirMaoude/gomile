@@ -1,15 +1,18 @@
 import type { DashboardMenuItem } from "@/components/dashboard/navbar-items";
-import CommandeIcon from "@/components/ui/icons/CommandeIcon";
+import AlertIcon from "@/components/ui/icons/AlertIcon";
 import HomeIcon from "@/components/ui/icons/HomeIcon";
-import SettingIcon from "@/components/ui/icons/SettingIcon";
+import LogOutIcon from "@/components/ui/icons/LogOutIcon";
+import PlusIcon from "@/components/ui/icons/PlusIcon";
 import TruckIcon from "@/components/ui/icons/TrucIcon";
 import UserIcon from "@/components/ui/icons/UserIcon";
 
 export const adminDashboardMenuItems: DashboardMenuItem[] = [
   { label: "Vue d'ensemble", href: "/admin/dashboard", icon: HomeIcon },
   { label: "Livreurs", href: "/admin/dashboard/drivers", icon: UserIcon },
-  { label: "Marchands", href: "/admin/dashboard/merchants", icon: TruckIcon },
-  {label: "administrateurs", href: "/admin/dashboard/admins", icon: SettingIcon},
+  { label: "Commerçants", href: "/admin/dashboard/merchants", icon: TruckIcon },
+  { label: "Demandes de démission", href: "/admin/dashboard/withdrawals", icon: LogOutIcon },
+  { label: "Conflits", href: "/admin/dashboard/conflicts", icon: AlertIcon },
+  { label: "Ajouter un membre", href: "/admin/dashboard/admins", icon: PlusIcon },
 ];
 
 export function getAdminDashboardMenuItems(activeLabel: string) {

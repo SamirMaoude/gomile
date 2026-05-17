@@ -5,15 +5,12 @@ import {
   Mail,
   MoreHorizontal,
   Phone,
-  Search,
   Store,
 } from "lucide-react";
 
+import AdminEntityTable from "@/components/admin/dashboard/admin-entity-table";
 import Avatar from "@/components/ui/design-system/avatar";
-import Input from "@/components/ui/design-system/input/input";
-import DynamicTable, {
-  type DynamicTableColumn,
-} from "@/components/ui/design-system/table/dynamic-table";
+import type { DynamicTableColumn } from "@/components/ui/design-system/table/dynamic-table";
 import Typography from "@/components/ui/design-system/typography";
 
 import {
@@ -23,15 +20,15 @@ import {
   getMerchantName,
   getMerchantOrdersCount,
   getMerchantPhone,
-  getMerchantProvider,
   getMerchantRegistrationDate,
+  getMerchantSubscriptionLabel,
+  getMerchantSubscriptionStatusLabel,
   getMerchantStatusLabel,
   getMerchantStoresCount,
-  type MerchantProviderOption,
   type MerchantStatusOption,
+  type MerchantSubscriptionOption,
   type MerchantWithOptionalListFields,
 } from "./AdminFunctions";
-import "./MerchantsTable.css";
 
 type MerchantsTableProps<T extends MerchantWithOptionalListFields> = {
   merchants: T[];
@@ -46,40 +43,40 @@ export default function MerchantsTable<T extends MerchantWithOptionalListFields>
 }: MerchantsTableProps<T>) {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<MerchantStatusOption>("all");
-  const [providerFilter, setProviderFilter] = useState<MerchantProviderOption>("all");
+  const [subscriptionFilter, setSubscriptionFilter] = useState<MerchantSubscriptionOption>("all");
 
   const filteredMerchants = useMemo(() => {
     return getFilteredMerchants(merchants, {
       searchQuery,
       statusFilter,
-      providerFilter,
+      subscriptionFilter,
     });
-  }, [merchants, providerFilter, searchQuery, statusFilter]);
+  }, [merchants, searchQuery, statusFilter, subscriptionFilter]);
 
   const columns: DynamicTableColumn<T>[] = [
     {
       key: "merchant",
-      header: "Merchant",
-      cellClassName: "admin-merchants-merchant-cell",
+      header: "Commerçant",
+      cellClassName: "admin-data-table-identity-cell",
       render: (merchant) => {
         const name = getMerchantName(merchant);
 
         return (
           <>
             <Avatar name={name} size="sm" />
-            <div className="admin-merchants-merchant-text">
+            <div className="admin-data-table-identity-text">
               <Typography
                 variant="span"
                 Component="span"
                 weight="semibold"
-                className="admin-merchants-merchant-name"
+                className="admin-data-table-identity-name"
               >
                 {name}
               </Typography>
               <Typography
                 variant="span"
                 Component="span"
-                className="admin-merchants-merchant-meta"
+                className="admin-data-table-identity-meta"
               >
                 Inscrit le {getMerchantRegistrationDate(merchant)}
               </Typography>
@@ -92,24 +89,24 @@ export default function MerchantsTable<T extends MerchantWithOptionalListFields>
       key: "contact",
       header: "Contact",
       render: (merchant) => (
-        <div className="admin-merchants-stack">
-          <span className="admin-merchants-icon-text">
-            <Mail className="admin-merchants-cell-icon" />
+        <div className="admin-data-table-stack">
+          <span className="admin-data-table-icon-text">
+            <Mail className="admin-data-table-cell-icon" />
             {getMerchantEmail(merchant)}
           </span>
-          <span className="admin-merchants-icon-text">
-            <Phone className="admin-merchants-cell-icon" />
+          <span className="admin-data-table-icon-text">
+            <Phone className="admin-data-table-cell-icon" />
             {getMerchantPhone(merchant)}
           </span>
         </div>
       ),
     },
     {
-      key: "provider",
-      header: "Provider",
+      key: "subscription",
+      header: "Abonnement",
       render: (merchant) => (
-        <span className="admin-merchants-primary-cell">
-          {getMerchantProvider(merchant)}
+        <span className="admin-data-table-primary-cell">
+          {getMerchantSubscriptionLabel(merchant)}
         </span>
       ),
     },
@@ -117,8 +114,8 @@ export default function MerchantsTable<T extends MerchantWithOptionalListFields>
       key: "stores",
       header: "Boutiques",
       render: (merchant) => (
-        <span className="admin-merchants-icon-text">
-          <Store className="admin-merchants-cell-icon" />
+        <span className="admin-data-table-icon-text">
+          <Store className="admin-data-table-cell-icon" />
           {getMerchantStoresCount(merchant)}
         </span>
       ),
@@ -127,61 +124,48 @@ export default function MerchantsTable<T extends MerchantWithOptionalListFields>
       key: "status",
       header: "Statut",
       render: (merchant) => (
-        <span className="admin-merchants-status-text">
-          {getMerchantStatusLabel(merchant)}
-        </span>
+        <div className="admin-data-table-stack">
+          <span className="admin-data-table-status-text">
+            {getMerchantStatusLabel(merchant)}
+          </span>
+          <span className="admin-data-table-identity-meta">
+            {getMerchantSubscriptionStatusLabel(merchant)}
+          </span>
+        </div>
       ),
     },
     {
       key: "orders",
       header: "Commandes",
       render: (merchant) => (
-        <span className="admin-merchants-metric">
+        <span className="admin-data-table-metric">
           {getMerchantOrdersCount(merchant)}
         </span>
-      ),
-    },
-    {
-      key: "actions",
-      header: "Actions",
-      headerClassName: "admin-merchants-actions-header",
-      cellClassName: "admin-merchants-actions-cell",
-      render: () => (
-        <button type="button" className="admin-merchants-action-button" aria-label="Actions merchant">
-          <MoreHorizontal className="admin-merchants-action-icon" />
-        </button>
       ),
     },
   ];
 
   return (
-    <section className="admin-merchants-card">
-      <div className="admin-merchants-toolbar">
-        <div className="admin-merchants-title-block">
-          <Typography variant="h3" Component="h3" className="admin-merchants-title">
-            Liste des merchants
-          </Typography>
-          <Typography variant="span" Component="span" className="admin-merchants-count">
-            ({filteredMerchants.length})
-          </Typography>
-        </div>
-
-        <div className="admin-merchants-controls">
-          <Input
-            type="search"
-            value={searchQuery}
-            onChange={(event) => setSearchQuery(event.target.value)}
-            placeholder="Rechercher..."
-            aria-label="Rechercher un merchant"
-            leftIcon={<Search className="admin-merchants-search-icon" />}
-            containerClassName="admin-merchants-search-container"
-            inputWrapperClassName="admin-merchants-search-wrapper"
-          />
-
+    <AdminEntityTable
+      title="Liste des commerçants"
+      rows={filteredMerchants}
+      columns={columns}
+      rowKey={(merchant, rowIndex) => getMerchantId(merchant) || rowIndex}
+      gridTemplateColumns="1.7fr 2fr 1fr 0.8fr 0.9fr 0.8fr 0.6fr"
+      searchQuery={searchQuery}
+      onSearchQueryChange={setSearchQuery}
+      searchAriaLabel="Rechercher un commerçant"
+      error={error}
+      isLoading={isLoading}
+      loadingMessage="Chargement des commerçants..."
+      emptyMessage="Aucun commerçant ne correspond aux filtres."
+      minWidthClassName="admin-data-table-min-compact"
+      filters={
+        <>
           <select
             value={statusFilter}
             onChange={(event) => setStatusFilter(event.target.value as MerchantStatusOption)}
-            className="admin-merchants-select"
+            className="admin-data-table-select"
             aria-label="Filtrer par statut"
           >
             <option value="all">Tous les statuts</option>
@@ -191,43 +175,18 @@ export default function MerchantsTable<T extends MerchantWithOptionalListFields>
           </select>
 
           <select
-            value={providerFilter}
-            onChange={(event) => setProviderFilter(event.target.value as MerchantProviderOption)}
-            className="admin-merchants-select"
-            aria-label="Filtrer par provider"
+            value={subscriptionFilter}
+            onChange={(event) => setSubscriptionFilter(event.target.value as MerchantSubscriptionOption)}
+            className="admin-data-table-select"
+            aria-label="Filtrer par abonnement"
           >
-            <option value="all">Tous les providers</option>
-            <option value="WOOCOMMERCE">WooCommerce</option>
-            <option value="SHOPIFY">Shopify</option>
-            <option value="OTHER">Autres</option>
-            <option value="unknown">Non renseignes</option>
+            <option value="all">Tous les abonnements</option>
+            <option value="FREE">Gratuit</option>
+            <option value="STARTER">Starter</option>
+            <option value="PRO">Pro</option>
           </select>
-        </div>
-      </div>
-
-      <div className="admin-merchants-table-overflow">
-        {isLoading ? (
-          <p className="admin-merchants-feedback">Chargement des merchants...</p>
-        ) : error ? (
-          <p className="admin-merchants-error">{error}</p>
-        ) : filteredMerchants.length === 0 ? (
-          <p className="admin-merchants-feedback">Aucun merchant ne correspond aux filtres.</p>
-        ) : (
-          <div className="admin-merchants-table-min">
-            <DynamicTable
-              columns={columns}
-              rows={filteredMerchants}
-              rowKey={(merchant, rowIndex) => getMerchantId(merchant) || rowIndex}
-              gridTemplateColumns="1.7fr 2fr 1fr 0.8fr 0.9fr 0.8fr 0.6fr"
-              headerRowClassName="admin-merchants-table-head"
-              bodyClassName="admin-merchants-table-body"
-              rowClassName="admin-merchants-table-row"
-              rowsPerPageOptions={[5, 10, 20]}
-              defaultRowsPerPage={10}
-            />
-          </div>
-        )}
-      </div>
-    </section>
+        </>
+      }
+    />
   );
 }

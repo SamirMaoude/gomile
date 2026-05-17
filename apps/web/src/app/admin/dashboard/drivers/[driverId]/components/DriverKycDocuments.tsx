@@ -70,7 +70,7 @@ export default function DriverKycDocuments({
           weight="bold"
           className="admin-driver-detail-muted"
         >
-          Decisions par document non persistees pour l&apos;instant.
+          Decisions par document non persistees pour l'instant.
         </Typography>
       </div>
 
