@@ -229,9 +229,6 @@ export const Navigation = ({
         {showPublicLinks ? (
           <div className={clsx("hidden lg:flex items-center gap-8 xl:gap-10", textThemeClasses[text_theme])}>
             <Typography theme={text_theme} weight="medium" variant="h5" >
-              <Link href="/#contact">Contact</Link>
-            </Typography>
-            <Typography theme={text_theme} weight="medium" variant="h5" >
               <Link href="/faq">FAQ</Link>
             </Typography>
             <Typography theme={text_theme} weight="medium" variant="h5" >

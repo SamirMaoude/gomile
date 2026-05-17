@@ -138,7 +138,7 @@ export default function WithdrawalsTable() {
     },
     {
       key: "amount",
-      header: "Montant",
+      header: "Solde",
       render: (withdrawal) => (
         <span className="admin-data-table-metric">
           {formatAmount(withdrawal.amount)}

@@ -7,7 +7,7 @@ import WithdrawalsTable from "./WithdrawalsTable";
 
 export default function AdminDashboardWithdrawals() {
   return (
-    <AdminDashboardShell activeMenuLabel="Retraits">
+    <AdminDashboardShell activeMenuLabel="Demandes de démission">
       <div className="mb-6">
         <Typography variant="h1" Component="h1" className="!text-2xl !text-slate-950">
           Dashboard admin - retraits

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 import AdminDashboardShell from "@/components/admin/dashboard/admin-dashboard-shell";
 
-import { getDriversList, getMerchant, getMerchantsList, type Driver } from "./admin";
+import { getDriver, getDriversList, getMerchant, getMerchantsList, type Driver } from "./admin";
 import DriversTable from "./drivers/DriversTable";
 import MerchantsTable from "./merchants/MerchantsTable";
 import type { MerchantWithOptionalListFields } from "./merchants/AdminFunctions";
@@ -16,9 +16,19 @@ export default function AdminDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
     getDriversList()
-      .then(setDrivers)
-      .catch((e: unknown) => setError(e instanceof Error ? e.message : "Erreur"))
-      .finally(() => setIsLoading(false));
+          .then(async (driversList) => {
+            const driversWithDetails = await Promise.all(
+              driversList.map((driver) =>
+                getDriver(driver.userId).catch(() => driver),
+              ),
+            );
+    
+            setDrivers(driversWithDetails);
+          })
+          .catch((fetchError: unknown) => {
+            setError(fetchError instanceof Error ? fetchError.message : "Erreur");
+          })
+          .finally(() => setIsLoading(false));
     
     getMerchantsList()
           .then(async (merchantsList) => {
