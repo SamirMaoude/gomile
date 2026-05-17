@@ -38,6 +38,33 @@ typecheck:
   script:
     - pnpm -r typecheck
 
+plugin_woocommerce_tests:
+  stage: validate
+  image: composer:2
+  before_script:
+    - cd apps/plugin/woocommerce
+    - composer install --prefer-dist --no-interaction --no-progress
+  cache:
+    key:
+      files:
+        - apps/plugin/woocommerce/composer.lock
+      prefix: plugin-woocommerce-composer
+    paths:
+      - .composer-cache/
+      - apps/plugin/woocommerce/vendor/
+    policy: pull-push
+  variables:
+    COMPOSER_CACHE_DIR: "$CI_PROJECT_DIR/.composer-cache"
+  script:
+    - composer lint
+    - mkdir -p build/phpunit
+    - vendor/bin/phpunit --configuration phpunit.xml.dist --log-junit build/phpunit/junit.xml
+  artifacts:
+    when: always
+    expire_in: 1 week
+    reports:
+      junit: apps/plugin/woocommerce/build/phpunit/junit.xml
+
 test_api:
   stage: validate
   script:
