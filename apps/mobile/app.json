@@ -12,20 +12,41 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": false,
+      "bundleIdentifier": "com.gomile.driver",
+      "infoPlist": {
+        "UIBackgroundModes": [
+          "remote-notification",
+          "location"
+        ]
+      }
     },
     "android": {
+      "package": "com.gomile.driver",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
-      }
+      },
+      "permissions": [
+        "android.permission.INTERNET",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
+      "expo-dev-client",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#2E7D32",
+          "sounds": []
+        }
+      ],
       "@react-native-community/datetimepicker",
       [
         "expo-image-picker",
@@ -34,6 +55,11 @@
           "cameraPermission": "Autoriser GoMile à utiliser la caméra pour la photo de profil."
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "d2f837a0-779b-43db-b35a-62c470513350"
+      }
+    }
   }
 }

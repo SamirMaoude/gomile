@@ -1,4 +1,5 @@
 import Constants from "expo-constants";
+import * as FileSystem from "expo-file-system/legacy";
 
 import type { ApiErrorPayload } from "./api-errors";
 import { createApiError } from "./api-errors";
@@ -55,7 +56,8 @@ async function requestUploadApi<T>(path: string, init?: RequestInit): Promise<T>
   });
 
   if (!response.ok) {
-    throw new Error(await parseError(response));
+    const err = await parseError(response);
+    throw new Error(`${path} - ${err}`);
   }
 
   return (await response.json()) as T;
@@ -75,6 +77,7 @@ function inferFilename(fileUri: string, fallbackName: string) {
   return fallbackName;
 }
 
+// Presign avec auth (pour les uploads post-connexion, ex. re-upload de doc)
 export async function presignUpload(filename: string, contentType: string) {
   return requestUploadApi<{ uploadUrl: string; fileUrl: string }>("/uploads/presign", {
     method: "POST",
@@ -82,41 +85,65 @@ export async function presignUpload(filename: string, contentType: string) {
   });
 }
 
+// Presign sans auth — le endpoint /uploads/presign est public,
+// utilisé pendant l'inscription avant que le compte soit créé.
+async function presignUploadAnonymous(filename: string, contentType: string) {
+  const response = await fetch(buildTargetUrl("/uploads/presign"), {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ filename, contentType }),
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    const err = await parseError(response);
+    throw new Error(`/uploads/presign - ${err}`);
+  }
+
+  return (await response.json()) as { uploadUrl: string; fileUrl: string };
+}
+
 export async function uploadFileToPresignedUrl(
   uploadUrl: string,
   fileUri: string,
   contentType: string,
 ) {
-  const fileResponse = await fetch(fileUri);
-  const fileBlob = await fileResponse.blob();
-
-  const putResponse = await fetch(uploadUrl, {
-    method: "PUT",
-    headers: {
-      "content-type": contentType,
-    },
-    body: fileBlob,
+  const result = await FileSystem.uploadAsync(uploadUrl, fileUri, {
+    httpMethod: "PUT",
+    headers: { "Content-Type": contentType },
+    uploadType: FileSystem.FileSystemUploadType.BINARY_CONTENT,
   });
 
-  if (!putResponse.ok) {
-    throw new Error("Upload fichier échoué");
+  if (result.status < 200 || result.status >= 300) {
+    throw new Error(`Upload S3 échoué (${result.status})`);
   }
 }
 
+// Upload post-connexion (nécessite un token)
 export async function uploadLocalFile(fileUri: string, fallbackName: string) {
   if (fileUri.startsWith("http://") || fileUri.startsWith("https://")) {
     return fileUri;
-  }
-
-  const tokens = await getAuthTokenStore().getTokens();
-  if (!tokens?.accessToken) {
-    return undefined;
   }
 
   const contentType = inferContentType(fileUri);
   const filename = inferFilename(fileUri, fallbackName);
 
   const { uploadUrl, fileUrl } = await presignUpload(filename, contentType);
+  await uploadFileToPresignedUrl(uploadUrl, fileUri, contentType);
+
+  return fileUrl;
+}
+
+// Upload pendant l'inscription, avant la création du compte (sans auth)
+export async function uploadLocalFileAnonymous(fileUri: string, fallbackName: string) {
+  if (fileUri.startsWith("http://") || fileUri.startsWith("https://")) {
+    return fileUri;
+  }
+
+  const contentType = inferContentType(fileUri);
+  const filename = inferFilename(fileUri, fallbackName);
+
+  const { uploadUrl, fileUrl } = await presignUploadAnonymous(filename, contentType);
   await uploadFileToPresignedUrl(uploadUrl, fileUri, contentType);
 
   return fileUrl;

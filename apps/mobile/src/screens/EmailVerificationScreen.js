@@ -4,13 +4,137 @@ import {
   Text,
   StyleSheet,
   ActivityIndicator,
-  Alert,
   ScrollView,
 } from 'react-native';
-import { FormLayout } from '../components/FormLayout';
-import { GoMileButton } from '../components/GoMileButton';
+import FormLayout from '../components/FormLayout';
+import GoMileButton from '../components/GoMileButton';
 import { getEmailStatus } from '../../lib/auth-client';
+import { updateSessionVehicle } from '../../lib/driver-client';
 import { useRegistrationStore } from '../store/useRegistrationStore';
+
+export function EmailVerificationScreen({ navigation }) {
+  const email = useRegistrationStore((state) => state.email);
+  const transportType = useRegistrationStore((state) => state.transportType);
+  const resetForm = useRegistrationStore((state) => state.resetForm);
+  const [isVerified, setIsVerified] = useState(false);
+  const [isChecking, setIsChecking] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Polling pour vérifier le statut d'email
+  useEffect(() => {
+    let pollInterval;
+    let isMounted = true;
+
+    const checkEmailStatus = async () => {
+      try {
+        const status = await getEmailStatus();
+        if (isMounted && status.emailVerified) {
+          setIsVerified(true);
+          setIsChecking(false);
+          clearInterval(pollInterval);
+        }
+      } catch (err) {
+        if (isMounted) setError(err.message);
+      }
+    };
+
+    checkEmailStatus();
+    pollInterval = setInterval(checkEmailStatus, 2000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(pollInterval);
+    };
+  }, []);
+
+  // Dès que l'email est vérifié : synchroniser le véhicule, nettoyer le store, naviguer
+  useEffect(() => {
+    if (!isVerified) return;
+
+    const finalize = async () => {
+      const vehicleMap = { velo: 'BIKE', moto: 'SCOOTER', voiture: 'CAR', utilitaire: 'TRUCK' };
+      const vehicleType = vehicleMap[transportType] || null;
+      if (vehicleType) {
+        await updateSessionVehicle(vehicleType).catch(() => {});
+      }
+      resetForm();
+      navigation.replace('Login');
+    };
+
+    const timer = setTimeout(finalize, 1200);
+    return () => clearTimeout(timer);
+  }, [isVerified, navigation, transportType, resetForm]);
+
+  return (
+    <FormLayout>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.content}>
+          <View style={styles.iconContainer}>
+            <Text style={styles.emoji}>✉️</Text>
+          </View>
+
+          <Text style={styles.title}>Vérifie ton adresse email</Text>
+
+          <Text style={styles.description}>
+            Un email de confirmation a été envoyé à{' '}
+            {email ? (
+              <Text style={styles.emailBold}>{email}</Text>
+            ) : (
+              'ton adresse email'
+            )}
+            . Clique sur le lien dans le mail pour continuer.
+          </Text>
+
+          <View style={styles.statusContainer}>
+            {isChecking && !isVerified && !error && (
+              <>
+                <ActivityIndicator size="large" color="#FF6B35" />
+                <Text style={styles.statusText}>En attente de confirmation…</Text>
+              </>
+            )}
+
+            {isVerified && (
+              <>
+                <Text style={styles.successEmoji}>✅</Text>
+                <Text style={styles.successText}>Email confirmé ! Redirection…</Text>
+              </>
+            )}
+
+            {error && !isVerified && (
+              <>
+                <Text style={styles.errorEmoji}>⚠️</Text>
+                <Text style={styles.errorText}>
+                  Impossible de vérifier le statut. Assure-toi d'être connecté à internet.
+                </Text>
+              </>
+            )}
+          </View>
+
+          <View style={styles.instructionsContainer}>
+            <Text style={styles.instructionsTitle}>Besoin d'aide ?</Text>
+            <Text style={styles.instructions}>
+              • Vérifie ton dossier SPAM{'\n'}
+              • Attends quelques secondes et réessaye{'\n'}
+              • Assure-toi d'avoir utilisé la bonne adresse email
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.buttonsContainer}>
+          <GoMileButton
+            title={isVerified ? 'Continuer…' : 'En attente de confirmation'}
+            onPress={() => {}}
+            disabled={!isVerified}
+            style={!isVerified ? styles.disabledButton : {}}
+          />
+        </View>
+      </ScrollView>
+    </FormLayout>
+  );
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -62,7 +186,6 @@ const styles = StyleSheet.create({
   },
   successEmoji: {
     fontSize: 48,
-    color: '#4CAF50',
   },
   successText: {
     fontSize: 16,
@@ -78,6 +201,7 @@ const styles = StyleSheet.create({
     color: '#d32f2f',
     marginTop: 12,
     textAlign: 'center',
+    paddingHorizontal: 8,
   },
   instructionsContainer: {
     backgroundColor: '#FFF3E0',
@@ -105,148 +229,3 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
 });
-
-export function EmailVerificationScreen({ navigation }) {
-  const email = useRegistrationStore((state) => state.email);
-  const [isVerified, setIsVerified] = useState(false);
-  const [isChecking, setIsChecking] = useState(true);
-  const [error, setError] = useState(null);
-
-  // Polling pour vérifier le statut d'email
-  useEffect(() => {
-    let pollInterval;
-    let isMounted = true;
-
-    const checkEmailStatus = async () => {
-      try {
-        const status = await getEmailStatus();
-        if (isMounted) {
-          if (status.emailVerified) {
-            setIsVerified(true);
-            setIsChecking(false);
-            clearInterval(pollInterval);
-          }
-        }
-      } catch (err) {
-        if (isMounted) {
-          console.error('Erreur lors de la vérification d\'email:', err);
-          setError(err.message);
-        }
-      }
-    };
-
-    // Premier check tout de suite
-    checkEmailStatus();
-
-    // Polling toutes les 2 secondes
-    pollInterval = setInterval(checkEmailStatus, 2000);
-
-    return () => {
-      isMounted = false;
-      clearInterval(pollInterval);
-    };
-  }, []);
-
-  const handleContinue = () => {
-    if (isVerified) {
-      navigation.navigate('RegisterStep2');
-    }
-  };
-
-  const handleSkip = () => {
-    // Optionnel: permettre de continuer sans confirmer l'email
-    Alert.alert(
-      'Continuer sans confirmer?',
-      'Veuillez confirmer votre email pour continuer la inscription',
-      [
-        {
-          text: 'Annuler',
-          style: 'cancel',
-        },
-        {
-          text: 'Oui, continuer',
-          onPress: () => navigation.navigate('RegisterStep2'),
-        },
-      ]
-    );
-  };
-
-  return (
-    <FormLayout>
-      <ScrollView
-        contentContainerStyle={styles.container}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.content}>
-          {/* Icône ou indicateur */}
-          <View style={styles.iconContainer}>
-            <Text style={styles.emoji}>✉️</Text>
-          </View>
-
-          {/* Titre */}
-          <Text style={styles.title}>Vérifie ton adresse email</Text>
-
-          {/* Message d'explication */}
-          <Text style={styles.description}>
-            Un email de confirmation a été envoyé à{' '}
-            <Text style={styles.emailBold}>{email}</Text>
-          </Text>
-
-          {/* Status du polling */}
-          <View style={styles.statusContainer}>
-            {isChecking && !error && (
-              <>
-                <ActivityIndicator size="large" color="#FF6B35" />
-                <Text style={styles.statusText}>
-                  Vérification en cours...
-                </Text>
-              </>
-            )}
-
-            {isVerified && (
-              <>
-                <Text style={styles.successEmoji}>✓</Text>
-                <Text style={styles.successText}>Email confirmé!</Text>
-              </>
-            )}
-
-            {error && (
-              <>
-                <Text style={styles.errorEmoji}>⚠️</Text>
-                <Text style={styles.errorText}>{error}</Text>
-              </>
-            )}
-          </View>
-
-          {/* Instructions supplémentaires */}
-          <View style={styles.instructionsContainer}>
-            <Text style={styles.instructionsTitle}>Besoin d'aide?</Text>
-            <Text style={styles.instructions}>
-              • Vérifie ton dossier SPAM{'\n'}
-              • Attends quelques secondes et réessaye{'\n'}
-              • Assure-toi d'avoir utilisé la bonne adresse email
-            </Text>
-          </View>
-        </View>
-
-        {/* Boutons d'action */}
-        <View style={styles.buttonsContainer}>
-          <GoMileButton
-            label="Continuer"
-            onPress={handleContinue}
-            disabled={!isVerified}
-            style={!isVerified ? styles.disabledButton : {}}
-          />
-
-          {!isVerified && (
-            <GoMileButton
-              label="Continuer sans confirmer"
-              onPress={handleSkip}
-              variant="secondary"
-            />
-          )}
-        </View>
-      </ScrollView>
-    </FormLayout>
-  );
-}

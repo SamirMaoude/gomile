@@ -32,8 +32,8 @@ export default function AddressAutocomplete({ label, value, onAddressSelect, upd
       );
       const data = await response.json();
       setSuggestions(data.features || []);
-    } catch (error) {
-      console.error("Erreur API Adresse:", error);
+    } catch {
+      setSuggestions([]);
     } finally {
       setLoading(false);
     }

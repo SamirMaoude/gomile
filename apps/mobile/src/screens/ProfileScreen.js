@@ -1,6 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Alert, Share } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, Alert, Share, Linking } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
+import Constants from 'expo-constants';
+import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 //  composants factorisés
 import FormLayout from '../components/FormLayout';
@@ -8,24 +12,144 @@ import SectionTitle from '../components/SectionTitle';
 import GoMileButton from '../components/GoMileButton';
 
 // Thème et constantes
-import { COLORS, SIZES } from '../constants/theme';
+import { COLORS } from '../constants/theme';
 import { COMMON_STYLE_VALUES } from '../styles/commonStyles';
 import {
   getDriverProfile,
   getMyKycStatus,
   getMyReferral,
-  updateSessionVehicle,
 } from '../../lib/driver-client';
 import { logout } from '../../lib/auth-client';
+import { useAvailabilityStore } from '../store/useAvailabilityStore';
+import { useMissionStore } from '../store/useMissionStore';
+import {
+  clearCachedProfileAvatarUrl,
+  getCachedProfileAvatarUrl,
+} from '../../lib/profile-cache';
 
 const DEFAULT_AVATAR = require('../../assets/livreur.jpg');
+const SIGNED_AVATAR_CACHE = new Map();
+let avatarS3Client = null;
+
+function resolveApiBaseUrl() {
+  return (
+    process.env.EXPO_PUBLIC_API_BASE_URL ||
+    Constants.expoConfig?.extra?.apiBaseUrl ||
+    'http://localhost:3000'
+  );
+}
+
+function resolveAvatarSource(avatarUrl) {
+  const cleanedUrl = typeof avatarUrl === 'string' ? avatarUrl.trim() : '';
+
+  if (!cleanedUrl) {
+    return DEFAULT_AVATAR;
+  }
+
+  if (
+    cleanedUrl.includes('placehold.co') ||
+    cleanedUrl.includes('text=GoMile') ||
+    cleanedUrl.includes('text=Gomile')
+  ) {
+    return DEFAULT_AVATAR;
+  }
+
+  if (
+    cleanedUrl.startsWith('http://') ||
+    cleanedUrl.startsWith('https://') ||
+    cleanedUrl.startsWith('file://') ||
+    cleanedUrl.startsWith('data:')
+  ) {
+    return { uri: cleanedUrl };
+  }
+
+  try {
+    const resolvedUri = new URL(cleanedUrl, resolveApiBaseUrl()).toString();
+    return { uri: resolvedUri };
+  } catch (e) {
+    console.error('resolveAvatarSource - Erreur lors de la résolution de l\'URL:', e); // Debug log
+    return DEFAULT_AVATAR;
+  }
+}
+
+function isAbsoluteUrl(url) {
+  return url.startsWith('http://') || url.startsWith('https://') || url.startsWith('file://') || url.startsWith('data:');
+}
+
+function isS3Url(url) {
+  return url.includes('.s3.') && url.includes('amazonaws.com');
+}
+
+function getAvatarS3Client() {
+  if (avatarS3Client) return avatarS3Client;
+
+  const region = process.env.EXPO_PUBLIC_AWS_REGION;
+  const accessKeyId = process.env.EXPO_PUBLIC_AWS_ACCESS_KEY_ID;
+  const secretAccessKey = process.env.EXPO_PUBLIC_AWS_SECRET_ACCESS_KEY;
+
+  if (!region || !accessKeyId || !secretAccessKey) {
+    console.error('Avatar signing env check:', {
+      hasRegion: Boolean(region),
+      hasAccessKey: Boolean(accessKeyId),
+      hasSecret: Boolean(secretAccessKey),
+      apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL || null,
+    });
+    throw new Error('Missing AWS env for avatar signing');
+  }
+
+  avatarS3Client = new S3Client({
+    region,
+    credentials: { accessKeyId, secretAccessKey },
+  });
+
+  return avatarS3Client;
+}
+
+function parseS3BucketAndKey(s3Url) {
+  const url = new URL(s3Url);
+  const key = url.pathname.replace(/^\//, '');
+
+  const hostMatch = url.hostname.match(/^(.*?)\.s3\./);
+  const bucket = hostMatch?.[1] || process.env.EXPO_PUBLIC_S3_BUCKET_NAME;
+
+  if (!bucket || !key) {
+    throw new Error('Invalid S3 URL for avatar');
+  }
+
+  return { bucket, key };
+}
+
+async function getSignedAvatarUrl(rawUrl) {
+  const cached = SIGNED_AVATAR_CACHE.get(rawUrl);
+  if (cached && cached.expiresAt > Date.now() + 15_000) {
+    return cached.url;
+  }
+
+  const { bucket, key } = parseS3BucketAndKey(rawUrl);
+  const command = new GetObjectCommand({ Bucket: bucket, Key: key });
+  const client = getAvatarS3Client();
+  const expiresIn = 300;
+  const signedUrl = await getSignedUrl(client, command, { expiresIn });
+
+  SIGNED_AVATAR_CACHE.set(rawUrl, {
+    url: signedUrl,
+    expiresAt: Date.now() + expiresIn * 1000,
+  });
+
+  return signedUrl;
+}
+
 
 export default function ProfileScreen({ navigation }) {
   const [profile, setProfile] = useState(null);
   const [referral, setReferral] = useState(null);
-  const [activeVehicle, setActiveVehicle] = useState('velo');
-  const [showVehicleDropdown, setShowVehicleDropdown] = useState(false);
+  const [activeVehicle, setActiveVehicle] = useState('BIKE');
   const [kycStatus, setKycStatus] = useState('not_submitted');
+  const [avatarLoadFailed, setAvatarLoadFailed] = useState(false);
+  const [signedAvatarUrl, setSignedAvatarUrl] = useState(null);
+  const isOnline = useAvailabilityStore((state) => state.isOnline);
+  const setOnlineStatus = useAvailabilityStore((state) => state.setOnlineStatus);
+  const cachedAvatarUrl = getCachedProfileAvatarUrl();
 
   const vehicleOptions = [
     { label: 'Vélo', value: 'BIKE' },
@@ -34,34 +158,17 @@ export default function ProfileScreen({ navigation }) {
     { label: 'Utilitaire', value: 'TRUCK' },
   ];
 
-  const vehicleLabel = vehicleOptions.find((v) => v.value === activeVehicle)?.label || 'Vélo';
+  const vehicleValue = String(profile?.activeVehicle || activeVehicle || 'BIKE').toUpperCase();
+  const vehicleLabel = vehicleOptions.find((v) => v.value === vehicleValue)?.label || 'Vélo';
 
   const vehicleIcon =
-    activeVehicle === 'velo'
+    vehicleValue === 'BIKE'
       ? 'bike'
-      : activeVehicle === 'moto'
+      : vehicleValue === 'SCOOTER'
       ? 'moped'
-      : activeVehicle === 'utilitaire'
+      : vehicleValue === 'TRUCK'
       ? 'truck-outline'
       : 'car';
-
-  const handleVehicleSelect = (value) => {
-    (async () => {
-      try {
-        const vehicleMap = {
-          velo: 'BIKE',
-          moto: 'SCOOTER',
-          voiture: 'CAR',
-          utilitaire: 'TRUCK',
-        };
-        await updateSessionVehicle(vehicleMap[value] || 'BIKE');
-        setActiveVehicle(value);
-        setShowVehicleDropdown(false);
-      } catch (error) {
-        Alert.alert('Erreur', error.message || 'Mise a jour du vehicule impossible.');
-      }
-    })();
-  };
 
   const loadProfileData = useCallback(async () => {
     try {
@@ -70,30 +177,86 @@ export default function ProfileScreen({ navigation }) {
         getMyKycStatus(),
         getMyReferral(),
       ]);
+
       setProfile(profileData);
       setReferral(referralData);
-      const status = String(kycData?.status || 'NOT_SUBMITTED').toLowerCase();
-      if (status === 'accepted') setKycStatus('approved');
-      else if (status === 'pending') setKycStatus('in_progress');
-      else if (status === 'rejected') setKycStatus('rejected');
+      const kycNormalizedStatus = String(kycData?.status || 'NOT_SUBMITTED').toLowerCase();
+      if (kycNormalizedStatus === 'accepted') setKycStatus('approved');
+      else if (kycNormalizedStatus === 'pending') setKycStatus('in_progress');
+      else if (kycNormalizedStatus === 'rejected') setKycStatus('rejected');
       else setKycStatus('not_submitted');
 
-      const active = profileData?.activeVehicle;
-      const reverseVehicleMap = {
-        BIKE: 'velo',
-        SCOOTER: 'moto',
-        CAR: 'voiture',
-        TRUCK: 'utilitaire',
-      };
-      setActiveVehicle(reverseVehicleMap[active] || 'velo');
+      setActiveVehicle(profileData?.activeVehicle || 'BIKE');
+
+      const profileStatus = String(profileData?.status || '').toUpperCase();
+      setOnlineStatus(profileStatus === 'ONLINE' || profileStatus === 'AVAILABLE');
     } catch (error) {
+      const normalizedMessage = String(error?.message || '').toUpperCase();
+      if (
+        normalizedMessage.includes('AUTH_TOKEN_MISSING') ||
+        normalizedMessage.includes('UNAUTHORIZED') ||
+        normalizedMessage.includes('UNAUTHORISED')
+      ) {
+        navigation.replace('Login');
+        return;
+      }
+
       Alert.alert('Erreur', error.message || 'Chargement profil impossible.');
     }
-  }, []);
+  }, [navigation, setOnlineStatus]);
 
   useEffect(() => {
     loadProfileData();
   }, [loadProfileData]);
+
+  useFocusEffect(
+    useCallback(() => {
+      // Rafraîchit les données chaque fois qu'on revient sur cet écran
+      loadProfileData();
+    }, [loadProfileData])
+  );
+
+  useEffect(() => {
+    setAvatarLoadFailed(false);
+  }, [profile?.avatarUrl]);
+
+  const avatarSourceUrl = profile?.avatarUrl || cachedAvatarUrl;
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const resolveSignedAvatar = async () => {
+      const rawAvatarUrl = typeof avatarSourceUrl === 'string' ? avatarSourceUrl.trim() : '';
+
+      if (!rawAvatarUrl) {
+        if (isMounted) setSignedAvatarUrl(null);
+        return;
+      }
+
+      if (
+        !isAbsoluteUrl(rawAvatarUrl) ||
+        !isS3Url(rawAvatarUrl) ||
+        rawAvatarUrl.includes('X-Amz-Signature=')
+      ) {
+        if (isMounted) setSignedAvatarUrl(rawAvatarUrl);
+        return;
+      }
+
+      try {
+        const readUrl = await getSignedAvatarUrl(rawAvatarUrl);
+        if (isMounted) setSignedAvatarUrl(readUrl);
+      } catch (error) {
+        console.error('Failed to generate signed avatar URL:', error);
+        if (isMounted) setSignedAvatarUrl(rawAvatarUrl);
+      }
+    };
+
+    void resolveSignedAvatar();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [avatarSourceUrl]);
 
   const kycStatusConfig = {
     not_submitted: {
@@ -146,8 +309,13 @@ export default function ProfileScreen({ navigation }) {
       <View style={styles.idCard}>
         <View style={styles.cardTop}>
           <Image
-            source={profile?.avatarUrl ? { uri: profile.avatarUrl } : DEFAULT_AVATAR}
+            source={avatarLoadFailed ? DEFAULT_AVATAR : resolveAvatarSource(signedAvatarUrl || avatarSourceUrl)}
             style={styles.avatar}
+            resizeMode="cover"
+            onError={() => {
+              console.error('Image failed to load for URL:', signedAvatarUrl || avatarSourceUrl); // Debug log
+              setAvatarLoadFailed(true);
+            }}
           />
           <View style={styles.scoringContainer}>
             <View style={styles.scoreBadge}>
@@ -172,13 +340,17 @@ export default function ProfileScreen({ navigation }) {
                 En service : {vehicleLabel}
             </Text>
           </View>
+          <Text style={styles.secondaryText}>{profile?.phone || 'Téléphone indisponible'}</Text>
+          <Text style={styles.secondaryText}>{profile?.email || 'Email indisponible'}</Text>
         </View>
 
         <View style={styles.cardFooter}>
           <Text style={styles.idText}>ID: {profile?.gomileCode || 'N/A'}</Text>
           <View style={styles.statusBadge}>
-            <View style={styles.dot} />
-            <Text style={styles.statusText}>{String(profile?.status || 'OFFLINE')}</Text>
+            <View style={[styles.dot, isOnline ? styles.dotOnline : styles.dotOffline]} />
+            <Text style={[styles.statusText, isOnline ? styles.statusOnline : styles.statusOffline]}>
+              {isOnline ? 'ONLINE' : 'OFFLINE'}
+            </Text>
           </View>
         </View>
       </View>
@@ -186,44 +358,12 @@ export default function ProfileScreen({ navigation }) {
       {/* --- CHANGEMENT DE VÉHICULE (Action rapide) --- */}
       <SectionTitle style={{ marginTop: 25 }}>Véhicule pour cette session</SectionTitle>
       <View style={styles.dropdownContainer}>
-        <TouchableOpacity
-          style={styles.dropdownTrigger}
-          activeOpacity={0.85}
-          onPress={() => setShowVehicleDropdown((prev) => !prev)}
-        >
+        <View style={styles.dropdownTrigger}>
           <View style={styles.dropdownTriggerLeft}>
             <MaterialCommunityIcons name={vehicleIcon} size={18} color={COLORS.secondary} />
             <Text style={styles.dropdownTriggerText}>{vehicleLabel}</Text>
           </View>
-          <MaterialCommunityIcons
-            name={showVehicleDropdown ? 'chevron-up' : 'chevron-down'}
-            size={20}
-            color={COLORS.placeholder}
-          />
-        </TouchableOpacity>
-
-        {showVehicleDropdown && (
-          <View style={styles.dropdownMenu}>
-            {vehicleOptions.map((option) => {
-              const isSelected = option.value === activeVehicle;
-              return (
-                <TouchableOpacity
-                  key={option.value}
-                  style={[styles.dropdownItem, isSelected && styles.dropdownItemSelected]}
-                  onPress={() => handleVehicleSelect(option.value)}
-                  activeOpacity={0.75}
-                >
-                  <Text style={[styles.dropdownItemText, isSelected && styles.dropdownItemTextSelected]}>
-                    {option.label}
-                  </Text>
-                  {isSelected && (
-                    <MaterialCommunityIcons name="check" size={18} color={COLORS.primary} />
-                  )}
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        )}
+        </View>
       </View>
 
       {/* --- KYC --- */}
@@ -241,7 +381,7 @@ export default function ProfileScreen({ navigation }) {
         <TouchableOpacity
           style={styles.kycCta}
           activeOpacity={0.85}
-          onPress={() => Alert.alert('KYC', 'Ouverture de la gestion des documents KYC...')}
+          onPress={() => navigation.navigate('KYC')}
         >
           <Text style={styles.kycCtaText}>{currentKyc.cta}</Text>
           <MaterialCommunityIcons name="chevron-right" size={18} color={COLORS.white} />
@@ -264,20 +404,20 @@ export default function ProfileScreen({ navigation }) {
       <SectionTitle style={{ marginTop: 25 }}>Ma Logistique</SectionTitle>
       
       <View style={styles.menuGrid}>
-        <MenuTile 
-          icon="shopping-outline" 
-          label="Boutique Équipement" 
-          onPress={() => Alert.alert("Boutique", "Redirection vers le shop GoMile...")} 
+        <MenuTile
+          icon="shopping-outline"
+          label="Boutique Équipement"
+          onPress={() => Linking.openURL('https://store.pgn2vid.com/')}
         />
         <MenuTile 
           icon="cash-multiple" 
           label="Historique Gains" 
           onPress={() => navigation.navigate('Portefeuille')} 
         />
-        <MenuTile 
-          icon="file-certificate-outline" 
-          label="Mes Documents" 
-          onPress={() => {}} 
+        <MenuTile
+          icon="file-certificate-outline"
+          label="Mes Documents"
+          onPress={() => navigation.navigate('KYC')}
         />
         <MenuTile 
           icon="shield-lock-outline" 
@@ -292,11 +432,16 @@ export default function ProfileScreen({ navigation }) {
         outline
         style={styles.logoutBtn}
         onPress={async () => {
+          if (useMissionStore.getState().missionQueue.length > 0) {
+            Alert.alert('Mission en cours', 'Termine ta mission avant de te déconnecter.');
+            return;
+          }
           try {
             await logout();
           } catch {
             // we Ignore logout API errors and force local exit.
           } finally {
+            clearCachedProfileAvatarUrl();
             navigation.replace('Login');
           }
         }}
@@ -342,6 +487,7 @@ const styles = StyleSheet.create({
   nameText: { color: COLORS.white, fontSize: 22, fontWeight: '900' },
   infoRow: { ...COMMON_STYLE_VALUES.rowCenter, marginTop: 5 },
   infoText: { marginLeft: 8, fontSize: 14, fontWeight: '500' },
+  secondaryText: { color: 'rgba(255,255,255,0.72)', fontSize: 12, marginTop: 3 },
 
   cardFooter: { 
     marginTop: 20, 
@@ -352,8 +498,12 @@ const styles = StyleSheet.create({
   },
   idText: { color: 'rgba(255,255,255,0.3)', fontSize: 10, letterSpacing: 1 },
   statusBadge: { ...COMMON_STYLE_VALUES.rowCenter },
-  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: COLORS.primary, marginRight: 6 },
-  statusText: { color: COLORS.primary, fontSize: 10, fontWeight: 'bold' },
+  dot: { width: 6, height: 6, borderRadius: 3, marginRight: 6 },
+  dotOnline: { backgroundColor: '#8CE99A' },
+  dotOffline: { backgroundColor: '#D5DCE6' },
+  statusText: { fontSize: 10, fontWeight: 'bold' },
+  statusOnline: { color: '#8CE99A' },
+  statusOffline: { color: '#D5DCE6' },
 
   // Parrainage
   dropdownContainer: {

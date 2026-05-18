@@ -9,7 +9,7 @@ import GoMileButton from '../components/GoMileButton';
 // Store et Thème
 import { useRegistrationStore } from '../store/useRegistrationStore';
 import { COMMON_STYLE_VALUES } from '../styles/commonStyles';
-import { pickImageSource } from '../lib/media-picker';
+import { pickImageSource, pickDocument } from '../lib/media-picker';
 
 export default function RegisterStep3({ navigation }) {
   const { 
@@ -23,7 +23,7 @@ export default function RegisterStep3({ navigation }) {
 
   const pickImage = async (field) => {
     try {
-      const uri = await pickImageSource();
+      const uri = await pickDocument();
       if (uri) {
         updateField(field, uri);
       }
@@ -33,8 +33,8 @@ export default function RegisterStep3({ navigation }) {
   };
 
   return (
-    <FormLayout title="DOCUMENTS" progress={75}>
-      <SectionTitle>Justificatifs (3/4)</SectionTitle>
+    <FormLayout title="DOCUMENTS" progress={80}>
+      <SectionTitle>Justificatifs (4/3)</SectionTitle>
       
       <DocPicker 
         label="Pièce d'identité (CNI ou Titre de séjour)" 

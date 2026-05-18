@@ -15,6 +15,8 @@ import { acceptMission as acceptMissionApi } from '../../lib/driver-client';
 export default function MissionDetailsScreen({ route, navigation }) {
   const mission = route?.params?.mission;
   const acceptMission = useMissionStore((state) => state.acceptMission);
+  const declineMission = useMissionStore((state) => state.declineMission); // IMPORT ACTION REFUSER[cite: 16]
+
   const [currentPosition, setCurrentPosition] = useState(
     mission?.currentPosition || mission?.pickup || { latitude: 45.1885, longitude: 5.7245 }
   );
@@ -36,7 +38,6 @@ export default function MissionDetailsScreen({ route, navigation }) {
 
   useEffect(() => {
     let isMounted = true;
-
     const loadCurrentPosition = async () => {
       try {
         const { status } = await Location.requestForegroundPermissionsAsync();
@@ -52,16 +53,10 @@ export default function MissionDetailsScreen({ route, navigation }) {
             longitude: position.coords.longitude,
           });
         }
-      } catch (error) {
-        // Fallback sur la position mock si la geolocalisation est indisponible
-      }
+      } catch (error) {}
     };
-
     loadCurrentPosition();
-
-    return () => {
-      isMounted = false;
-    };
+    return () => { isMounted = false; };
   }, []);
 
   const points = useMemo(
@@ -71,7 +66,6 @@ export default function MissionDetailsScreen({ route, navigation }) {
 
   useEffect(() => {
     let isMounted = true;
-
     const loadRoute = async () => {
       try {
         const route = await getDrivingRoute(points);
@@ -84,30 +78,41 @@ export default function MissionDetailsScreen({ route, navigation }) {
         setRouteCoords(points);
       }
     };
-
-    if (points.length >= 2) {
-      loadRoute();
-    }
-
-    return () => {
-      isMounted = false;
-    };
+    if (points.length >= 2) loadRoute();
+    return () => { isMounted = false; };
   }, [points]);
 
+  // FONCTION MODIFIÉE : ALERTE + STORE + RETOUR[cite: 16]
   const handleRefuse = () => {
-    Alert.alert('Mission refusée', 'Cette mission a été retirée de ta liste.');
-    navigation.goBack();
+    Alert.alert(
+      'Refuser la mission',
+      'Cette mission sera retirée de ta liste.',
+      [
+        { text: 'Annuler', style: 'cancel' },
+        { 
+          text: 'Refuser', 
+          style: 'destructive',
+          onPress: () => {
+            declineMission(mission.id);
+            navigation.goBack();
+          }
+        }
+      ]
+    );
   };
 
   const handleAccept = () => {
     (async () => {
       try {
-        await acceptMissionApi(mission.id);
+        const result = await acceptMissionApi(mission.id);
         acceptMission({
           ...mission,
           currentPosition,
         });
-        navigation.replace('MissionFocus');
+        navigation.replace('MissionFocus', {
+          pickupCode: result?.pickupCode,
+        });
+        console.log(result?.pickupCode)
       } catch (error) {
         Alert.alert('Erreur', error.message || 'Impossible d\'accepter la mission.');
       }
@@ -126,11 +131,7 @@ export default function MissionDetailsScreen({ route, navigation }) {
       </MapView>
 
       <View style={styles.bottomSheet}>
-        <TouchableOpacity
-          style={styles.closeBtn}
-          onPress={() => navigation.goBack()}
-          activeOpacity={0.75}
-        >
+        <TouchableOpacity style={styles.closeBtn} onPress={() => navigation.goBack()} activeOpacity={0.75}>
           <MaterialCommunityIcons name="close" size={20} color={COLORS.secondary} />
         </TouchableOpacity>
 
@@ -173,46 +174,19 @@ const styles = StyleSheet.create({
   container: { ...COMMON_STYLE_VALUES.screenContainer },
   map: { ...COMMON_STYLE_VALUES.flex1 },
   bottomSheet: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: COLORS.white,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-    paddingTop: 44,
-    elevation: 12,
-    shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    maxHeight: '58%',
+    position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: COLORS.white,
+    borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingHorizontal: 16, paddingBottom: 16,
+    paddingTop: 44, elevation: 12, shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 8, maxHeight: '58%',
   },
   closeBtn: {
-    position: 'absolute',
-    top: 10,
-    right: 12,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#EEF3F7',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 2,
+    position: 'absolute', top: 10, right: 12, width: 32, height: 32, borderRadius: 16,
+    backgroundColor: '#EEF3F7', alignItems: 'center', justifyContent: 'center', zIndex: 2,
   },
   topRow: { ...COMMON_STYLE_VALUES.rowBetween },
   storeName: { ...COMMON_STYLE_VALUES.textSecondary, fontSize: 17, fontWeight: '900', flex: 1, marginRight: 8 },
   reward: { color: COLORS.primary, fontSize: 18, fontWeight: '900' },
   metaRow: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 10, gap: 8 },
-  pill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#EEF3F7',
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-  },
+  pill: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#EEF3F7', borderRadius: 20, paddingHorizontal: 10, paddingVertical: 6 },
   pillText: { marginLeft: 5, ...COMMON_STYLE_VALUES.textSecondary, fontSize: 12, fontWeight: '700' },
   sectionTitle: { marginTop: 12, marginBottom: 6, ...COMMON_STYLE_VALUES.textSecondary, fontWeight: '800' },
   infoLine: { ...COMMON_STYLE_VALUES.textMuted, fontSize: 12, marginTop: 2 },

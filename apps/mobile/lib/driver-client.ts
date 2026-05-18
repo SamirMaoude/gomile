@@ -2,7 +2,9 @@ import Constants from "expo-constants";
 
 import type { ApiErrorPayload } from "./api-errors";
 import { createApiError } from "./api-errors";
+import { refreshSession } from "./auth-client";
 import { getAuthTokenStore } from "./auth-storage";
+import { navigationRef } from "../src/navigation/navigationRef";
 
 const DEFAULT_API_BASE_URL = "http://localhost:3000";
 
@@ -18,6 +20,8 @@ type DriverMission = {
   distanceKm?: number;
   pickupAddress?: string;
   dropOffAddress?: string;
+  pickupLocation?: { latitude: number; longitude: number } | null;
+  dropoffLocation?: { latitude: number; longitude: number } | null;
   status?: string;
 };
 
@@ -60,24 +64,54 @@ async function requestDriverApi<T>(
   path: string,
   init?: RequestInit,
 ): Promise<T> {
-  const tokens = await getAuthTokenStore().getTokens();
+  const tokenStore = getAuthTokenStore();
+  const tokens = await tokenStore.getTokens();
 
   if (!tokens?.accessToken) {
     throw new Error(createApiError("AUTH_TOKEN_MISSING").message);
   }
 
-  const response = await fetch(buildTargetUrl(path), {
-    ...init,
-    headers: {
-      "content-type": "application/json",
-      authorization: `Bearer ${tokens.accessToken}`,
-      ...(init?.headers ?? {}),
-    },
-    cache: "no-store",
-  });
+  const performRequest = async (accessToken: string) =>
+    fetch(buildTargetUrl(path), {
+      ...init,
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${accessToken}`,
+        ...(init?.headers ?? {}),
+      },
+      cache: "no-store",
+    });
+
+  let response = await performRequest(tokens.accessToken);
+
+  if (response.status === 401) {
+    try {
+      await refreshSession();
+      const refreshedTokens = await tokenStore.getTokens();
+
+      if (!refreshedTokens?.accessToken) {
+        throw new Error(createApiError("AUTH_TOKEN_MISSING").message);
+      }
+
+      response = await performRequest(refreshedTokens.accessToken);
+    } catch {
+      await tokenStore.clearTokens();
+      throw new Error(createApiError("AUTH_TOKEN_MISSING").message);
+    }
+  }
 
   if (!response.ok) {
-    throw new Error(await parseError(response));
+    const err = await parseError(response);
+    if (
+      response.status === 403 &&
+      (err.includes("EMAIL_NOT_VERIFIED") || err.includes("verify your email"))
+    ) {
+      if (navigationRef.isReady()) {
+        navigationRef.navigate("EmailVerification" as never);
+      }
+      throw new Error("EMAIL_NOT_VERIFIED");
+    }
+    throw new Error(`${path} - ${err}`);
   }
 
   return (await response.json()) as T;
@@ -145,6 +179,15 @@ export async function verifyClientHandshake(missionId: string, code: string) {
   );
 }
 
+export async function getMissionPickupCode(missionId: string) {
+  return requestDriverApi<{ pickupCode?: string; code?: string }>(
+    `/driver/me/missions/${missionId}/handshake/pickup-code`,
+    {
+      method: "GET",
+    },
+  );
+}
+
 export async function getWallet() {
   return requestDriverApi<{ balance: number; currency: string; pendingAmount: number }>(
     "/driver/me/wallet",
@@ -162,6 +205,13 @@ export async function requestWithdrawal(amount: number) {
   return requestDriverApi<{ message: string }>("/driver/me/wallet/withdrawals", {
     method: "POST",
     body: JSON.stringify({ amount }),
+  });
+}
+
+export async function putDriverPushToken(token: string) {
+  return requestDriverApi<{ message: string }>("/driver/me/push-token", {
+    method: "PUT",
+    body: JSON.stringify({ token }),
   });
 }
 
@@ -184,7 +234,14 @@ export async function getDriverProfile() {
 export async function updateSessionVehicle(activeVehicle: string) {
   return requestDriverApi<{ activeVehicle: string }>("/driver/me/session-vehicle", {
     method: "PATCH",
-    body: JSON.stringify({ activeVehicle }),
+    body: JSON.stringify({ vehicleType: activeVehicle }),
+  });
+}
+
+export async function updateDriverProfile(input: { avatarUrl?: string; siret?: string }) {
+  return requestDriverApi<{ message: string }>("/driver/me/profile", {
+    method: "PATCH",
+    body: JSON.stringify(input),
   });
 }
 
@@ -220,6 +277,23 @@ export async function createMyDocument(type: string, url: string) {
       method: "POST",
       body: JSON.stringify({ type, url }),
     },
+  );
+}
+
+export async function presignDocument(filename: string, contentType: string) {
+  return requestDriverApi<{ uploadUrl: string; fileUrl: string }>(
+    "/driver/me/documents/presign",
+    {
+      method: "POST",
+      body: JSON.stringify({ filename, contentType }),
+    },
+  );
+}
+
+export async function deleteDocument(documentId: string) {
+  return requestDriverApi<{ message: string }>(
+    `/driver/me/documents/${documentId}`,
+    { method: "DELETE" },
   );
 }
 

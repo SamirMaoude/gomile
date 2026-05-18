@@ -96,3 +96,32 @@ export async function pickImageSource() {
     ]);
   });
 }
+
+export async function pickDocument() {
+  try {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      throw new Error("Nous avons besoin d'acceder a votre galerie pour selectionner un document.");
+    }
+
+    // expo-image-picker.launchImageLibraryAsync avec MediaTypeOptions.All
+    // supporte les PDFs et images selon la plateforme
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: false,
+      quality: 0.8,
+    });
+
+    if (result.canceled) {
+      return null;
+    }
+
+    if (result.assets && result.assets[0]) {
+      return result.assets[0].uri;
+    }
+
+    return null;
+  } catch (error) {
+    throw new Error(error.message || "Impossible de selectionner le document.");
+  }
+}

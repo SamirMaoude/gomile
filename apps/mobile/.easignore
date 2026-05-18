@@ -1,0 +1,17 @@
+.git
+.git/**
+
+# Dépendances et caches locaux
+node_modules/
+.expo/
+.expo-shared/
+
+# Artefacts générés localement
+dist/
+build/
+coverage/
+*.tsbuildinfo
+
+# Fichiers OS / logs
+.DS_Store
+*.log

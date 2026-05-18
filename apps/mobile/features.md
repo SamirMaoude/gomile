@@ -11,7 +11,7 @@
 - boutique (a voir s'il faut implem)
 - Mes documents
 - securité
-
+- clavier aved '@' pour le login
 
 ## leger
 - num tel avec espace

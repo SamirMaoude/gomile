@@ -6,7 +6,7 @@ export const useRegistrationStore = create((set) => ({
   lastName: '',
   email: '',
   phone: '',
-  password : '',
+  password: '',
   confirmPassword: '',
   avatarUrl: null,
   birthDate: '',
@@ -21,27 +21,12 @@ export const useRegistrationStore = create((set) => ({
   deliveryRadius: '',
   transportType: '',
 
-  // Étape 3 - Documents
-  cniFile: null,
-  justificatifFile: null,
-  permisFile: null,
-  carteGriseFile: null,
-
-  // Étape 4 - Infos Pro & Banque
-  siret: '',
-  kbisFile: null,
-  ribFile: null,
-
-  // Fonction pour tout réinitialiser 
   resetForm: () => set({
-    firstName: '', lastName: '', email: '', phone: '', password: '', confirmPassword: '', avatarUrl: null, birthDate: '', gender: '',
+    firstName: '', lastName: '', email: '', phone: '', password: '', confirmPassword: '',
+    avatarUrl: null, birthDate: '', gender: '',
     address: '', city: '', zipCode: '', street: '', deliveryCity: '', deliveryRadius: '', transportType: '',
-    cniFile: null, justificatifFile: null, permisFile: null, carteGriseFile: null,
-    siret: '', kbisFile: null, ribFile: null
   }),
 
-
-  // Actions qu'on peut effectuer sur les entrées : 
   updateField: (field, value) => set((state) => ({ ...state, [field]: value })),
   nextStep: () => set((state) => ({ step: state.step + 1 })),
   prevStep: () => set((state) => ({ step: state.step - 1 })),

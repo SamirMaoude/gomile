@@ -20,14 +20,14 @@ export default function ForgotPasswordScreen({ navigation }) {
 
     setIsLoading(true);
     try {
-      await forgotPassword({ email });
+      await forgotPassword({ email: email.trim() });
       Alert.alert(
         "Succès",
         "Un code de réinitialisation a été envoyé à votre email.",
         [
           {
             text: "OK",
-            onPress: () => navigation.navigate('ResetPassword', { email }),
+            onPress: () => navigation.navigate('ResetPassword', { email: email.trim() }),
           },
         ]
       );
