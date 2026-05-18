@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
-# Full deploy: pull, build both apps, migrate DB, restart services.
+# Full deploy: sync main, build both apps, migrate DB, restart services.
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$REPO_ROOT"
 
-echo "...Pulling latest code"
-git pull
+echo "...Syncing latest main"
+git fetch origin main
+git checkout main
+git reset --hard origin/main
 
 echo "...Installing dependencies"
 pnpm install

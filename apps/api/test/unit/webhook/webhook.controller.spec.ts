@@ -33,13 +33,13 @@ describe('WebhookController', () => {
       expect(() => controller.deploy('wrong-token', {})).toThrow(UnauthorizedException);
     });
 
-    it('returns ignored when ref is not dev branch', () => {
-      const result = controller.deploy('secret123', { ref: 'refs/heads/main' });
+    it('returns ignored when ref is not main branch', () => {
+      const result = controller.deploy('secret123', { ref: 'refs/heads/dev' });
       expect(result).toEqual({ message: 'ignored' });
     });
 
-    it('starts deploy when ref is dev branch', () => {
-      const result = controller.deploy('secret123', { ref: 'refs/heads/dev' });
+    it('starts deploy when ref is main branch', () => {
+      const result = controller.deploy('secret123', { ref: 'refs/heads/main' });
       expect(result).toEqual({ message: 'deploy started' });
     });
   });

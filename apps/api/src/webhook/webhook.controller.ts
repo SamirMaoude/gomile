@@ -21,7 +21,7 @@ export class WebhookController {
     private readonly subscriptionService:  SubscriptionService
   ) {}
 
-  // Deploy application, to be called by webhook from Gitlab CI on push to dev branch
+  // Deploy application, to be called by webhook from Gitlab CI on push to main branch
   @Post('deploy')
   @ApiExcludeEndpoint()
   deploy(@Headers('x-gitlab-token') token: string, @Body() body: any) {
@@ -31,7 +31,7 @@ export class WebhookController {
     }
 
     const ref = body?.ref as string;
-    if (ref !== 'refs/heads/dev') {
+    if (ref !== 'refs/heads/main') {
       return { message: 'ignored' };
     }
 

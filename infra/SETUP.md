@@ -103,12 +103,12 @@ This installs dependencies, runs migrations, builds both apps, and starts the se
 
 ## Auto-deploy on push
 
-Pushes to the `dev` branch automatically trigger a deploy via a GitLab webhook.
+Pushes to the `main` branch automatically trigger a deploy via a GitLab webhook.
 
 Configure in GitLab: Settings → Webhooks → Add webhook:
 - URL: `https://<yourdomain>/webhook/deploy`
 - Secret token: value of `GITLAB_WEBHOOK_SECRET` in `apps/api/.env`
-- Trigger: Push events, filtered to branch `dev`
+- Trigger: Push events, filtered to branch `main`
 
 ---
 
