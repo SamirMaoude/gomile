@@ -1,7 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AdminService } from 'src/admin/admin.service';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { UploadService } from 'src/upload/upload.service';
 import { ConflictException, NotFoundException } from '@nestjs/common';
+
+const mockUploadService = {
+  getSignedDownloadUrl: jest.fn().mockResolvedValue('https://signed-url.example.com'),
+};
 
 const mockPrisma = {
   driver: { findMany: jest.fn(), findUnique: jest.fn() },
@@ -23,6 +28,7 @@ describe('AdminService', () => {
       providers: [
         AdminService,
         { provide: PrismaService, useValue: mockPrisma },
+        { provide: UploadService, useValue: mockUploadService },
       ],
     }).compile();
     service = module.get(AdminService);
@@ -47,7 +53,7 @@ describe('AdminService', () => {
 
   describe('getDriver', () => {
     it('returns driver details when found', async () => {
-      const driver = { userId: 'd1', firstName: 'Jean', wallet: { balance: 100 } };
+      const driver = { userId: 'd1', firstName: 'Jean', wallet: { balance: 100 }, driverDocuments: [] };
       mockPrisma.driver.findUnique.mockResolvedValue(driver);
 
       const result = await service.getDriver('d1');
@@ -74,7 +80,7 @@ describe('AdminService', () => {
 
     it('filters by status when provided', async () => {
       mockPrisma.walletEntry.findMany.mockResolvedValue([]);
-      await service.getWithdrawals(undefined, 'PENDING');
+      await service.getWithdrawals('PENDING');
       expect(mockPrisma.walletEntry.findMany).toHaveBeenCalledWith(
         expect.objectContaining({ where: expect.objectContaining({ status: 'PENDING' }) }),
       );

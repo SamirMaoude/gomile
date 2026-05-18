@@ -70,7 +70,7 @@ describe('SubscriptionService', () => {
     });
 
     it('returns checkoutUrl when merchant already has stripe customer', async () => {
-      const result = await service.createCheckoutSession('merchant1', Tier.PRO);
+      const result = await service.createCheckoutSession('merchant1', Tier.PRO, 'monthly');
       expect(result.checkoutUrl).toBe('https://checkout.stripe.com/session');
     });
 
@@ -84,14 +84,14 @@ describe('SubscriptionService', () => {
       mockStripe.customers.create.mockResolvedValue({ id: 'cus_new' });
       mockPrisma.merchant.update.mockResolvedValue({});
 
-      const result = await service.createCheckoutSession('merchant1', Tier.PRO);
+      const result = await service.createCheckoutSession('merchant1', Tier.PRO, 'monthly');
       expect(mockStripe.customers.create).toHaveBeenCalled();
       expect(result.checkoutUrl).toBeDefined();
     });
 
     it('throws ForbiddenException when merchant not found', async () => {
       mockPrisma.merchant.findUnique.mockResolvedValue(null);
-      await expect(service.createCheckoutSession('bad-id', Tier.PRO)).rejects.toThrow(ForbiddenException);
+      await expect(service.createCheckoutSession('bad-id', Tier.PRO, 'monthly')).rejects.toThrow(ForbiddenException);
     });
   });
 

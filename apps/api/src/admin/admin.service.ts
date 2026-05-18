@@ -176,14 +176,12 @@ export class AdminService {
   }
 
   async getWithdrawals(
-    userId?: string,
     status?: 'PENDING' | 'COMPLETED' | 'CANCELLED',
   ) {
     return this.prisma.walletEntry.findMany({
       where: {
         type: 'DEBIT',
         ...(status && { status }),
-        ...(userId && { userId: userId }),
       },
       select: {
         id: true,
