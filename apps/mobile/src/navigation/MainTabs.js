@@ -31,6 +31,7 @@ export default function MainTabs() {
   const androidInset = Platform.OS === 'android' ? insets.bottom : 0;
   const hasActiveMissions = useMissionStore((state) => state.missionQueue.length > 0);
   const fetchAvailableMissions = useMissionStore((s) => s.fetchAvailableMissions);
+  const fetchAllMissions = useMissionStore((s) => s.fetchAllMissions);
   const setOnlineStatus = useAvailabilityStore((s) => s.setOnlineStatus);
   const isOnline = useAvailabilityStore((s) => s.isOnline);
 
@@ -98,31 +99,43 @@ export default function MainTabs() {
         setOnlineStatus(status === 'AVAILABLE');
       };
 
+      // Une mission a changé de statut côté backend (ex: commerçant a cliqué "Lancer la livraison")
+      // → rafraîchir l'état des missions actives en temps réel
+      const handleOrderStatus = async ({ orderId, status }) => {
+        if (cancelled) return;
+        try {
+          console.log('[socket] order:status reçu →', orderId, status);
+          await fetchAllMissions();
+        } catch (err) {
+          console.warn('[socket] handleOrderStatus failed', err?.message ?? err);
+        }
+      };
+
       // Rattrapage après reconnexion : les events émis pendant la coupure sont perdus
       socket.io.on('reconnect', async () => {
         if (cancelled) return;
         ('[socket] reconnecté → rattrapage des missions manquées');
         try {
-          const missed = await fetchAvailableMissions();
-          if (missed?.length > 0) await notifyNewMissions(missed);
+          await fetchAllMissions();
         } catch {/* non bloquant */}
       });
 
       socket.on('order:new', handleNewOrder);
       socket.on('driver:status', handleDriverStatus);
+      socket.on('order:status', handleOrderStatus);
 
       // Rattrapage quand l'app revient au premier plan (app en fond = socket coupé)
       const appStateSub = AppState.addEventListener('change', async (nextState) => {
         if (cancelled || nextState !== 'active') return;
         try {
-          const missed = await fetchAvailableMissions();
-          if (missed?.length > 0) await notifyNewMissions(missed);
+          await fetchAllMissions();
         } catch {/* non bloquant */}
       });
 
       offHandlers = () => {
         socket.off('order:new', handleNewOrder);
         socket.off('driver:status', handleDriverStatus);
+        socket.off('order:status', handleOrderStatus);
         appStateSub.remove();
       };
 

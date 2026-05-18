@@ -91,7 +91,6 @@ export default function RegisterStep1({ navigation }) {
         value={password}
         onChangeText={(v) => updateField('password', v)}
         placeholder="••••••••••••••••"
-        secureTextEntry
         containerStyle={styles.fullInput}
       />
 
@@ -100,7 +99,6 @@ export default function RegisterStep1({ navigation }) {
         value={confirmPassword}
         onChangeText={(v) => updateField('confirmPassword', v)}
         placeholder="••••••••••••••••"
-        secureTextEntry
         containerStyle={styles.fullInput}
       />
 

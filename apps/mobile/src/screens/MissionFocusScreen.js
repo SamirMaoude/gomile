@@ -82,7 +82,7 @@ function MissionPicker({ missions, selectedId, missionStates, isOpen, onToggle, 
 }
 
 // ─── Écran principal ───────────────────────────────────────────────────────────
-export default function MissionFocusScreen({ navigation }) {
+export default function MissionFocusScreen({ navigation, route }) {
   const missionQueue      = useMissionStore((s) => s.missionQueue);
   const focusedMissionId  = useMissionStore((s) => s.focusedMissionId);
   const missionStates     = useMissionStore((s) => s.missionStates);
@@ -106,7 +106,7 @@ export default function MissionFocusScreen({ navigation }) {
   const [routeCoords,   setRouteCoords]   = useState([]);
   const [routeDistance, setRouteDistance] = useState('--');
   const [routeEta,      setRouteEta]      = useState('--');
-  const [merchantCode,  setMerchantCode]  = useState('');
+  const [merchantCode,  setMerchantCode]  = useState(route?.params?.pickupCode?.trim?.() ?? '');
   const [keyboardOffset, setKeyboardOffset] = useState(0);
   const normalizedClientCode = typedClientCode.trim();
 
@@ -127,17 +127,41 @@ export default function MissionFocusScreen({ navigation }) {
     setIsPickerOpen(false);
   }, [focusedMissionId]);
 
+  useEffect(() => {
+    const pickupCode = route?.params?.pickupCode?.trim?.();
+    if (pickupCode) {
+      setMerchantCode(pickupCode);
+    }
+  }, [route?.params?.pickupCode]);
+
+  useEffect(() => {
+    if (merchantCode) {
+      setIsPanelExpanded(true);
+    }
+  }, [merchantCode]);
+
   // ── Chargement du code commerçant (rechargé à chaque fois que l'écran prend le focus) ──
   useFocusEffect(
     useCallback(() => {
-      if (!activeMission?.id) { setMerchantCode(''); return; }
+      const routePickup = route?.params?.pickupCode?.trim?.();
+      // utilise activeMission.id si disponible, sinon tente d'obtenir l'ID depuis le store
+      const missionId = activeMission?.id || useMissionStore.getState().focusedMissionId;
+
+      if (!missionId) {
+        // si la navigation a fourni un pickupCode, on le conserve; sinon on ne force rien
+        if (routePickup) return;
+        setMerchantCode((prev) => prev || '');
+        return;
+      }
+
       let isMounted = true;
-      getMissionPickupCode(activeMission.id)
+      getMissionPickupCode(missionId)
         .then((data) => {
           if (!isMounted) return;
-          setMerchantCode(String(data?.pickupCode || data?.code || '').trim());
+          const fetched = String(data?.pickupCode || data?.code || '').trim();
+          if (fetched) setMerchantCode(fetched);
         })
-        .catch(() => { if (isMounted) setMerchantCode(''); });
+        .catch(() => { /* ne pas écraser merchantCode en cas d'erreur */ });
       return () => { isMounted = false; };
     }, [activeMission?.id])
   );

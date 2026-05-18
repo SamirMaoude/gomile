@@ -58,7 +58,7 @@ export function EmailVerificationScreen({ navigation }) {
         await updateSessionVehicle(vehicleType).catch(() => {});
       }
       resetForm();
-      navigation.replace('MainApp');
+      navigation.replace('Login');
     };
 
     const timer = setTimeout(finalize, 1200);

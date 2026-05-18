@@ -626,11 +626,11 @@ Tap sur le widget: redirection vers KYCScreen avec le statut courant.
 \end{figure}
 
 \newpage
-\section{Écran enfant: KYC (KYCScreen)}
+\subsection{Écran enfant: KYC (KYCScreen)}
 
 KYCScreen est l'écran dédié à la vérification d'identité et à la gestion des documents. C'est ici que le livreur téléverse les pièces justificatives requises.
 
-\subsection{Slots et types de documents}
+\subsubsection{Slots et types de documents}
 
 GoMile demande 5 emplacements (slots) de documents (Cette partie est succeptible de beaucoup changer car nous avons pas fini de discuter sur la notion de KYC avec les collègues):
 
@@ -644,7 +644,7 @@ GoMile demande 5 emplacements (slots) de documents (Cette partie est succeptible
 
 L'utilisateur peut téléverser des fichiers images (PNG, JPEG) ou PDF.
 
-\subsection{États de vérification d'un document}
+\subsubsection{États de vérification d'un document}
 
 Chaque document dans un slot a quatre états possibles:
 
@@ -655,7 +655,7 @@ Chaque document dans un slot a quatre états possibles:
     \item[\textbf{Refusé}] backend a rejeté le document; icône X rouge; puce rouge; badge <<Refusé — à corriger>> + raison de rejet.
 \end{description}
 
-\subsection{Statut KYC global}
+\subsubsection{Statut KYC global}
 
 Le statut global du compte KYC a aussi quatre états:
 
@@ -666,7 +666,7 @@ Le statut global du compte KYC a aussi quatre états:
     \item[\textbf{REJECTED}] un ou plusieurs documents refusés; badge <<Documents refusés>>, sous-titre <<Corrige-les et resoumets>>, icône X rouge.
 \end{description}
 
-\subsection{Workflow d'upload de document}
+\subsubsection{Workflow d'upload de document}
 
 \subsubsection{Étape 1: Sélection du fichier}
 
@@ -711,13 +711,13 @@ Le statut global du compte KYC a aussi quatre états:
     \item Statut passe à PENDING; backend commence vérification.
 \end{enumerate}
 
-\subsection{Suppression document}
+\subsubsection{Suppression document}
 
 Livreur peut supprimer un document via bouton \texttt{deleteDocument(documentId)}: DELETE \path{/driver/me/documents/\{id\}}.
 
 La puce revient à <<Non fourni>>.
 
-\subsection{Endpoints API pour KYC}
+\subsubsection{Endpoints API pour KYC}
 
 \begin{itemize}
     \item \texttt{getMyKycStatus()}: GET \path{/driver/me/kyc} → \texttt{\{status: 'NOT\_SUBMITTED'|'PENDING'|'ACCEPTED'|'REJECTED', latestSubmission\}}.
@@ -729,7 +729,7 @@ La puce revient à <<Non fourni>>.
     \item \texttt{submitMyKyc()}: POST \path{/driver/me/kyc} → soumet au backend pour vérification.
 \end{itemize}
 
-\subsection{Diagramme de flux: Upload document KYC complet}
+\subsubsection{Diagramme de flux: Upload document KYC complet}
 
 \begin{figure}[H]
     \centering
@@ -740,7 +740,7 @@ La puce revient à <<Non fourni>>.
     \label{fig:app-mobile-kyc-upload-sequence}
 \end{figure}
 
-\subsection{Diagramme d'état: KYC global + transitions documents}
+\subsubsection{Diagramme d'état: KYC global + transitions documents}
 
 \begin{figure}[H]
     \centering
@@ -751,9 +751,9 @@ La puce revient à <<Non fourni>>.
     \label{fig:app-mobile-kyc-verification-states}
 \end{figure}
 
-\section{Services et stores partagés}
+\subsection{Services et stores partagés}
 
-\subsection{Choix d'architecture pour la persistance des missions}
+\subsubsection{Choix d'architecture pour la persistance des missions}
 
 Au début du projet, l'état des stores Zustand était partiellement sauvegardé localement dans un fichier JSON sur le téléphone. L'idée était simple: si l'application était relancée, on relisait cette sauvegarde locale pour reconstruire l'état de navigation et de mission. Cette approche pouvait sembler pratique pour un prototype, mais elle introduisait un risque important: si le téléphone du livreur s'éteignait, redémarrait, ou perdait son stockage temporaire pendant une livraison, l'application pouvait restaurer une mission qui n'existait plus réellement côté serveur. On se retrouvait alors avec une \emph{mission fantôme}: l'interface affichait une livraison en cours alors que le backend ne pouvait plus garantir la cohérence de cet état.
 
@@ -761,7 +761,7 @@ Après concertation avec l'équipe, nous avons donc décidé de déplacer la sou
 
 En pratique, cela signifie que: 1) le téléphone n'est plus responsable de conserver durablement l'état d'une mission; 2) le backend garde l'historique, les statuts et les vérifications; 3) au relancement, l'application interroge le serveur pour reconstruire un état fiable au lieu de faire confiance à une sauvegarde locale possiblement obsolète.
 
-\subsection{useMissionStore (Zustand)}
+\subsubsection{useMissionStore (Zustand)}
 
 Le store central pour la gestion des missions:
 
@@ -789,7 +789,7 @@ Actions principales:
     \item \texttt{initStore()}: restaure missions actives au démarrage.
 \end{itemize}
 
-\subsection{useAvailabilityStore (Zustand)}
+\subsubsection{useAvailabilityStore (Zustand)}
 
 Store simple pour le statut en ligne/hors ligne:
 
@@ -801,7 +801,7 @@ Store simple pour le statut en ligne/hors ligne:
 
 Intégration: tout écran lit \texttt{isOnline} pour afficher/masquer les éléments mission-dépendants.
 
-\subsection{useMissionsPoller (Hook personnalisé)}
+\subsubsection{useMissionsPoller (Hook personnalisé)}
 
 Hook gérant le fetch des missions avec filtrage par écran:
 
@@ -814,7 +814,7 @@ Hook gérant le fetch des missions avec filtrage par écran:
     \item Les nouvelles missions arrivent aussi via WebSocket (events \texttt{order:new} dans MainTabs).
 \end{itemize}
 
-\subsection{socketService (WebSocket)}
+\subsubsection{socketService (WebSocket)}
 
 Connexion socket.io au backend pour événements temps réel:
 
@@ -830,7 +830,7 @@ Connexion socket.io au backend pour événements temps réel:
 
 Socket reste actif pendant toute la durée de session (MainTabs et enfants).
 
-\subsection{driver-client.ts (API endpoints)}
+\subsubsection{driver-client.ts (API endpoints)}
 
 Tous les appels API sont centralisés ici. Endpoints post-connexion:
 
@@ -859,7 +859,7 @@ Tous les appels API sont centralisés ici. Endpoints post-connexion:
 
 Gestion d'erreurs centralisée: redirection si token invalide, parsing des erreurs backend, retry logic.
 
-\subsection{Récapitulatif: flux complet d'une session livreur}
+\subsubsection{Récapitulatif: flux complet d'une session livreur}
 
 \begin{enumerate}
     \item Connexion: LoginScreen → EmailVerificationScreen → MainTabs.

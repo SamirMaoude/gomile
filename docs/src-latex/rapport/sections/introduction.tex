@@ -1,5 +1,31 @@
 
-\chapter{ Introduction }
+\chapter{Introduction}
 
+\section*{Contexte du projet}
 
-Veuillez documenter les gars, on est à  cours de temps la 
+GoMile est une plateforme de livraison développée dans le cadre d'un projet de deuxième année à l'École Nationale Supérieure d'Informatique et de Mathématiques Appliquées de Grenoble (ENSIMAG), filière Ingénierie des Systèmes d'Information. Ce projet a été réalisé pour le client \textit{GoMile Entreprise} par une équipe de cinq étudiants : Duong Dang Khoa Dang, Alpha Ousmane Diakite, Youssef Jouini, Samir Maoude et Safwane Oudrhiri Idrissi.
+
+L'objectif de GoMile est de mettre en relation des commerçants ayant besoin de livrer des colis avec des livreurs indépendants disponibles à proximité. La plateforme coordonne l'ensemble du cycle de livraison : création de mission côté commerçant, attribution et exécution par le livreur, validation par code, et reversement des gains sur un portefeuille numérique.
+
+\section*{Architecture du système}
+
+Le système GoMile repose sur plusieurs composants complémentaires :
+
+\begin{itemize}
+    \item \textbf{Application mobile livreur} (React Native / Expo) : permet au livreur de s'inscrire, de passer une vérification d'identité (KYC), de consulter et d'accepter des missions, de naviguer jusqu'au point de livraison et de gérer ses gains depuis un portefeuille intégré.
+    \item \textbf{Interface web commerciale} : espace destiné aux commerçants pour créer et suivre leurs missions de livraison.
+    \item \textbf{Interface web d'administration} : tableau de bord permettant à l'équipe GoMile de superviser l'ensemble de la plateforme, de valider les comptes livreurs et de gérer les litiges.
+    \item \textbf{Backend et API REST} : cœur métier du système, exposant l'ensemble des fonctionnalités aux différents clients via une API unifiée.
+\end{itemize}
+
+\section*{Structure du rapport}
+
+Ce document constitue le rapport technique complet du projet. Il est organisé en quatre grandes parties.
+
+Le \textbf{manuel utilisateur} présente les fonctionnalités de l'application mobile du point de vue du livreur : installation, inscription en plusieurs étapes, tableau de bord, gestion des missions, portefeuille et profil KYC.
+
+La \textbf{documentation de conception} détaille les choix d'architecture et d'implémentation pour chaque composant : le backend et son API, les interfaces web administrateur et commerciale, ainsi que l'application mobile et ses briques techniques (Zustand, React Navigation, services réseau).
+
+La section \textbf{tests et validation} rend compte de la stratégie de test adoptée pour l'application mobile : 276 tests répartis en 24 suites, couvrant les stores Zustand, les clients réseau, les hooks métier et les composants réutilisables, avec un taux de couverture supérieur à 93\,\% sur les couches critiques.
+
+Enfin, la section \textbf{plugin} documente les éventuels greffons ou extensions développés en complément de la plateforme principale.

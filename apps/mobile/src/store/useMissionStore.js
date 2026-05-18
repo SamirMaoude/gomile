@@ -162,8 +162,8 @@ export const useMissionStore = create((set, get) => ({
 
       set({ availableMissions: mapped, lastRefreshAt: new Date() });
       return newMissions;
-    } catch {
-      console.warn('[useMissionStore] fetchAvailableMissions failed');
+    } catch (err) {
+      console.warn('[useMissionStore] fetchAvailableMissions failed', err?.message ?? err);
       return [];
     }
   },
@@ -199,8 +199,8 @@ export const useMissionStore = create((set, get) => ({
       });
 
       return newMissions;
-    } catch {
-      console.warn('[useMissionStore] fetchAllMissions failed');
+    } catch (err) {
+      console.warn('[useMissionStore] fetchAllMissions failed', err?.message ?? err);
       set({ isLoadingMissions: false });
       return [];
     }

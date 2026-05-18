@@ -104,12 +104,15 @@ export default function MissionDetailsScreen({ route, navigation }) {
   const handleAccept = () => {
     (async () => {
       try {
-        await acceptMissionApi(mission.id);
+        const result = await acceptMissionApi(mission.id);
         acceptMission({
           ...mission,
           currentPosition,
         });
-        navigation.replace('MissionFocus');
+        navigation.replace('MissionFocus', {
+          pickupCode: result?.pickupCode,
+        });
+        console.log(result?.pickupCode)
       } catch (error) {
         Alert.alert('Erreur', error.message || 'Impossible d\'accepter la mission.');
       }
