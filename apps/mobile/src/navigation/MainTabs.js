@@ -79,7 +79,6 @@ export default function MainTabs() {
         if (cancelled) return;
         try {
           const newMissions = await fetchAvailableMissions();
-          ('[socket] fetchAvailableMissions →', newMissions?.length, 'nouvelles missions');
           const match = newMissions?.find((m) => m.id === payload.orderId);
           const toNotify = match ?? {
             id: payload.orderId,
@@ -104,7 +103,6 @@ export default function MainTabs() {
       const handleOrderStatus = async ({ orderId, status }) => {
         if (cancelled) return;
         try {
-          console.log('[socket] order:status reçu →', orderId, status);
           await fetchAllMissions();
         } catch (err) {
           console.warn('[socket] handleOrderStatus failed', err?.message ?? err);
@@ -114,10 +112,12 @@ export default function MainTabs() {
       // Rattrapage après reconnexion : les events émis pendant la coupure sont perdus
       socket.io.on('reconnect', async () => {
         if (cancelled) return;
-        ('[socket] reconnecté → rattrapage des missions manquées');
         try {
           await fetchAllMissions();
-        } catch {/* non bloquant */}
+        } catch (err) {
+          // Non-critical: reconnect catch-up failed
+          console.warn('[socket] reconnect catch-up failed:', err?.message);
+        }
       });
 
       socket.on('order:new', handleNewOrder);

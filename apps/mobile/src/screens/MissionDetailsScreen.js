@@ -53,7 +53,10 @@ export default function MissionDetailsScreen({ route, navigation }) {
             longitude: position.coords.longitude,
           });
         }
-      } catch (error) {}
+      } catch (error) {
+        // Non-critical: could not load current position
+        console.warn('[MissionDetails] position load failed:', error?.message);
+      }
     };
     loadCurrentPosition();
     return () => { isMounted = false; };
@@ -112,7 +115,6 @@ export default function MissionDetailsScreen({ route, navigation }) {
         navigation.replace('MissionFocus', {
           pickupCode: result?.pickupCode,
         });
-        console.log(result?.pickupCode)
       } catch (error) {
         Alert.alert('Erreur', error.message || 'Impossible d\'accepter la mission.');
       }

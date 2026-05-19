@@ -14,7 +14,10 @@ export async function saveMissionQueue(missionQueue, missionStates, focusedMissi
       file,
       JSON.stringify({ missionQueue, missionStates, focusedMissionId })
     );
-  } catch {}
+  } catch (err) {
+    // Non-critical: mission storage write failed
+    console.warn('[mission-storage] write failed:', err?.message);
+  }
 }
 
 export async function loadMissionQueue() {
