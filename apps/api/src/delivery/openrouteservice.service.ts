@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { RedisService } from '../redis/redis.service';
-import { createApiError } from 'src/common/api-error';
+import { createApiError } from '../common/api-error';
 import { API_ERRORS } from '../common/errors';
 
 type Coordinates = {

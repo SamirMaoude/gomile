@@ -8,7 +8,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { EmailVerifiedGuard } from '../auth/guards/email-verified.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { JwtService } from '@nestjs/jwt';
-import { EventsGateway } from 'src/events/events.gateway';
+import { EventsGateway } from '../events/events.gateway';
 
 @Module({
   imports: [OrderLivreursModule, UploadModule, KycModule],
