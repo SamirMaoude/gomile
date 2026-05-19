@@ -151,7 +151,7 @@ export default function MainTabs() {
       offHandlers?.();
       disconnectSocket();
     };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   // ── Suivi GPS hybride : mouvement (≥20m) OU heartbeat (2 min) ────────────────
   useEffect(() => {
