@@ -121,6 +121,7 @@ plugin_woocommerce_tests:
 test_api:
   stage: validate
   script:
+    - pnpm --filter api exec prisma generate
     - pnpm --filter api test:ci
 
 build_web:
