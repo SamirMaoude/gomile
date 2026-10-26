@@ -5,8 +5,8 @@ GoMile est une plateforme logistique de livraison. Le dépôt contient :
 - `apps/api` — backend NestJS (API REST + Prisma + Redis)
 - `apps/web` — dashboard Next.js pour marchands et administrateurs (App Router + BFF)
 - `apps/mobile` — application mobile Expo React Native pour livreurs et clients
-- `apps/plugin` — SDK TypeScript pour intégrations tierces (WooCommerce, Shopify)
-- `shared/` — contrats TypeScript partagés entre toutes les apps (types, erreurs)
+- `apps/plugin/woocommerce` — plugin WordPress/WooCommerce en PHP (`Gomile Shipment`) : devis et création de livraisons, annulation, webhooks de statut, tests PHPUnit
+- `shared/` — contrats TypeScript partagés entre les apps TypeScript (types, erreurs)
 - `infra/` — services locaux Docker (PostgreSQL/PostGIS + Redis)
 - `docs/` — documents projet (`Cahier des charges.pdf`)
 
@@ -26,7 +26,10 @@ GoMile est une plateforme logistique de livraison. Le dépôt contient :
 │   ├── mobile/
 │   │   └── lib/
 │   └── plugin/
-│       └── lib/
+│       ├── lib/
+│       └── woocommerce/
+│           ├── includes/
+│           └── tests/
 ├── shared/
 ├── infra/
 │   └── docker-compose.yml
@@ -38,6 +41,7 @@ GoMile est une plateforme logistique de livraison. Le dépôt contient :
 
 - Node.js 22 LTS
 - Docker + Docker Compose
+- PHP 8.1+ et Composer (uniquement pour le plugin WooCommerce)
 
 ## Gestionnaire de paquets (Corepack + pnpm)
 
@@ -157,9 +161,24 @@ pnpm lint
 pnpm typecheck
 ```
 
+Ces scripts ne couvrent pas le plugin WooCommerce, qui n'est pas un paquet pnpm.
+
+## Plugin WooCommerce
+
+Le plugin PHP vit dans `apps/plugin/woocommerce`. Lint et tests unitaires (PHPUnit, avec des stubs WordPress/WooCommerce : pas besoin d'une instance WordPress) :
+
+```bash
+cd apps/plugin/woocommerce
+composer install
+composer lint
+composer test
+```
+
+Installation, configuration et webhooks : voir [`apps/plugin/woocommerce/README.md`](apps/plugin/woocommerce/README.md).
+
 ## Shared — contrats partagés
 
-Le dossier `shared/` contient les types et constantes utilisés par toutes les apps :
+Le dossier `shared/` contient les types et constantes utilisés par les apps TypeScript :
 
 | Fichier | Contenu |
 |---------|---------|
@@ -170,7 +189,6 @@ Le dossier `shared/` contient les types et constantes utilisés par toutes les a
 | `store-contracts.ts` | Types `CreateStoreInput`, `StoreResponse`, `StoreProvider` |
 | `api-key-contracts.ts` | Types `CreateApiKeyInput`, `ListApiKeysItem`, `GetApiKeyResponse`, etc. |
 | `kyc-contracts.ts` | Types `DriverKycStatus`, `DriverKycSubmission`, `RejectKycInput` |
-| `delivery-contracts.ts` | Types `DeliveryEstimateInput`, `DeliveryEstimateResponse` (utilisés par le plugin) |
 
 ## Routes BFF exposées côté web
 
